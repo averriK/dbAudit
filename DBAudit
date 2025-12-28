@@ -1,0 +1,141 @@
+rm(list = ls())
+
+# CLI entrypoint
+# Preferred usage:
+#   dbAudit --project project/BV/data
+# Also supported:
+#   Rscript DBAudit --project project/BV/data
+
+showHelp <- function() {
+  cat("dbAudit (PE-DBAudit)\n\n")
+  cat("USAGE:\n")
+  cat("  dbAudit --project <DATA_ROOT> [OPTIONS]\n")
+  cat("  Rscript DBAudit --project <DATA_ROOT> [OPTIONS]\n\n")
+  cat("REQUIRED:\n")
+  cat("  --project <DATA_ROOT>\n\n")
+  cat("OPTIONS:\n")
+  cat("  --lab-dir   <REL_PATH>   (default: raw/lab)\n")
+  cat("  --assay-dir <REL_PATH>   (default: raw/assay)\n")
+  cat("  --proc-dir  <REL_PATH>   (default: proc)\n")
+  cat("  --assay-file <PATH>      (optional override; absolute path OR basename under assay-dir)\n")
+  cat("  --help, -h\n")
+  cat("\n")
+}
+
+showVersion <- function() {
+  cat("dbAudit (PE-DBAudit)\n")
+}
+
+.getScriptFile <- function() {
+  args <- commandArgs(trailingOnly = FALSE)
+  hit <- grep("^--file=", args, value = TRUE)
+  if (!length(hit)) return(NA_character_)
+  sub("^--file=", "", hit[1])
+}
+
+# Locate installation/repo root:
+# - Prefer DBAUDIT_HOME when present (set by the bash wrapper)
+# - Otherwise infer from this script's own path
+.dbauditRoot <- function() {
+  env <- Sys.getenv("DBAUDIT_HOME")
+  if (nzchar(env) && file.exists(file.path(env, "R", "setup.R"))) {
+    return(normalizePath(env, mustWork = TRUE))
+  }
+
+  f <- .getScriptFile()
+  if (is.na(f) || !nzchar(f)) {
+    stop("Cannot locate DBAudit script path (--file=... missing). Run via 'dbAudit' or 'Rscript /path/to/DBAudit'.")
+  }
+  normalizePath(dirname(f), mustWork = TRUE)
+}
+
+root <- .dbauditRoot()
+
+setup.file <- file.path(root, "R", "setup.R")
+if (!file.exists(setup.file)) {
+  stop(sprintf("Invalid installation: missing %s", setup.file))
+}
+
+source(setup.file)
+source(file.path(root, "R", "helpers.R"))
+source(file.path(root, "R", "parseLab.R"))
+source(file.path(root, "R", "parseAssay.R"))
+source(file.path(root, "R", "audit.R"))
+source(file.path(root, "R", "dbAudit.R"))
+
+args <- commandArgs(trailingOnly = TRUE)
+
+if (length(args) == 0L || any(args %in% c("-h", "--help"))) {
+  showHelp()
+  quit(save = "no", status = 0)
+}
+
+if (any(args %in% c("--version"))) {
+  showVersion()
+  quit(save = "no", status = 0)
+}
+
+project.path <- ""
+lab.dir.name <- file.path("raw", "lab")
+assay.dir.name <- file.path("raw", "assay")
+proc.dir.name <- "proc"
+assay.file <- ""
+
+k <- 1L
+while (k <= length(args)) {
+  a <- args[k]
+
+  if (identical(a, "--project")) {
+    if (k == length(args)) stop("--project requires a value")
+    if (nzchar(project.path)) stop("--project specified more than once")
+    project.path <- args[k + 1L]
+    k <- k + 2L
+    next
+  }
+
+  if (identical(a, "--lab-dir")) {
+    if (k == length(args)) stop("--lab-dir requires a value")
+    lab.dir.name <- args[k + 1L]
+    k <- k + 2L
+    next
+  }
+
+  if (identical(a, "--assay-dir")) {
+    if (k == length(args)) stop("--assay-dir requires a value")
+    assay.dir.name <- args[k + 1L]
+    k <- k + 2L
+    next
+  }
+
+  if (identical(a, "--proc-dir")) {
+    if (k == length(args)) stop("--proc-dir requires a value")
+    proc.dir.name <- args[k + 1L]
+    k <- k + 2L
+    next
+  }
+
+  if (identical(a, "--assay-file")) {
+    if (k == length(args)) stop("--assay-file requires a value")
+    if (nzchar(assay.file)) stop("--assay-file specified more than once")
+    assay.file <- args[k + 1L]
+    k <- k + 2L
+    next
+  }
+
+  stop(sprintf("Unknown argument: %s", a))
+}
+
+if (!nzchar(project.path)) {
+  stop("Missing --project. Try: dbAudit --project project/BV/data")
+}
+
+assay.file.arg <- NULL
+if (nzchar(assay.file)) assay.file.arg <- assay.file
+
+DBAudit(
+  project.path = project.path,
+  lab.dir.name = lab.dir.name,
+  assay.dir.name = assay.dir.name,
+  proc.dir.name = proc.dir.name,
+  assay.file = assay.file.arg
+)
