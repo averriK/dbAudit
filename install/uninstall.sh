@@ -1,13 +1,17 @@
 #!/usr/bin/env bash
-# dbAudit uninstaller (user-mode)
+# dbAudit Uninstaller for macOS/Linux (single /usr/local layout)
+#
 # Removes:
-#   - $HOME/bin/dbAudit
-#   - $HOME/.local/libexec/dbAudit
+#   - /usr/local/bin/dbAudit
+#   - /usr/local/libexec/dbAudit
+#
+# Note:
+#   This script does not call sudo. If you installed with sudo, uninstall with sudo too.
 
 set -euo pipefail
 
-BIN_PATH="$HOME/bin/dbAudit"
-LIBEXEC_DIR="$HOME/.local/libexec/dbAudit"
+BIN_PATH="/usr/local/bin/dbAudit"
+LIBEXEC_DIR="/usr/local/libexec/dbAudit"
 
 # Colours
 RED='\033[0;31m'
@@ -21,11 +25,13 @@ ok()     { echo -e "${GREEN}[OK]${NC} $*"; }
 warn()   { echo -e "${YELLOW}[WARN]${NC} $*"; }
 error()  { echo -e "${RED}[ERROR]${NC} $*"; exit 1; }
 
-info "dbAudit uninstaller (user mode)"
+info "dbAudit Uninstaller (single /usr/local layout)"
 
-if [[ -f "$BIN_PATH" ]]; then
+if [[ -e "$BIN_PATH" ]]; then
   info "Removing $BIN_PATH"
-  rm -f "$BIN_PATH"
+  if ! rm -f "$BIN_PATH" 2>/dev/null; then
+    error "Could not remove $BIN_PATH (permission denied?). Run this uninstaller with sudo."
+  fi
   ok "Removed $BIN_PATH"
 else
   warn "Not found: $BIN_PATH"
@@ -33,12 +39,13 @@ fi
 
 if [[ -d "$LIBEXEC_DIR" ]]; then
   info "Removing $LIBEXEC_DIR"
-  rm -rf "$LIBEXEC_DIR"
+  if ! rm -rf "$LIBEXEC_DIR" 2>/dev/null; then
+    error "Could not remove $LIBEXEC_DIR (permission denied?). Run this uninstaller with sudo."
+  fi
   ok "Removed $LIBEXEC_DIR"
 else
   warn "Not found: $LIBEXEC_DIR"
 fi
 
+echo ""
 ok "Uninstall complete"
-
-info "If 'dbAudit' still resolves in your shell, restart the shell or clear the command hash."
