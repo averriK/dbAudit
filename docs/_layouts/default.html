@@ -1,0 +1,108 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>{{ page.title }}{% if site.title %} | {{ site.title }}{% endif %}</title>
+    <style>
+      :root {
+        --bg: #0b0f14;
+        --fg: #e6edf3;
+        --muted: #9da7b3;
+        --card: #111827;
+        --border: #223047;
+        --link: #7dd3fc;
+        --code: #0f172a;
+      }
+      * { box-sizing: border-box; }
+      body {
+        margin: 0;
+        font: 16px/1.55 ui-sans-serif, system-ui, -apple-system, Segoe UI, Roboto, Helvetica, Arial;
+        background: var(--bg);
+        color: var(--fg);
+      }
+      a { color: var(--link); text-decoration: none; }
+      a:hover { text-decoration: underline; }
+      header {
+        border-bottom: 1px solid var(--border);
+        background: rgba(17, 24, 39, 0.7);
+        backdrop-filter: blur(8px);
+      }
+      .wrap { max-width: 1000px; margin: 0 auto; padding: 0 16px; }
+      .nav {
+        display: flex;
+        gap: 14px;
+        align-items: center;
+        padding: 12px 0;
+        flex-wrap: wrap;
+      }
+      .nav a { color: var(--fg); opacity: 0.9; }
+      .nav a:hover { opacity: 1; }
+      .nav .sep { color: var(--muted); opacity: 0.7; }
+      main { padding: 24px 0 56px; }
+      article {
+        background: var(--card);
+        border: 1px solid var(--border);
+        border-radius: 12px;
+        padding: 18px 18px;
+      }
+      h1, h2, h3 { line-height: 1.2; }
+      h1 { margin-top: 0; }
+      code, pre {
+        font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, "Liberation Mono", "Courier New", monospace;
+      }
+      pre {
+        background: var(--code);
+        border: 1px solid var(--border);
+        border-radius: 10px;
+        padding: 12px 14px;
+        overflow: auto;
+      }
+      code {
+        background: rgba(15, 23, 42, 0.7);
+        padding: 0.15em 0.35em;
+        border-radius: 6px;
+      }
+      pre code { background: transparent; padding: 0; }
+      hr { border: 0; border-top: 1px solid var(--border); margin: 22px 0; }
+      footer {
+        color: var(--muted);
+        font-size: 13px;
+        padding: 14px 0 0;
+      }
+    </style>
+  </head>
+  <body>
+    <header>
+      <div class="wrap">
+        <nav class="nav">
+          <a href="{{ "/" | relative_url }}">Home</a>
+          <span class="sep">/</span>
+          <a href="{{ "/docs/" | relative_url }}">Docs</a>
+          <a href="{{ "/docs/quickstart/" | relative_url }}">Quick start</a>
+          <a href="{{ "/docs/project-layout/" | relative_url }}">Project layout</a>
+          <a href="{{ "/docs/logging/" | relative_url }}">Logging</a>
+          <a href="{{ "/docs/parsers/" | relative_url }}">Parsers</a>
+          <a href="{{ "/docs/audit/" | relative_url }}">Audits</a>
+          <a href="{{ "/docs/tests/" | relative_url }}">Tests</a>
+          {% if site.github and site.github.repository_url %}
+            <span class="sep">·</span>
+            <a href="{{ site.github.repository_url }}">GitHub</a>
+          {% endif %}
+        </nav>
+      </div>
+    </header>
+    <main>
+      <div class="wrap">
+        <article>
+          {{ content }}
+          <footer>
+            {% if site.time %}
+              Built: {{ site.time | date_to_rfc822 }}
+            {% endif %}
+          </footer>
+        </article>
+      </div>
+    </main>
+  </body>
+</html>

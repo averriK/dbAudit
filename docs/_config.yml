@@ -1,0 +1,17 @@
+title: PE-DBAudit
+description: Geochemical certificate parser and validator (type A / type B)
+remote_theme: pages-themes/modernist@v0.2.0
+plugins:
+  - jekyll-remote-theme
+markdown: kramdown
+kramdown:
+  input: GFM
+  syntax_highlighter: rouge
+
+# Keep the docs site self-contained when GitHub Pages is configured to build from /docs
+# (Settings → Pages → Deploy from a branch → /docs).
+exclude:
+  - ".DS_Store"
+  - "README.md"        # repo-internal index (not part of the public docs site)
+  - "conventions.md"   # internal developer conventions
+  - "plan.md"          # internal history/plan log
