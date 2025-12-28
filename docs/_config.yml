@@ -1,4 +1,4 @@
-title: PE-DBAudit
+title: dbAudit
 description: Geochemical certificate parser and validator (type A / type B)
 remote_theme: pages-themes/modernist@v0.2.0
 plugins:

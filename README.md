@@ -1,4 +1,4 @@
-# PE-DBAudit
+# dbAudit
 
 **Geochemical Certificate Parser and Validator**
 
@@ -35,14 +35,14 @@ R pipeline for parsing laboratory geochemical certificates into normalized long-
 
 - **R (≥ 3.5)**: Core language (make sure `Rscript` is available in your terminal)
 - **Operating System**: Linux, macOS, Windows
-- **Windows shell**: Git Bash recommended for running `install.sh` and CLI examples
+- **Windows shell**: Git Bash recommended for running `install/install.sh` and CLI examples
 
 ### Install dependencies (recommended)
 
 From the repo root, run:
 
 ```bash
-bash install.sh
+bash install/install.sh
 ```
 
 This installer:
@@ -71,8 +71,8 @@ export PATH="$HOME/bin:$PATH"
 ### 1. Prepare input data
 
 For quick verification, use the bundled datasets:
-- Type A: `test-A/`
-- Type B: `test-B/`
+- Type A: `project/test-A/`
+- Type B: `project/test-B/`
 
 For project runs, `DBAudit` expects the following layout under a `project.path` (data root):
 - Lab certificates: `project.path/raw/lab/`
@@ -129,7 +129,7 @@ This project provides an end-to-end R pipeline (`DBAudit`) that:
 
 ## Documentation
 
-- GitHub Pages (user docs): https://srkconsulting.github.io/PE-DBAudit/docs/
+- GitHub Pages (user docs, if enabled): https://averrik.github.io/dbAudit/docs/
 - In-repo docs (source): `docs/`
 
 ---
@@ -450,7 +450,7 @@ Test scripts write outputs under `test-A/` and `test-B/`.
 
 All events logged to:
 - Project runs: `project/<PROJECT>/data/proc/log.csv`
-- Tests: `test-A/log.csv` and `test-B/log.csv`
+- Tests: `project/test-A/proc/log.csv` and `project/test-B/proc/log.csv`
 
 | Column | Description |
 |--------|-------------|
@@ -529,14 +529,13 @@ log[grepl("jobID=LAB12345", message)]
 ## Project Structure
 
 ```
-PE-DBAudit/
+dbAudit/
 ├── DBAudit                # R CLI entrypoint (invoked by dbAudit)
 ├── bin/
 │   └── dbAudit            # Bash CLI (preferred)
 ├── install/
 │   ├── install.sh         # Installer (user-mode, cross-platform)
 │   └── uninstall.sh       # Uninstaller (user-mode)
-├── install.sh             # Convenience wrapper for install/install.sh
 ├── R/
 │   ├── setup.R            # Package loading
 │   ├── dbAudit.R          # Project runner function (DBAudit)
@@ -552,12 +551,11 @@ PE-DBAudit/
 │   ├── parsers.md
 │   ├── audit.md
 │   └── tests.md
-├── test-A/                # Type-A regression dataset + runner
-├── test-B/                # Type-B dataset + runner
-├── project/               # Project datasets (can be large)
-├── py/                    # Auxiliary Python scripts
+├── project/               # Project datasets (can be large; tracked via Git LFS)
+│   ├── test-A/            # Type-A regression dataset + runner
+│   └── test-B/            # Type-B dataset + runner
 ├── README.md
-└── LICENSE
+└── PE-DBAudit.Rproj
 
 ```
 
@@ -585,7 +583,7 @@ PE-DBAudit/
 Use the repo installer (recommended):
 
 ```bash
-bash install.sh
+bash install/install.sh
 ```
 
 ---
@@ -601,7 +599,7 @@ For project runs, ensure:
 In CLI terms, you run:
 - `dbAudit --project project/<PROJECT>/data`
 
-For a self-contained check, run `Rscript test-A/run.R` or `Rscript test-B/run.R`.
+For a self-contained check, run `Rscript project/test-A/run.R` or `Rscript project/test-B/run.R`.
 
 ### Outputs not created
 
@@ -673,7 +671,7 @@ parseLabData(
 
 ## Contributing
 
-Issues and pull requests are welcome at the [GitHub repository](https://github.com/SRKConsulting/PE-DBAudit).
+Issues and pull requests are welcome at the [GitHub repository](https://github.com/averriK/dbAudit).
 
 For bug reports, please include:
 - Operating system and version
@@ -714,11 +712,11 @@ SOFTWARE.
 When using this pipeline in research or professional work, please cite:
 
 ```bibtex
-@software{pedaudit2025,
+@software{dbaudit2025,
   author = {Verri Kozlowski, Alejandro},
-  title = {PE-DBAudit: Geochemical Certificate Parser and Validator},
+  title = {dbAudit: Geochemical Certificate Parser and Validator},
   year = {2025},
-  url = {https://github.com/SRKConsulting/PE-DBAudit}
+  url = {https://github.com/averriK/dbAudit}
 }
 ```
 

@@ -5,13 +5,13 @@ permalink: /docs/tests/
 ---
 
 # Tests
-The repo includes two runnable test suites:
+The repo includes two runnable test suites under `project/`:
 
-## `test-A/`
+## `project/test-A/`
 Purpose: **regression** for type-A.
 
 Run:
-- `Rscript test-A/run.R`
+- `Rscript project/test-A/run.R`
 
 What it checks:
 - Runs the original type-A lab parser (`parseLabDataA`) and the universal lab parser with `format="A"`.
@@ -21,23 +21,22 @@ What it checks:
 
 This answers: “does the universal parser replicate the old parser for type A?”
 
-## `test-B/`
+Outputs:
+- `project/test-A/proc/` (generated; ignored by git).
+
+## `project/test-B/`
 Purpose: **smoke test** for type-B parsing + type-B audit.
 
 Run:
-- `Rscript test-B/run.R`
+- `Rscript project/test-B/run.R`
 
 What it does:
-- Parses a type-B lab certificate directory (`test-B/raw/`) using `parseLabData(format="B")`.
-- Parses a type-B assay table (`test-B/assay/AAQ_Sample_Assay.csv`) using `parseAssayData(format="B")`.
+- Parses a type-B lab certificate directory (`project/test-B/raw/`) using `parseLabData(format="B")`.
+- Parses a type-B assay table (`project/test-B/assay/AAQ_Sample_Assay.csv`) using `parseAssayData(format="B")`.
 - Runs `auditStructure()` and `auditValuesB()` using `index.csv` produced from the lab.
 
 Outputs:
-- `test-B/index.csv`, `test-B/lab.csv`, `test-B/client.csv`, `test-B/log.csv`.
+- `project/test-B/proc/` (generated; ignored by git).
 
 Notes:
 - In type B, `client.csv` starts with `standardID=NA` (method is inferred during audit).
-
-## Resultados (última verificación)
-- 2025-12-27: `Rscript test-A/run.R` pasó (exit 0).
-- 2025-12-27: `Rscript test-B/run.R` pasó (exit 0).

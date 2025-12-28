@@ -1,0 +1,11 @@
+data/*
+project/*/data/proc/
+project/*/proc/
+.idea/
+AGENTS.md
+CLAUDE.md
+
+.Rproj.user
+.vscode
+venv
+.DS_Store

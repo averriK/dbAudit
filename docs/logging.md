@@ -12,8 +12,8 @@ Project runs write a structured CSV log to:
 
 Tests write:
 
-- `test-A/log.csv`
-- `test-B/log.csv`
+- `project/test-A/proc/log.csv`
+- `project/test-B/proc/log.csv`
 
 ## Log schema
 

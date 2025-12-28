@@ -1,8 +1,8 @@
 # Documentation
 
-User-facing documentation is published via GitHub Pages:
+User-facing documentation can be published via GitHub Pages (if configured):
 
-- https://srkconsulting.github.io/PE-DBAudit/docs/
+- https://averrik.github.io/dbAudit/docs/
 
 ## Chapters
 
@@ -18,11 +18,11 @@ User-facing documentation is published via GitHub Pages:
 You can run `dbAudit` from any directory (it runs the pipeline from its runtime root internally).
 
 - Install dependencies (first run):
-  - `bash install.sh`
+  - `bash install/install.sh`
 
 - Run a project:
   - `dbAudit --project project/BV/data`
 
 - Optional self-checks:
-  - `Rscript test-A/run.R`
-  - `Rscript test-B/run.R`
+  - `Rscript project/test-A/run.R`
+  - `Rscript project/test-B/run.R`

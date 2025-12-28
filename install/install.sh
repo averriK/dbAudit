@@ -1,5 +1,5 @@
 #!/usr/bin/env bash
-# PE-DBAudit installer (user-mode, cross-platform)
+# dbAudit installer (user-mode, cross-platform)
 # - Works on macOS/Linux and Windows via Git Bash
 # - Installs the dbAudit CLI into $HOME/bin (no sudo)
 # - Installs runtime into $HOME/.local/libexec/dbAudit
@@ -9,7 +9,7 @@
 #   bash install/install.sh
 #
 # Usage (remote, no repo):
-#   curl -fsSL https://raw.githubusercontent.com/SRKConsulting/PE-DBAudit/main/install/install.sh | bash
+#   curl -fsSL https://raw.githubusercontent.com/averriK/dbAudit/main/install/install.sh | bash
 
 set -euo pipefail
 
@@ -30,7 +30,7 @@ ok()     { echo -e "${GREEN}[OK]${NC} $*"; }
 warn()   { echo -e "${YELLOW}[WARN]${NC} $*"; }
 error()  { echo -e "${RED}[ERROR]${NC} $*"; exit 1; }
 
-info "PE-DBAudit installer (user mode)"
+info "dbAudit installer (user mode)"
 
 # Detect if we are running from a local checkout (SCRIPT_DIR/.. contains DBAudit + R/ + bin/dbAudit)
 SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" >/dev/null 2>&1 && pwd)"
@@ -46,18 +46,18 @@ else
     error "curl and tar are required for remote install (not found in PATH)."
   fi
 
-  info "No local checkout detected; downloading PE-DBAudit from main branch..."
+  info "No local checkout detected; downloading dbAudit from main branch..."
   TMP_DIR="$(mktemp -d)"
   trap 'rm -rf "$TMP_DIR"' EXIT
 
   info "Downloading $TARBALL_URL"
-  if ! curl -fsSL "$TARBALL_URL" -o "$TMP_DIR/pe-dbaudit.tar.gz"; then
-    error "Failed to download PE-DBAudit from $TARBALL_URL"
+  if ! curl -fsSL "$TARBALL_URL" -o "$TMP_DIR/dbaudit.tar.gz"; then
+    error "Failed to download dbAudit from $TARBALL_URL"
   fi
   ok "Downloaded archive"
 
   info "Extracting archive..."
-  if ! tar -xzf "$TMP_DIR/pe-dbaudit.tar.gz" -C "$TMP_DIR" --strip-components=1 2>/dev/null; then
+  if ! tar -xzf "$TMP_DIR/dbaudit.tar.gz" -C "$TMP_DIR" --strip-components=1 2>/dev/null; then
     error "Failed to extract archive"
   fi
   ok "Extracted"
@@ -143,4 +143,4 @@ info "Run with:"
 info "  dbAudit --project project/<PROJECT>/data"
 echo ""
 info "Documentation:"
-info "  https://srkconsulting.github.io/PE-DBAudit/docs/quickstart/"
+info "  https://github.com/averriK/dbAudit/tree/main/docs/quickstart.md"

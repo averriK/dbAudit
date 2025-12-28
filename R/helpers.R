@@ -262,13 +262,38 @@
 }
 
 
-.jobIDsWithErrors <- function(log.file = "data/proc/log.csv") {
-  DT <- data.table::fread(log.file, colClasses = "character")
-  unique(sub(".*jobID=([^; ,]+).*", "\\1", DT[level == "ERROR", message]))
+.extractJobIDsFromMessages <- function(msg) {
+  if (is.null(msg) || length(msg) == 0L) return(character())
+  msg <- as.character(msg)
+  m <- regexec("jobID=([^; ,]+)", msg)
+  hits <- regmatches(msg, m)
+  job <- vapply(
+    hits,
+    FUN = function(x) if (length(x) >= 2L) x[2L] else NA_character_,
+    FUN.VALUE = character(1)
+  )
+  job <- job[!is.na(job) & nzchar(job) & job != "NA"]
+  unique(job)
 }
 
+.jobIDsWithLabParseErrors <- function(log.file = "data/proc/log.csv") {
+  DT <- data.table::fread(log.file, colClasses = "character")
+  ev <- c("PARSE_ERROR", "DUPLICATE_VID", "SAMPLEID_NOT_UNIQUE", "UNKNOWN_FORMAT")
+  .extractJobIDsFromMessages(DT[level == "ERROR" & event %in% ev, message])
+}
+
+.jobIDsWithClientParseErrors <- function(log.file = "data/proc/log.csv") {
+  DT <- data.table::fread(log.file, colClasses = "character")
+  ev <- c("CLIENT_PARSE_ERROR", "CLIENT_MISSING_COLUMNS")
+  .extractJobIDsFromMessages(DT[level == "ERROR" & event %in% ev, message])
+}
+
+.jobIDsWithErrors <- function(log.file = "data/proc/log.csv") {
+  DT <- data.table::fread(log.file, colClasses = "character")
+  .extractJobIDsFromMessages(DT[level == "ERROR", message])
+}
 
 .jobIDsWithWarnings <- function(log.file = "data/proc/log.csv") {
   DT <- data.table::fread(log.file, colClasses = "character")
-  unique(sub(".*jobID=([^; ,]+).*", "\\1", DT[level == "WARNING", message]))
+  .extractJobIDsFromMessages(DT[level == "WARNING", message])
 }
