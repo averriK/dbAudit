@@ -12,7 +12,7 @@ permalink: /docs/quickstart/
 2) From the repo root, run:
 
 ```bash
-bash install.sh
+bash install/install.sh
 ```
 
 This installs the required R packages and installs the `dbAudit` command in `$HOME/bin`.
@@ -69,11 +69,11 @@ See the full log guide: [Logging]({{ "/docs/logging/" | relative_url }})
 - Type-A regression:
 
 ```bash
-Rscript test-A/run.R
+Rscript project/test-A/run.R
 ```
 
 - Type-B smoke test:
 
 ```bash
-Rscript test-B/run.R
+Rscript project/test-B/run.R
 ```

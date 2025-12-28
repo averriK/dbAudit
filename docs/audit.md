@@ -7,6 +7,21 @@ permalink: /docs/audit/
 # Audits
 Auditing is implemented in `R/audit.R` and is designed to be run after parsing.
 
+## Audit domain semantics
+
+The audit treats **lab certificates as the source of truth** and the **assay (client) as the declared scope**.
+
+- **Lab > Assay is OK**: if lab has more certificates/results than the assay references, this is not an error.
+- **Assay > Lab is a problem**: if the assay references jobIDs that do not exist in lab, the audit will report it.
+
+Border-case examples:
+- Lab has 1000 jobIDs and assay reports 100 jobIDs → OK (audit runs on the assay domain).
+- Lab has 100 jobIDs and assay reports 150 jobIDs → ERROR/WARNING events for the 50 missing jobIDs.
+
+Parse-error semantics:
+- If a **lab certificate fails to parse**, the lab provides no usable backing for that jobID. The audit keeps the assay rows and reports missing lab support.
+- If the **assay file fails to parse**, `client.csv` is not created and the audit stage is skipped.
+
 ## Structure audit (A and B)
 Function: `auditStructure(log.file, data.client, data.lab, fix=FALSE)`
 - Detects systematic jobID/sampleID mismatches (prefix/suffix patterns).

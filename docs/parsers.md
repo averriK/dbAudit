@@ -51,7 +51,7 @@ Both lab and assay parsers write long-format tables:
 - `client.csv`: `(jobID, sampleID, elementID, standardID, unitID, tagDL, value)` (for type B, `standardID` starts as `NA`)
 
 ## Regression guarantee (type A)
-`test-A/run.R` runs:
+`project/test-A/run.R` runs:
 - original type-A parsers, and
 - universal parsers with `format="A"`
 

@@ -1,5 +1,5 @@
 #!/usr/bin/env bash
-# dbAudit - user-facing CLI wrapper for PE-DBAudit
+# dbAudit - user-facing CLI wrapper
 # Runs the R entrypoint (DBAudit) from the runtime root, regardless of caller CWD.
 
 set -Eeuo pipefail

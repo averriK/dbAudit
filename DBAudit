@@ -7,7 +7,7 @@ rm(list = ls())
 #   Rscript DBAudit --project project/BV/data
 
 showHelp <- function() {
-  cat("dbAudit (PE-DBAudit)\n\n")
+  cat("dbAudit\n\n")
   cat("USAGE:\n")
   cat("  dbAudit --project <DATA_ROOT> [OPTIONS]\n")
   cat("  Rscript DBAudit --project <DATA_ROOT> [OPTIONS]\n\n")
@@ -23,7 +23,7 @@ showHelp <- function() {
 }
 
 showVersion <- function() {
-  cat("dbAudit (PE-DBAudit)\n")
+  cat("dbAudit\n")
 }
 
 .getScriptFile <- function() {

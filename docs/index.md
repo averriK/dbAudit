@@ -6,7 +6,7 @@ permalink: /docs/
 
 # Documentation
 
-User-facing documentation for PE-DBAudit.
+User-facing documentation for dbAudit.
 
 ## Guides
 

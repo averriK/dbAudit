@@ -1,10 +1,10 @@
 ---
 layout: default
-title: PE-DBAudit
+title: dbAudit
 permalink: /
 ---
 
-# PE-DBAudit
+# dbAudit
 
 Geochemical certificate parser and validator.
 
@@ -17,7 +17,7 @@ Geochemical certificate parser and validator.
 ## Install dependencies (first run)
 
 ```bash
-bash install.sh
+bash install/install.sh
 ```
 
 ## Quick run

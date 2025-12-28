@@ -6,50 +6,63 @@
 auditStructure <- function(log.file, data.client, data.lab, fix = FALSE, file.id = file.path("data","proc","client.csv")) {
   DATA.lab <- data.lab
   DATA.client <- data.client
-  # Stage 1: wrong jobID (client jobID not in lab, but sampleID exists in lab)
+  # Stage 1: jobID mismatch (client jobID not in lab)
   jobID.lab <- unique(DATA.lab$jobID)
   sampleID.lab <- unique(DATA.lab$sampleID)
-  DT <- DATA.client[!(jobID %in% jobID.lab) & sampleID %in% sampleID.lab]
-  N.jobID.wrong <- DT[, uniqueN(jobID)]
+
+  jobID.missing <- unique(DATA.client[!(jobID %in% jobID.lab) & !is.na(jobID) & jobID != "", jobID])
+  N.jobID.wrong <- length(jobID.missing)
   N.jobID.fixed <- 0L
+
   if (N.jobID.wrong > 0L) {
     .log(log.file, "WARNING", file.id, "JOBID_MISMATCH", sprintf("count=%d", N.jobID.wrong))
+
+    # Attempt systematic correction only when sampleID exists in lab (so we can infer mapping).
     DT.client <- DATA.client[!(jobID %in% jobID.lab) & sampleID %in% sampleID.lab, .(sampleID, jobID.client = jobID)] |> unique()
-    sampleID.client <- unique(DT.client$sampleID)
 
-    DT.lab <- DATA.lab[sampleID %in% sampleID.client, .(sampleID, jobID.lab = jobID)] |> unique()
+    prefix <- character()
+    suffix <- character()
 
-    # Some sampleIDs can appear in multiple lab jobIDs (e.g., re-analyses). Exclude those to avoid cartesian joins.
-    DT.multi <- DT.lab[, .(N.jobID = uniqueN(jobID.lab)), by = .(sampleID)][N.jobID > 1L]
-    if (nrow(DT.multi) > 0L) {
-      .log(log.file, "WARNING", file.id, "SAMPLEID_MULTI_JOBID", sprintf("count=%d", nrow(DT.multi)))
-      DT.client <- DT.client[!(sampleID %chin% DT.multi$sampleID)]
-      DT.lab <- DT.lab[!(sampleID %chin% DT.multi$sampleID)]
+    if (nrow(DT.client) > 0L) {
+      sampleID.client <- unique(DT.client$sampleID)
+
+      DT.lab <- DATA.lab[sampleID %in% sampleID.client, .(sampleID, jobID.lab = jobID)] |> unique()
+
+      # Some sampleIDs can appear in multiple lab jobIDs (e.g., re-analyses). Exclude those to avoid cartesian joins.
+      DT.multi <- DT.lab[, .(N.jobID = uniqueN(jobID.lab)), by = .(sampleID)][N.jobID > 1L]
+      if (nrow(DT.multi) > 0L) {
+        .log(log.file, "WARNING", file.id, "SAMPLEID_MULTI_JOBID", sprintf("count=%d", nrow(DT.multi)))
+        DT.client <- DT.client[!(sampleID %chin% DT.multi$sampleID)]
+        DT.lab <- DT.lab[!(sampleID %chin% DT.multi$sampleID)]
+      }
+
+      DT <- DT.client[DT.lab, on = "sampleID", nomatch = 0L] |> unique()
+      DT[, c("prefix", "suffix") := {
+        x <- .diffLcs(jobID.client, jobID.lab)
+        list(x$dc, x$dl)
+      }, by = .I] |> unique()
+      prefix <- unique(DT$prefix)
+      suffix <- unique(DT$suffix)
+
+      if (isTRUE(fix)) {
+        if (length(prefix) == 1 && nzchar(prefix)) {
+          DATA.client[!(jobID %in% jobID.lab) & sampleID %in% sampleID.lab, jobID := sub(paste0("^", prefix), "", jobID)]
+        }
+        if (length(suffix) == 1 && nzchar(suffix)) {
+          DATA.client[!(jobID %in% jobID.lab) & sampleID %in% sampleID.lab, jobID := sub(paste0(suffix, "$"), "", jobID)]
+        }
+      }
     }
 
-    DT <- DT.client[DT.lab, on = "sampleID", nomatch = 0L] |> unique()
-    DT[, c("prefix", "suffix") := {
-      x <- .diffLcs(jobID.client, jobID.lab)
-      list(x$dc, x$dl)
-    }, by = .I] |> unique()
-    prefix <- unique(DT$prefix)
-    suffix <- unique(DT$suffix)
-    if (isTRUE(fix)) {
-      if (length(prefix) == 1 && nzchar(prefix)) {
-        DATA.client[!(jobID %in% jobID.lab) & sampleID %in% sampleID.lab, jobID := sub(paste0("^", prefix), "", jobID)]
-      }
-      if (length(suffix) == 1 && nzchar(suffix)) {
-        DATA.client[!(jobID %in% jobID.lab) & sampleID %in% sampleID.lab, jobID := sub(paste0(suffix, "$"), "", jobID)]
-      }
-    }
-    DT <- DATA.client[!(jobID %in% jobID.lab) & sampleID %in% sampleID.lab]
-    N.jobID.fixed <- max(N.jobID.wrong - DT[, uniqueN(jobID)], 0L)
+    jobID.missing.after <- unique(DATA.client[!(jobID %in% jobID.lab) & !is.na(jobID) & jobID != "", jobID])
+    N.jobID.fixed <- max(N.jobID.wrong - length(jobID.missing.after), 0L)
     prefix.msg <- if (length(prefix) == 1) prefix else ""
     suffix.msg <- if (length(suffix) == 1) suffix else ""
     .log(log.file, "INFO", file.id, "JOBID_FIXED", sprintf("fixed=%d; prefix=%s; suffix=%s", N.jobID.fixed, prefix.msg, suffix.msg))
   }
+
   # ERROR per remaining wrong jobID
-  DT <- unique(DATA.client[!(jobID %in% jobID.lab) & (sampleID %in% sampleID.lab), .(jobID)])
+  DT <- unique(DATA.client[!(jobID %in% jobID.lab) & !is.na(jobID) & jobID != "", .(jobID)])
   if (nrow(DT) > 0L) for (j in DT$jobID) .log(log.file, "ERROR", file.id, "WRONG_JOBID", sprintf("jobID=%s", j))
 
   # Stage 2: wrong sampleID (jobID exists in lab but sampleID not found)

@@ -152,10 +152,18 @@ DBAudit <- function(
   DATA.lab <- fread(data.file)
   DATA.client <- fread(output.file)
 
-  jobID.failed <- .jobIDsWithErrors(log.file = log.file)
-  if (length(jobID.failed)) {
-    DATA.lab <- DATA.lab[!(jobID %in% jobID.failed)]
-    DATA.client <- DATA.client[!(jobID %in% jobID.failed)]
+  jobID.lab.failed <- .jobIDsWithLabParseErrors(log.file = log.file)
+  jobID.client.failed <- .jobIDsWithClientParseErrors(log.file = log.file)
+
+  # If a lab certificate failed to parse, lab has no usable backing for that jobID.
+  # Keep client rows so the audit can report missing lab support.
+  if (length(jobID.lab.failed)) {
+    DATA.lab <- DATA.lab[!(jobID %in% jobID.lab.failed)]
+  }
+
+  # If the assay parse had job-scoped errors (rare), exclude those client rows from audit.
+  if (length(jobID.client.failed)) {
+    DATA.client <- DATA.client[!(jobID %in% jobID.client.failed)]
   }
 
   OUT <- auditStructure(log.file = log.file, data.lab = DATA.lab, data.client = DATA.client, fix = fix.structure)

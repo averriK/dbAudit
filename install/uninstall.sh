@@ -1,5 +1,5 @@
 #!/usr/bin/env bash
-# PE-DBAudit uninstaller (user-mode)
+# dbAudit uninstaller (user-mode)
 # Removes:
 #   - $HOME/bin/dbAudit
 #   - $HOME/.local/libexec/dbAudit
@@ -21,7 +21,7 @@ ok()     { echo -e "${GREEN}[OK]${NC} $*"; }
 warn()   { echo -e "${YELLOW}[WARN]${NC} $*"; }
 error()  { echo -e "${RED}[ERROR]${NC} $*"; exit 1; }
 
-info "PE-DBAudit uninstaller (user mode)"
+info "dbAudit uninstaller (user mode)"
 
 if [[ -f "$BIN_PATH" ]]; then
   info "Removing $BIN_PATH"
