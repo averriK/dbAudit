@@ -2,15 +2,12 @@ rm(list = ls())
 
 # CLI entrypoint
 # Preferred usage:
-#   dbAudit --project project/BV/data
-# Also supported:
-#   Rscript DBAudit --project project/BV/data
+#   dbAudit --project <DATA_ROOT>
 
 showHelp <- function() {
   cat("dbAudit\n\n")
   cat("USAGE:\n")
-  cat("  dbAudit --project <DATA_ROOT> [OPTIONS]\n")
-  cat("  Rscript DBAudit --project <DATA_ROOT> [OPTIONS]\n\n")
+  cat("  dbAudit --project <DATA_ROOT> [OPTIONS]\n\n")
   cat("REQUIRED:\n")
   cat("  --project <DATA_ROOT>\n\n")
   cat("OPTIONS:\n")

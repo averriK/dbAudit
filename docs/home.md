@@ -6,19 +6,15 @@ permalink: /
 
 # dbAudit
 
-Geochemical certificate parser and validator.
+Geochemical certificate parser and audit tool.
 
 - Parses **lab certificates** (type A and type B) into `lab.csv` + `index.csv`.
 - Parses **assay/client tables** (type A and type B) into `client.csv`.
-- Runs audits:
-  - structure audit (systematic jobID/sampleID mismatches)
-  - value audit (type A numeric comparison; type B method inference + DL/tag/value checks)
+- Runs audits (structure + values).
 
-## Install dependencies (first run)
+## Install
 
-```bash
-bash install/install.sh
-```
+Go to: [Install]({{ "/docs/install/" | relative_url }})
 
 ## Quick run
 

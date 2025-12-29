@@ -8,27 +8,12 @@ permalink: /docs/quickstart/
 
 ## 1) Install
 
-1) Install **R** (Rscript must be available in your terminal).
-2) From the repo root, run:
+Choose your OS:
 
-```bash
-bash install/install.sh
-```
+- macOS / Linux: [macOS / Linux install]({{ "/docs/macos/" | relative_url }})
+- Windows: [Windows install]({{ "/docs/windows/" | relative_url }})
 
-This installs the required R packages and installs the `dbAudit` command in `$HOME/bin`.
-
-If your shell cannot find `dbAudit` after installation, add `$HOME/bin` to your PATH (example):
-
-```bash
-export PATH="$HOME/bin:$PATH"
-```
-
-## 2) Run dbAudit
-
-After installation, `dbAudit` is available on your PATH (typically via `$HOME/bin`).
-You can run it from any directory.
-
-## 3) Run a project
+## 2) Run a project
 
 The CLI expects a **data root** folder:
 
@@ -36,7 +21,8 @@ The CLI expects a **data root** folder:
 dbAudit --project project/<PROJECT>/data
 ```
 
-Defaults under `project.path`:
+Defaults under `--project`:
+
 - Lab certificates: `raw/lab/`
 - Assay folder: `raw/assay/` (assay CSV auto-detected inside)
 - Outputs: `proc/`
@@ -53,7 +39,9 @@ dbAudit --project project/<PROJECT>/data --lab-dir raw/lab --assay-dir raw/assay
 dbAudit --project project/<PROJECT>/data --assay-file AAQ_Sample_Assay.csv
 ```
 
-## 4) Inspect outputs
+## 3) Inspect outputs
+
+The run writes a log to `proc/log.csv`.
 
 ```r
 library(data.table)
@@ -63,17 +51,3 @@ log[level == "ERROR"]
 ```
 
 See the full log guide: [Logging]({{ "/docs/logging/" | relative_url }})
-
-## 5) Self-check (optional)
-
-- Type-A regression:
-
-```bash
-Rscript project/test-A/run.R
-```
-
-- Type-B smoke test:
-
-```bash
-Rscript project/test-B/run.R
-```
