@@ -10,11 +10,6 @@ Project runs write a structured CSV log to:
 
 - `project/<PROJECT>/data/proc/log.csv`
 
-Tests write:
-
-- `project/test-A/proc/log.csv`
-- `project/test-B/proc/log.csv`
-
 ## Log schema
 
 Columns:

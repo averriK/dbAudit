@@ -16,10 +16,15 @@
 #     .\install\install.ps1 -AutoInstall
 #
 # Usage (remote, no repo checkout):
+#   NOTE: raw.githubusercontent.com returns 404 for private repos.
+#   Use a GitHub token with read access and download via the GitHub API.
+#
 #   PowerShell:
 #     Set-ExecutionPolicy -Scope Process -ExecutionPolicy Bypass
-#     iwr -UseBasicParsing https://raw.githubusercontent.com/averriK/dbAudit/main/install/install.ps1 -OutFile install-dbAudit.ps1
-#     .\install-dbAudit.ps1 -AutoInstall
+#     $token = Read-Host "GitHub token (read access to averriK/dbAudit)"
+#     $headers = @{ Authorization = "Bearer $token"; Accept = "application/vnd.github.raw" }
+#     iwr -UseBasicParsing -Headers $headers "https://api.github.com/repos/averriK/dbAudit/contents/install/install.ps1?ref=main" -OutFile install-dbAudit.ps1
+#     .\install-dbAudit.ps1 -AutoInstall -GitHubToken $token
 
 [CmdletBinding()]
 param(
@@ -29,6 +34,10 @@ param(
     [switch]$Force,
     # Skip verification steps (Rscript --version, setup.R)
     [switch]$SkipVerification,
+
+    # GitHub token (required for remote install when the repo is private)
+    # If omitted, the installer will read $env:DBAUDIT_GITHUB_TOKEN.
+    [string]$GitHubToken,
 
     # Repo root (defaults to parent of this script directory)
     [string]$RepoRoot,
@@ -53,6 +62,26 @@ if (-not $RepoRoot -or $RepoRoot.Trim() -eq "") {
     } catch {
         $RepoRoot = ""
     }
+}
+
+# Allow passing token via env var (useful for automation)
+if (-not $GitHubToken -or $GitHubToken.Trim() -eq "") {
+    $GitHubToken = $env:DBAUDIT_GITHUB_TOKEN
+}
+
+function Get-GitHubHeaders {
+    param([string]$Token)
+
+    $headers = @{
+        "User-Agent" = "dbAudit-installer"
+        "Accept"     = "application/vnd.github+json"
+    }
+
+    if ($Token -and $Token.Trim() -ne "") {
+        $headers["Authorization"] = "Bearer $Token"
+    }
+
+    return $headers
 }
 
 function Add-ToUserPath {
@@ -185,26 +214,43 @@ function Ensure-Rscript {
 }
 
 function Resolve-SourceRoot {
-    param([string]$LocalRepoRoot)
+    param(
+        [string]$LocalRepoRoot,
+        [string]$Token
+    )
 
     if ($LocalRepoRoot -and (Test-Path (Join-Path $LocalRepoRoot "DBAudit")) -and (Test-Path (Join-Path $LocalRepoRoot "R")) -and (Test-Path (Join-Path $LocalRepoRoot "bin\dbAudit"))) {
         Info "Local checkout detected at: $LocalRepoRoot"
         return $LocalRepoRoot
     }
 
-    # Remote mode: download zip for main
-    $zipUrl = "https://github.com/averriK/dbAudit/archive/refs/heads/main.zip"
+    # Remote mode: download zipball for main.
+    # For private repos this requires a token.
+    $repo = "averriK/dbAudit"
+    $ref = "main"
+    $zipUrl = "https://api.github.com/repos/$repo/zipball/$ref"
+
     $tmp = Join-Path $env:TEMP ("dbAudit-" + [guid]::NewGuid().ToString("N"))
     New-Item -ItemType Directory -Path $tmp | Out-Null
 
     $zipPath = Join-Path $tmp "dbAudit-main.zip"
+
+    $headers = Get-GitHubHeaders -Token $Token
     Info "Downloading $zipUrl"
-    Invoke-WebRequest -Uri $zipUrl -OutFile $zipPath -UseBasicParsing
+
+    try {
+        Invoke-WebRequest -Headers $headers -Uri $zipUrl -OutFile $zipPath -UseBasicParsing
+    } catch {
+        if (-not $Token -or $Token.Trim() -eq "") {
+            Fail "Failed to download dbAudit. If this repo is private, provide -GitHubToken or set DBAUDIT_GITHUB_TOKEN."
+        }
+        Fail "Failed to download dbAudit from GitHub API: $_"
+    }
 
     Info "Extracting archive..."
     Expand-Archive -Path $zipPath -DestinationPath $tmp -Force
 
-    # GitHub zip typically extracts as <repo>-<branch>
+    # GitHub zip typically extracts as <repo>-<hash>
     $candidates = Get-ChildItem $tmp -Directory | Where-Object { Test-Path (Join-Path $_.FullName "DBAudit") }
     $src = $null
     if ($candidates -and $candidates.Count -ge 1) {
@@ -312,7 +358,7 @@ if (-not $SkipVerification) {
     }
 }
 
-$srcRoot = Resolve-SourceRoot -LocalRepoRoot $RepoRoot
+$srcRoot = Resolve-SourceRoot -LocalRepoRoot $RepoRoot -Token $GitHubToken
 
 Info "Installing runtime..."
 Install-Runtime -SrcRoot $srcRoot -DestRoot $LibexecDir

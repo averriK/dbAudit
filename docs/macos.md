@@ -12,15 +12,27 @@ It installs a system-wide layout under `/usr/local`, so you typically run it wit
 
 ## Option A (recommended): remote install
 
+This repo is private, so `raw.githubusercontent.com/...` will return `404` unless you authenticate.
+Use the GitHub API with a token (read access):
+
 ```bash
-curl -fsSL https://raw.githubusercontent.com/averriK/dbAudit/main/install/install.sh | sudo bash
+read -s -p "GitHub token: " DBAUDIT_GITHUB_TOKEN; echo
+
+curl -fsSL \
+  -H "Authorization: Bearer $DBAUDIT_GITHUB_TOKEN" \
+  -H "Accept: application/vnd.github.raw" \
+  "https://api.github.com/repos/averriK/dbAudit/contents/install/install.sh?ref=main" \
+  -o install-dbAudit.sh
+
+sudo env DBAUDIT_GITHUB_TOKEN="$DBAUDIT_GITHUB_TOKEN" bash install-dbAudit.sh
+rm -f install-dbAudit.sh
 ```
 
 ## Option B: install from a local checkout
 
+If you already have a local copy of the repo:
+
 ```bash
-git clone https://github.com/averriK/dbAudit.git
-cd dbAudit
 sudo bash install/install.sh
 ```
 
@@ -45,7 +57,16 @@ Notes:
 Remote uninstall:
 
 ```bash
-curl -fsSL https://raw.githubusercontent.com/averriK/dbAudit/main/install/uninstall.sh | sudo bash
+read -s -p "GitHub token: " DBAUDIT_GITHUB_TOKEN; echo
+
+curl -fsSL \
+  -H "Authorization: Bearer $DBAUDIT_GITHUB_TOKEN" \
+  -H "Accept: application/vnd.github.raw" \
+  "https://api.github.com/repos/averriK/dbAudit/contents/install/uninstall.sh?ref=main" \
+  -o uninstall-dbAudit.sh
+
+sudo bash uninstall-dbAudit.sh
+rm -f uninstall-dbAudit.sh
 ```
 
 Local uninstall (from a repo checkout):

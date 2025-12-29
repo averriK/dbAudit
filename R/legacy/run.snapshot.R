@@ -8,7 +8,7 @@ source("R/helpers.R")
 source("R/parseLab.R")
 source("R/parseAssay.R")
 source("R/audit.R")
-project.path <- "project/BV" #"project/QV"
+project.path <- "project/<PROJECT>"
 
 # ----------------------------------------------------------------------
 # Parse Stage: Parse laboratory data (certificates)

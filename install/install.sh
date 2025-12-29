@@ -16,8 +16,18 @@
 #   cd /path/to/dbAudit
 #   sudo bash install/install.sh
 #
-#   # Remote mode (recommended for end users)
-#   curl -fsSL https://raw.githubusercontent.com/averriK/dbAudit/main/install/install.sh | sudo bash
+#   # Remote mode
+#   # NOTE: if the repository is private, you must provide a GitHub token with read access.
+#   # Recommended: download this installer via the GitHub API and then run it with sudo,
+#   # passing the token through sudo explicitly.
+#   #
+#   #   read -s -p "GitHub token: " DBAUDIT_GITHUB_TOKEN; echo
+#   #   curl -fsSL \
+#   #     -H "Authorization: Bearer $DBAUDIT_GITHUB_TOKEN" \
+#   #     -H "Accept: application/vnd.github.raw" \
+#   #     "https://api.github.com/repos/averriK/dbAudit/contents/install/install.sh?ref=main" \
+#   #     -o install-dbAudit.sh
+#   #   sudo env DBAUDIT_GITHUB_TOKEN="$DBAUDIT_GITHUB_TOKEN" bash install-dbAudit.sh
 #
 # Note:
 #   This installer does not install R. R (Rscript) is a runtime dependency.
@@ -27,7 +37,8 @@ set -euo pipefail
 BIN_DIR="/usr/local/bin"
 LIBEXEC_DIR="/usr/local/libexec/dbAudit"
 GITHUB_REPO="averriK/dbAudit"
-TARBALL_URL="https://codeload.github.com/${GITHUB_REPO}/tar.gz/refs/heads/main"
+TARBALL_URL_PUBLIC="https://codeload.github.com/${GITHUB_REPO}/tar.gz/refs/heads/main"
+TARBALL_URL_API="https://api.github.com/repos/${GITHUB_REPO}/tarball/main"
 DOCS_URL="https://averrik.github.io/dbAudit/"
 
 # Colours (for clarity only)
@@ -62,8 +73,24 @@ else
   TMP_DIR="$(mktemp -d)"
   trap 'rm -rf "$TMP_DIR"' EXIT
 
+  TARBALL_URL="$TARBALL_URL_PUBLIC"
+  CURL_ARGS=()
+
+  # Private repo support: use a token-authenticated GitHub API tarball.
+  if [[ -n "${DBAUDIT_GITHUB_TOKEN:-}" ]]; then
+    TARBALL_URL="$TARBALL_URL_API"
+    CURL_ARGS+=(
+      -H "Authorization: Bearer ${DBAUDIT_GITHUB_TOKEN}"
+      -H "Accept: application/vnd.github+json"
+      -H "User-Agent: dbAudit-installer"
+    )
+  fi
+
   info "Downloading $TARBALL_URL"
-  if ! curl -fsSL "$TARBALL_URL" -o "$TMP_DIR/dbaudit.tar.gz"; then
+  if ! curl -fsSL "${CURL_ARGS[@]}" "$TARBALL_URL" -o "$TMP_DIR/dbaudit.tar.gz"; then
+    if [[ -z "${DBAUDIT_GITHUB_TOKEN:-}" ]]; then
+      error "Failed to download dbAudit. If this repo is private, set DBAUDIT_GITHUB_TOKEN (read-only) and rerun."
+    fi
     error "Failed to download dbAudit from $TARBALL_URL"
   fi
   ok "Downloaded archive"

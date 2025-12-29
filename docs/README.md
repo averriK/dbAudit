@@ -23,4 +23,4 @@ User-facing documentation can be published via GitHub Pages (if configured):
   - Windows: `powershell -ExecutionPolicy Bypass -File install/install.ps1 -AutoInstall`
 
 - Run a project:
-  - `dbAudit --project project/BV/data`
+  - `dbAudit --project project/<PROJECT>/data`

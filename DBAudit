@@ -123,7 +123,7 @@ while (k <= length(args)) {
 }
 
 if (!nzchar(project.path)) {
-  stop("Missing --project. Try: dbAudit --project project/BV/data")
+  stop("Missing --project. Try: dbAudit --project project/<PROJECT>/data")
 }
 
 assay.file.arg <- NULL

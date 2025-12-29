@@ -84,7 +84,7 @@ For project runs, `DBAudit` expects the following layout under a `project.path` 
 From terminal:
 
 ```bash
-dbAudit --project project/BV/data
+dbAudit --project project/<PROJECT>/data
 ```
 
 ### 3. Check outputs

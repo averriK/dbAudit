@@ -40,7 +40,7 @@ Nota: `R/legacy/*` existe solo para referencia/historial y no debe ser usado por
 
 ### Runner / CLI (contrato)
 - El working directory debe ser el root del repo.
-- Entry point: `Rscript DBAudit --project project/BV/data`.
+- Entry point: `Rscript DBAudit --project project/<PROJECT>/data`.
 - La lógica vive en `R/dbAudit.R` (función `DBAudit()`) con defaults para `raw/lab`, `raw/assay` y `proc`.
 - El assay CSV se detecta dentro de `raw/assay/` con reglas determinísticas.
 

@@ -51,8 +51,4 @@ Both lab and assay parsers write long-format tables:
 - `client.csv`: `(jobID, sampleID, elementID, standardID, unitID, tagDL, value)` (for type B, `standardID` starts as `NA`)
 
 ## Regression guarantee (type A)
-`project/test-A/run.R` runs:
-- original type-A parsers, and
-- universal parsers with `format="A"`
-
-and asserts that `index.csv`, `lab.csv`, and `client.csv` are identical (set equality).
+When `format="A"` is used, the universal parsers are validated to be output-identical to the original type-A implementations (regression).

@@ -15,3 +15,4 @@ exclude:
   - "README.md"        # repo-internal index (not part of the public docs site)
   - "conventions.md"   # internal developer conventions
   - "plan.md"          # internal history/plan log
+  - "tests.md"         # internal self-check notes (not part of the public docs site)
