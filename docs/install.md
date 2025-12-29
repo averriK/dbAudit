@@ -18,18 +18,10 @@ The installer is **remote-only**: it always downloads dbAudit and does not insta
 
 ### Remote install (recommended)
 
+Put your GitHub token in `~/.config/dbAudit/github.token` (recommended; CRLF/newlines stripped), then run:
+
 ```bash
-read -s -p "GitHub token: " DBAUDIT_GITHUB_TOKEN; echo
-
-curl -fsSL \
-  -H "Authorization: Bearer $DBAUDIT_GITHUB_TOKEN" \
-  -H "Accept: application/vnd.github.raw" \
-  "https://api.github.com/repos/averriK/dbAudit/contents/install/install.bash.sh?ref=main" \
-  -o install-dbAudit.bash.sh
-
-sudo env DBAUDIT_GITHUB_TOKEN="$DBAUDIT_GITHUB_TOKEN" bash install-dbAudit.bash.sh
-rm -f install-dbAudit.bash.sh
-unset DBAUDIT_GITHUB_TOKEN
+curl -fsSL -H "Authorization: Bearer $(tr -d $'\r\n' < ~/.config/dbAudit/github.token)" -H "Accept: application/vnd.github.raw" "https://api.github.com/repos/averriK/dbAudit/contents/install/install.bash.sh?ref=main" | sudo bash
 ```
 
 ### Installed paths
@@ -40,17 +32,7 @@ unset DBAUDIT_GITHUB_TOKEN
 ### Uninstall
 
 ```bash
-read -s -p "GitHub token: " DBAUDIT_GITHUB_TOKEN; echo
-
-curl -fsSL \
-  -H "Authorization: Bearer $DBAUDIT_GITHUB_TOKEN" \
-  -H "Accept: application/vnd.github.raw" \
-  "https://api.github.com/repos/averriK/dbAudit/contents/install/uninstall.bash.sh?ref=main" \
-  -o uninstall-dbAudit.bash.sh
-
-sudo bash uninstall-dbAudit.bash.sh
-rm -f uninstall-dbAudit.bash.sh
-unset DBAUDIT_GITHUB_TOKEN
+curl -fsSL -H "Authorization: Bearer $(tr -d $'\r\n' < ~/.config/dbAudit/github.token)" -H "Accept: application/vnd.github.raw" "https://api.github.com/repos/averriK/dbAudit/contents/install/uninstall.bash.sh?ref=main" | sudo bash
 ```
 
 ## Windows (Git Bash)
@@ -68,18 +50,10 @@ The installer is **remote-only**: it always downloads dbAudit and does not insta
 
 Open **Git Bash**:
 
+Put your GitHub token in `~/.config/dbAudit/github.token` (recommended; CRLF/newlines stripped), then run:
+
 ```bash
-read -s -p "GitHub token: " DBAUDIT_GITHUB_TOKEN; echo
-
-curl -fsSL \
-  -H "Authorization: Bearer $DBAUDIT_GITHUB_TOKEN" \
-  -H "Accept: application/vnd.github.raw" \
-  "https://api.github.com/repos/averriK/dbAudit/contents/install/install.windows?ref=main" \
-  -o install-dbAudit.windows
-
-DBAUDIT_GITHUB_TOKEN="$DBAUDIT_GITHUB_TOKEN" bash install-dbAudit.windows
-rm -f install-dbAudit.windows
-unset DBAUDIT_GITHUB_TOKEN
+curl -fsSL -H "Authorization: Bearer $(tr -d $'\r\n' < ~/.config/dbAudit/github.token)" -H "Accept: application/vnd.github.raw" "https://api.github.com/repos/averriK/dbAudit/contents/install/install.windows?ref=main" | bash
 ```
 
 ### PATH (Git Bash)
@@ -95,17 +69,7 @@ echo 'export PATH=\"$HOME/.local/bin:$PATH\"' >> ~/.bashrc
 Remote uninstall (Git Bash):
 
 ```bash
-read -s -p "GitHub token: " DBAUDIT_GITHUB_TOKEN; echo
-
-curl -fsSL \
-  -H "Authorization: Bearer $DBAUDIT_GITHUB_TOKEN" \
-  -H "Accept: application/vnd.github.raw" \
-  "https://api.github.com/repos/averriK/dbAudit/contents/install/uninstall.windows?ref=main" \
-  -o uninstall-dbAudit.windows
-
-bash uninstall-dbAudit.windows
-rm -f uninstall-dbAudit.windows
-unset DBAUDIT_GITHUB_TOKEN
+curl -fsSL -H "Authorization: Bearer $(tr -d $'\r\n' < ~/.config/dbAudit/github.token)" -H "Accept: application/vnd.github.raw" "https://api.github.com/repos/averriK/dbAudit/contents/install/uninstall.windows?ref=main" | bash
 ```
 
 ## OS-specific notes

@@ -11,15 +11,18 @@
 #       * The installer always downloads the dbAudit tarball for main.
 #       * Even if you run this script from inside a repo checkout, it will ignore local files.
 #
-# Usage (remote, private repo via GitHub API + token):
-#   read -s -p "GitHub token: " DBAUDIT_GITHUB_TOKEN; echo
-#   curl -fsSL \
-#     -H "Authorization: Bearer $DBAUDIT_GITHUB_TOKEN" \
-#     -H "Accept: application/vnd.github.raw" \
-#     "https://api.github.com/repos/averriK/dbAudit/contents/install/install.bash.sh?ref=main" \
-#     -o install-dbAudit.bash.sh
-#   sudo env DBAUDIT_GITHUB_TOKEN="$DBAUDIT_GITHUB_TOKEN" bash install-dbAudit.bash.sh
-#   rm -f install-dbAudit.bash.sh
+# Usage (remote install, private repo):
+#   Put a GitHub token (read access) in one of these files (recommended for Windows users
+#   who can't paste into Git Bash):
+#     - ~/.config/dbAudit/github.token
+#     - ~/.dbAudit.token
+#
+#   Then run (no prompts):
+#     curl -fsSL \
+#       -H "Authorization: Bearer $(tr -d $'\\r\\n' < ~/.config/dbAudit/github.token)" \
+#       -H "Accept: application/vnd.github.raw" \
+#       "https://api.github.com/repos/averriK/dbAudit/contents/install/install.bash.sh?ref=main" \
+#     | sudo bash
 #
 # Note:
 #   This installer does not install R. R (Rscript) is a runtime dependency.
@@ -32,6 +35,34 @@ GITHUB_REPO="averriK/dbAudit"
 TARBALL_URL_PUBLIC="https://codeload.github.com/${GITHUB_REPO}/tar.gz/refs/heads/main"
 TARBALL_URL_API="https://api.github.com/repos/${GITHUB_REPO}/tarball/main"
 DOCS_URL="https://averrik.github.io/dbAudit/"
+
+# Token discovery (optional)
+# - Preferred: env var DBAUDIT_GITHUB_TOKEN
+# - Otherwise: read from a token file (CRLF/newlines stripped)
+CALLER_HOME="$HOME"
+if [[ -n "${SUDO_USER:-}" && "${SUDO_USER}" != "root" ]]; then
+  # Resolve invoking user's home so token files work even when running under sudo.
+  CALLER_HOME_RESOLVED="$(eval echo "~${SUDO_USER}" 2>/dev/null || true)"
+  if [[ -n "$CALLER_HOME_RESOLVED" && "$CALLER_HOME_RESOLVED" != "~${SUDO_USER}" ]]; then
+    CALLER_HOME="$CALLER_HOME_RESOLVED"
+  fi
+fi
+
+if [[ -z "${DBAUDIT_GITHUB_TOKEN:-}" ]]; then
+  for f in \
+    "${DBAUDIT_TOKEN_FILE:-}" \
+    "$CALLER_HOME/.config/dbAudit/github.token" \
+    "$CALLER_HOME/.dbAudit.github.token" \
+    "$CALLER_HOME/.dbAudit.token"; do
+    [[ -n "$f" ]] || continue
+    if [[ -f "$f" ]]; then
+      DBAUDIT_GITHUB_TOKEN="$(tr -d $'\r\n' < "$f")"
+      if [[ -n "${DBAUDIT_GITHUB_TOKEN:-}" ]]; then
+        break
+      fi
+    fi
+  done
+fi
 
 # Colours (for clarity only)
 RED='\033[0;31m'

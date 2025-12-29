@@ -22,17 +22,7 @@ Geochemical certificate parser and audit tool.
 ### macOS / Linux (system-wide `/usr/local`)
 
 ```bash
-read -s -p "GitHub token: " DBAUDIT_GITHUB_TOKEN; echo
-
-curl -fsSL \
-  -H "Authorization: Bearer $DBAUDIT_GITHUB_TOKEN" \
-  -H "Accept: application/vnd.github.raw" \
-  "https://api.github.com/repos/averriK/dbAudit/contents/install/install.bash.sh?ref=main" \
-  -o install-dbAudit.bash.sh
-
-sudo env DBAUDIT_GITHUB_TOKEN="$DBAUDIT_GITHUB_TOKEN" bash install-dbAudit.bash.sh
-rm -f install-dbAudit.bash.sh
-unset DBAUDIT_GITHUB_TOKEN
+curl -fsSL -H "Authorization: Bearer $(tr -d $'\r\n' < ~/.config/dbAudit/github.token)" -H "Accept: application/vnd.github.raw" "https://api.github.com/repos/averriK/dbAudit/contents/install/install.bash.sh?ref=main" | sudo bash
 ```
 
 ### Windows (Git Bash)
@@ -40,17 +30,7 @@ unset DBAUDIT_GITHUB_TOKEN
 Open **Git Bash** and run:
 
 ```bash
-read -s -p "GitHub token: " DBAUDIT_GITHUB_TOKEN; echo
-
-curl -fsSL \
-  -H "Authorization: Bearer $DBAUDIT_GITHUB_TOKEN" \
-  -H "Accept: application/vnd.github.raw" \
-  "https://api.github.com/repos/averriK/dbAudit/contents/install/install.windows?ref=main" \
-  -o install-dbAudit.windows
-
-DBAUDIT_GITHUB_TOKEN="$DBAUDIT_GITHUB_TOKEN" bash install-dbAudit.windows
-rm -f install-dbAudit.windows
-unset DBAUDIT_GITHUB_TOKEN
+curl -fsSL -H "Authorization: Bearer $(tr -d $'\r\n' < ~/.config/dbAudit/github.token)" -H "Accept: application/vnd.github.raw" "https://api.github.com/repos/averriK/dbAudit/contents/install/install.windows?ref=main" | bash
 ```
 
 Make sure Git Bash can find `dbAudit`:

@@ -12,16 +12,13 @@
 # Private repo support:
 #   - Set DBAUDIT_GITHUB_TOKEN with read access.
 #
-# Example (remote, private repo):
-#   read -s -p "GitHub token: " DBAUDIT_GITHUB_TOKEN; echo
+# Example (remote install, private repo; no prompts):
+#   # Put token in ~/.config/dbAudit/github.token (recommended; CRLF/newlines stripped)
 #   curl -fsSL \
-#     -H "Authorization: Bearer $DBAUDIT_GITHUB_TOKEN" \
+#     -H "Authorization: Bearer $(tr -d $'\\r\\n' < ~/.config/dbAudit/github.token)" \
 #     -H "Accept: application/vnd.github.raw" \
 #     "https://api.github.com/repos/averriK/dbAudit/contents/install/install.windows?ref=main" \
-#     -o install-dbAudit.windows
-#   DBAUDIT_GITHUB_TOKEN="$DBAUDIT_GITHUB_TOKEN" bash install-dbAudit.windows
-#   rm -f install-dbAudit.windows
-#   unset DBAUDIT_GITHUB_TOKEN
+#   | bash
 
 set -euo pipefail
 
@@ -30,6 +27,25 @@ LIBEXEC_DIR="${HOME}/.local/libexec/dbAudit"
 GITHUB_REPO="averriK/dbAudit"
 TARBALL_URL_PUBLIC="https://codeload.github.com/${GITHUB_REPO}/tar.gz/refs/heads/main"
 TARBALL_URL_API="https://api.github.com/repos/${GITHUB_REPO}/tarball/main"
+
+# Token discovery (optional)
+# - Preferred: env var DBAUDIT_GITHUB_TOKEN
+# - Otherwise: read from a token file (CRLF/newlines stripped)
+if [[ -z "${DBAUDIT_GITHUB_TOKEN:-}" ]]; then
+  for f in \
+    "${DBAUDIT_TOKEN_FILE:-}" \
+    "$HOME/.config/dbAudit/github.token" \
+    "$HOME/.dbAudit.github.token" \
+    "$HOME/.dbAudit.token"; do
+    [[ -n "$f" ]] || continue
+    if [[ -f "$f" ]]; then
+      DBAUDIT_GITHUB_TOKEN="$(tr -d $'\r\n' < "$f")"
+      if [[ -n "${DBAUDIT_GITHUB_TOKEN:-}" ]]; then
+        break
+      fi
+    fi
+  done
+fi
 
 # Colours (for clarity only)
 RED='\033[0;31m'
