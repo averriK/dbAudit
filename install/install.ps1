@@ -130,8 +130,19 @@ New-Item -ItemType Directory -Force -Path (Join-Path $LibexecDir "R") | Out-Null
 # Copy runtime
 Info "Copying runtime..."
 Copy-Item -LiteralPath $repoEntrypoint -Destination (Join-Path $LibexecDir "DBAudit") -Force
-Copy-Item -LiteralPath (Join-Path $RepoRoot "R") -Destination (Join-Path $LibexecDir "R") -Recurse -Force
+
+# Copy the *contents* of R/ into $LibexecDir\R (avoid $LibexecDir\R\R\...)
+$srcR = Join-Path $RepoRoot "R"
+$dstR = Join-Path $LibexecDir "R"
+Copy-Item -Path (Join-Path $srcR "*") -Destination $dstR -Recurse -Force
+
 Copy-Item -LiteralPath $repoBin -Destination (Join-Path $LibexecDir "bin\\dbAudit") -Force
+
+# Validate installed layout
+$installedSetup = Join-Path $LibexecDir "R\\setup.R"
+if (-not (Test-Path $installedSetup)) {
+    Fail "Invalid installed layout: missing $installedSetup"
+}
 
 # Create launchers in UserBinDir
 $cmdPath = Join-Path $UserBinDir "dbAudit.cmd"
