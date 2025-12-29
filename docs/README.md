@@ -19,8 +19,7 @@ User-facing documentation can be published via GitHub Pages (if configured):
 ## Quick commands
 
 - Install:
-  - macOS/Linux: `sudo bash install/install-mac.sh`
-  - Windows (Git Bash): `bash install/install-win.sh`
+  - See `docs/install.md` (remote-only; copy/paste commands).
 
 - Run a project:
   - `dbAudit --project project/<PROJECT>/data`

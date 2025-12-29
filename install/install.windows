@@ -5,23 +5,23 @@
 #   - Wrapper:  $HOME/.local/bin/dbAudit
 #   - Runtime:  $HOME/.local/libexec/dbAudit
 #
-# Two modes:
-#   - Local mode:  run from a cloned/extracted repo
-#   - Remote mode: download the main tarball and install
+# Remote-only:
+#   - This installer always downloads the dbAudit tarball for main and installs it.
+#   - Even if you run this script from inside a repo checkout, it will ignore local files.
 #
 # Private repo support:
 #   - Set DBAUDIT_GITHUB_TOKEN with read access.
 #
 # Example (remote, private repo):
 #   read -s -p "GitHub token: " DBAUDIT_GITHUB_TOKEN; echo
-#   export DBAUDIT_GITHUB_TOKEN
 #   curl -fsSL \
 #     -H "Authorization: Bearer $DBAUDIT_GITHUB_TOKEN" \
 #     -H "Accept: application/vnd.github.raw" \
-#     "https://api.github.com/repos/averriK/dbAudit/contents/install/install-win.sh?ref=main" \
-#     -o install-dbAudit-win.sh
-#   bash install-dbAudit-win.sh
-#   rm -f install-dbAudit-win.sh
+#     "https://api.github.com/repos/averriK/dbAudit/contents/install/install.windows?ref=main" \
+#     -o install-dbAudit.windows
+#   DBAUDIT_GITHUB_TOKEN="$DBAUDIT_GITHUB_TOKEN" bash install-dbAudit.windows
+#   rm -f install-dbAudit.windows
+#   unset DBAUDIT_GITHUB_TOKEN
 
 set -euo pipefail
 
@@ -45,53 +45,43 @@ error()  { echo -e "${RED}[ERROR]${NC} $*"; exit 1; }
 
 info "dbAudit Installer (Windows / Git Bash)"
 
-# Detect local checkout
-SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" >/dev/null 2>&1 && pwd)"
-REPO_ROOT="$(cd "$SCRIPT_DIR/.." >/dev/null 2>&1 && pwd)"
-
-SRC_ROOT=""
-if [[ -f "$REPO_ROOT/DBAudit" ]] && [[ -d "$REPO_ROOT/R" ]] && [[ -f "$REPO_ROOT/bin/dbAudit" ]]; then
-  info "Local checkout detected at: $REPO_ROOT"
-  SRC_ROOT="$REPO_ROOT"
-else
-  # Remote mode
-  if ! command -v curl >/dev/null 2>&1 || ! command -v tar >/dev/null 2>&1; then
-    error "curl and tar are required to install dbAudit (not found in PATH)."
-  fi
-
-  info "No local checkout detected; downloading dbAudit from main branch..."
-  TMP_DIR="$(mktemp -d)"
-  trap 'rm -rf "$TMP_DIR"' EXIT
-
-  TARBALL_URL="$TARBALL_URL_PUBLIC"
-  CURL_ARGS=()
-
-  if [[ -n "${DBAUDIT_GITHUB_TOKEN:-}" ]]; then
-    TARBALL_URL="$TARBALL_URL_API"
-    CURL_ARGS+=(
-      -H "Authorization: Bearer ${DBAUDIT_GITHUB_TOKEN}"
-      -H "Accept: application/vnd.github+json"
-      -H "User-Agent: dbAudit-installer"
-    )
-  fi
-
-  info "Downloading $TARBALL_URL"
-  if ! curl -fsSL "${CURL_ARGS[@]}" "$TARBALL_URL" -o "$TMP_DIR/dbaudit.tar.gz"; then
-    if [[ -z "${DBAUDIT_GITHUB_TOKEN:-}" ]]; then
-      error "Failed to download dbAudit. If this repo is private, set DBAUDIT_GITHUB_TOKEN (read-only) and rerun."
-    fi
-    error "Failed to download dbAudit from $TARBALL_URL"
-  fi
-  ok "Downloaded archive"
-
-  info "Extracting archive..."
-  if ! tar -xzf "$TMP_DIR/dbaudit.tar.gz" -C "$TMP_DIR" --strip-components=1 2>/dev/null; then
-    error "Failed to extract archive"
-  fi
-  ok "Extracted"
-
-  SRC_ROOT="$TMP_DIR"
+# Remote-only
+if ! command -v curl >/dev/null 2>&1 || ! command -v tar >/dev/null 2>&1; then
+  error "curl and tar are required to install dbAudit (not found in PATH)."
 fi
+
+info "Downloading dbAudit from main branch..."
+TMP_DIR="$(mktemp -d)"
+trap 'rm -rf "$TMP_DIR"' EXIT
+
+TARBALL_URL="$TARBALL_URL_PUBLIC"
+CURL_ARGS=()
+
+if [[ -n "${DBAUDIT_GITHUB_TOKEN:-}" ]]; then
+  TARBALL_URL="$TARBALL_URL_API"
+  CURL_ARGS+=(
+    -H "Authorization: Bearer ${DBAUDIT_GITHUB_TOKEN}"
+    -H "Accept: application/vnd.github+json"
+    -H "User-Agent: dbAudit-installer"
+  )
+fi
+
+info "Downloading $TARBALL_URL"
+if ! curl -fsSL "${CURL_ARGS[@]}" "$TARBALL_URL" -o "$TMP_DIR/dbaudit.tar.gz"; then
+  if [[ -z "${DBAUDIT_GITHUB_TOKEN:-}" ]]; then
+    error "Failed to download dbAudit. If this repo is private, set DBAUDIT_GITHUB_TOKEN (read-only) and rerun."
+  fi
+  error "Failed to download dbAudit from $TARBALL_URL"
+fi
+ok "Downloaded archive"
+
+info "Extracting archive..."
+if ! tar -xzf "$TMP_DIR/dbaudit.tar.gz" -C "$TMP_DIR" --strip-components=1 2>/dev/null; then
+  error "Failed to extract archive"
+fi
+ok "Extracted"
+
+SRC_ROOT="$TMP_DIR"
 
 echo ""
 info "Installation targets:"

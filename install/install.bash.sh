@@ -7,27 +7,19 @@
 #   - Clear, deterministic locations:
 #       * Binary:  /usr/local/bin/dbAudit
 #       * Runtime: /usr/local/libexec/dbAudit (DBAudit, R/, bin/dbAudit)
-#   - Two modes:
-#       * Local mode  (run from a cloned repo) → install from this tree
-#       * Remote mode (curl | sudo bash)       → download tarball for main and install
+#   - Remote-only (no local checkout mode):
+#       * The installer always downloads the dbAudit tarball for main.
+#       * Even if you run this script from inside a repo checkout, it will ignore local files.
 #
-# Usage examples:
-#   # Local mode (recommended for contributors)
-#   cd /path/to/dbAudit
-#   sudo bash install/install-mac.sh
-#
-#   # Remote mode
-#   # NOTE: if the repository is private, you must provide a GitHub token with read access.
-#   # Recommended: download this installer via the GitHub API and then run it with sudo,
-#   # passing the token through sudo explicitly.
-#   #
-#   #   read -s -p "GitHub token: " DBAUDIT_GITHUB_TOKEN; echo
-#   #   curl -fsSL \
-#   #     -H "Authorization: Bearer $DBAUDIT_GITHUB_TOKEN" \
-#   #     -H "Accept: application/vnd.github.raw" \
-#   #     "https://api.github.com/repos/averriK/dbAudit/contents/install/install-mac.sh?ref=main" \
-#   #     -o install-dbAudit-mac.sh
-#   #   sudo env DBAUDIT_GITHUB_TOKEN="$DBAUDIT_GITHUB_TOKEN" bash install-dbAudit-mac.sh
+# Usage (remote, private repo via GitHub API + token):
+#   read -s -p "GitHub token: " DBAUDIT_GITHUB_TOKEN; echo
+#   curl -fsSL \
+#     -H "Authorization: Bearer $DBAUDIT_GITHUB_TOKEN" \
+#     -H "Accept: application/vnd.github.raw" \
+#     "https://api.github.com/repos/averriK/dbAudit/contents/install/install.bash.sh?ref=main" \
+#     -o install-dbAudit.bash.sh
+#   sudo env DBAUDIT_GITHUB_TOKEN="$DBAUDIT_GITHUB_TOKEN" bash install-dbAudit.bash.sh
+#   rm -f install-dbAudit.bash.sh
 #
 # Note:
 #   This installer does not install R. R (Rscript) is a runtime dependency.
@@ -55,54 +47,44 @@ error()  { echo -e "${RED}[ERROR]${NC} $*"; exit 1; }
 
 info "dbAudit Installer (single /usr/local layout)"
 
-# Detect if we are running from a local checkout (SCRIPT_DIR/.. contains DBAudit + R/ + bin/dbAudit)
-SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" >/dev/null 2>&1 && pwd)"
-REPO_ROOT="$(cd "$SCRIPT_DIR/.." >/dev/null 2>&1 && pwd)"
-
-SRC_ROOT=""
-if [[ -f "$REPO_ROOT/DBAudit" ]] && [[ -d "$REPO_ROOT/R" ]] && [[ -f "$REPO_ROOT/bin/dbAudit" ]]; then
-  info "Local checkout detected at: $REPO_ROOT"
-  SRC_ROOT="$REPO_ROOT"
-else
-  # Remote mode: download tarball for main into a temporary directory
-  if ! command -v curl >/dev/null 2>&1 || ! command -v tar >/dev/null 2>&1; then
-    error "curl and tar are required to install dbAudit (not found in PATH)."
-  fi
-
-  info "No local checkout detected; downloading dbAudit from main branch..."
-  TMP_DIR="$(mktemp -d)"
-  trap 'rm -rf "$TMP_DIR"' EXIT
-
-  TARBALL_URL="$TARBALL_URL_PUBLIC"
-  CURL_ARGS=()
-
-  # Private repo support: use a token-authenticated GitHub API tarball.
-  if [[ -n "${DBAUDIT_GITHUB_TOKEN:-}" ]]; then
-    TARBALL_URL="$TARBALL_URL_API"
-    CURL_ARGS+=(
-      -H "Authorization: Bearer ${DBAUDIT_GITHUB_TOKEN}"
-      -H "Accept: application/vnd.github+json"
-      -H "User-Agent: dbAudit-installer"
-    )
-  fi
-
-  info "Downloading $TARBALL_URL"
-  if ! curl -fsSL "${CURL_ARGS[@]}" "$TARBALL_URL" -o "$TMP_DIR/dbaudit.tar.gz"; then
-    if [[ -z "${DBAUDIT_GITHUB_TOKEN:-}" ]]; then
-      error "Failed to download dbAudit. If this repo is private, set DBAUDIT_GITHUB_TOKEN (read-only) and rerun."
-    fi
-    error "Failed to download dbAudit from $TARBALL_URL"
-  fi
-  ok "Downloaded archive"
-
-  info "Extracting archive..."
-  if ! tar -xzf "$TMP_DIR/dbaudit.tar.gz" -C "$TMP_DIR" --strip-components=1 2>/dev/null; then
-    error "Failed to extract archive"
-  fi
-  ok "Extracted"
-
-  SRC_ROOT="$TMP_DIR"
+# Remote-only: download tarball for main into a temporary directory
+if ! command -v curl >/dev/null 2>&1 || ! command -v tar >/dev/null 2>&1; then
+  error "curl and tar are required to install dbAudit (not found in PATH)."
 fi
+
+info "Downloading dbAudit from main branch..."
+TMP_DIR="$(mktemp -d)"
+trap 'rm -rf "$TMP_DIR"' EXIT
+
+TARBALL_URL="$TARBALL_URL_PUBLIC"
+CURL_ARGS=()
+
+# Private repo support: use a token-authenticated GitHub API tarball.
+if [[ -n "${DBAUDIT_GITHUB_TOKEN:-}" ]]; then
+  TARBALL_URL="$TARBALL_URL_API"
+  CURL_ARGS+=(
+    -H "Authorization: Bearer ${DBAUDIT_GITHUB_TOKEN}"
+    -H "Accept: application/vnd.github+json"
+    -H "User-Agent: dbAudit-installer"
+  )
+fi
+
+info "Downloading $TARBALL_URL"
+if ! curl -fsSL "${CURL_ARGS[@]}" "$TARBALL_URL" -o "$TMP_DIR/dbaudit.tar.gz"; then
+  if [[ -z "${DBAUDIT_GITHUB_TOKEN:-}" ]]; then
+    error "Failed to download dbAudit. If this repo is private, set DBAUDIT_GITHUB_TOKEN (read-only) and rerun."
+  fi
+  error "Failed to download dbAudit from $TARBALL_URL"
+fi
+ok "Downloaded archive"
+
+info "Extracting archive..."
+if ! tar -xzf "$TMP_DIR/dbaudit.tar.gz" -C "$TMP_DIR" --strip-components=1 2>/dev/null; then
+  error "Failed to extract archive"
+fi
+ok "Extracted"
+
+SRC_ROOT="$TMP_DIR"
 
 echo ""
 info "Installation targets:"

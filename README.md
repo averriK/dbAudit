@@ -35,17 +35,11 @@ R pipeline for parsing laboratory geochemical certificates into normalized long-
 
 - **R (≥ 3.5)**: Core language (make sure `Rscript` is available in your terminal)
 - **Operating System**: Linux, macOS, Windows
-- **Windows shell**: Git Bash is used for installation on Windows (`install/install-win.sh`).
+- **Windows shell**: Git Bash is used for installation on Windows (`install/install.windows`).
 
 ### Install
 
 #### macOS / Linux (system-wide `/usr/local`)
-
-From a local checkout:
-
-```bash
-sudo bash install/install-mac.sh
-```
 
 Remote install (private repo via GitHub API + token):
 
@@ -55,11 +49,12 @@ read -s -p "GitHub token: " DBAUDIT_GITHUB_TOKEN; echo
 curl -fsSL \
   -H "Authorization: Bearer $DBAUDIT_GITHUB_TOKEN" \
   -H "Accept: application/vnd.github.raw" \
-  "https://api.github.com/repos/averriK/dbAudit/contents/install/install-mac.sh?ref=main" \
-  -o install-dbAudit-mac.sh
+  "https://api.github.com/repos/averriK/dbAudit/contents/install/install.bash.sh?ref=main" \
+  -o install-dbAudit.bash.sh
 
-sudo env DBAUDIT_GITHUB_TOKEN="$DBAUDIT_GITHUB_TOKEN" bash install-dbAudit-mac.sh
-rm -f install-dbAudit-mac.sh
+sudo env DBAUDIT_GITHUB_TOKEN="$DBAUDIT_GITHUB_TOKEN" bash install-dbAudit.bash.sh
+rm -f install-dbAudit.bash.sh
+unset DBAUDIT_GITHUB_TOKEN
 ```
 
 Installed paths:
@@ -68,26 +63,20 @@ Installed paths:
 
 #### Windows (Git Bash)
 
-From Git Bash, inside a repo checkout:
-
-```bash
-bash install/install-win.sh
-```
-
 Remote install (private repo via GitHub API + token):
 
 ```bash
 read -s -p "GitHub token: " DBAUDIT_GITHUB_TOKEN; echo
-export DBAUDIT_GITHUB_TOKEN
 
 curl -fsSL \
   -H "Authorization: Bearer $DBAUDIT_GITHUB_TOKEN" \
   -H "Accept: application/vnd.github.raw" \
-  "https://api.github.com/repos/averriK/dbAudit/contents/install/install-win.sh?ref=main" \
-  -o install-dbAudit-win.sh
+  "https://api.github.com/repos/averriK/dbAudit/contents/install/install.windows?ref=main" \
+  -o install-dbAudit.windows
 
-bash install-dbAudit-win.sh
-rm -f install-dbAudit-win.sh
+DBAUDIT_GITHUB_TOKEN="$DBAUDIT_GITHUB_TOKEN" bash install-dbAudit.windows
+rm -f install-dbAudit.windows
+unset DBAUDIT_GITHUB_TOKEN
 ```
 
 Installed paths:
@@ -574,10 +563,10 @@ dbAudit/
 ├── bin/
 │   └── dbAudit            # Bash CLI (preferred)
 ├── install/
-│   ├── install-mac.sh     # Installer (macOS/Linux, /usr/local)
-│   ├── uninstall-mac.sh   # Uninstaller (macOS/Linux)
-│   ├── install-win.sh     # Installer (Windows, Git Bash, user-local)
-│   └── uninstall-win.sh   # Uninstaller (Windows, Git Bash)
+│   ├── install.bash.sh    # Installer (macOS/Linux, /usr/local)
+│   ├── uninstall.bash.sh  # Uninstaller (macOS/Linux)
+│   ├── install.windows    # Installer (Windows, Git Bash, user-local)
+│   └── uninstall.windows  # Uninstaller (Windows, Git Bash)
 ├── R/
 │   ├── setup.R            # Package loading
 │   ├── dbAudit.R          # Project runner function (DBAudit)
@@ -622,15 +611,7 @@ dbAudit/
 
 ### Installation
 
-Use the OS installer (recommended):
-
-```bash
-# macOS / Linux
-sudo bash install/install-mac.sh
-
-# Windows (Git Bash)
-bash install/install-win.sh
-```
+Use the remote installers (recommended): see the **Installation** section at the top of this README, or `docs/install.md`.
 
 ---
 

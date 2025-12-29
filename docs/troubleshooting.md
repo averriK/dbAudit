@@ -49,10 +49,10 @@ Double-check that the URL contains `averriK/dbAudit` and that the token has **re
 
 The macOS/Linux installer installs into `/usr/local` and does not run `sudo` internally.
 
-Run it with `sudo`:
+Run it with `sudo` (and pass the token through sudo if needed):
 
 ```bash
-sudo bash install/install-mac.sh
+sudo env DBAUDIT_GITHUB_TOKEN="$DBAUDIT_GITHUB_TOKEN" bash install-dbAudit.bash.sh
 ```
 
 ## `Rscript` not found
@@ -97,4 +97,4 @@ Capture:
 
 - The exact command you ran.
 - The full error output.
-- Your OS and whether you installed via the installer scripts or from a local checkout.
+- Your OS and whether you installed via the installer scripts.

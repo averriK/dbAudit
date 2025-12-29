@@ -19,16 +19,16 @@ Open **Git Bash**:
 
 ```bash
 read -s -p "GitHub token: " DBAUDIT_GITHUB_TOKEN; echo
-export DBAUDIT_GITHUB_TOKEN
 
 curl -fsSL \
   -H "Authorization: Bearer $DBAUDIT_GITHUB_TOKEN" \
   -H "Accept: application/vnd.github.raw" \
-  "https://api.github.com/repos/averriK/dbAudit/contents/install/install-win.sh?ref=main" \
-  -o install-dbAudit-win.sh
+  "https://api.github.com/repos/averriK/dbAudit/contents/install/install.windows?ref=main" \
+  -o install-dbAudit.windows
 
-bash install-dbAudit-win.sh
-rm -f install-dbAudit-win.sh
+DBAUDIT_GITHUB_TOKEN="$DBAUDIT_GITHUB_TOKEN" bash install-dbAudit.windows
+rm -f install-dbAudit.windows
+unset DBAUDIT_GITHUB_TOKEN
 ```
 
 ## What gets installed where
@@ -71,14 +71,14 @@ Remote uninstall (Git Bash):
 
 ```bash
 read -s -p "GitHub token: " DBAUDIT_GITHUB_TOKEN; echo
-export DBAUDIT_GITHUB_TOKEN
 
 curl -fsSL \
   -H "Authorization: Bearer $DBAUDIT_GITHUB_TOKEN" \
   -H "Accept: application/vnd.github.raw" \
-  "https://api.github.com/repos/averriK/dbAudit/contents/install/uninstall-win.sh?ref=main" \
-  -o uninstall-dbAudit-win.sh
+  "https://api.github.com/repos/averriK/dbAudit/contents/install/uninstall.windows?ref=main" \
+  -o uninstall-dbAudit.windows
 
-bash uninstall-dbAudit-win.sh
-rm -f uninstall-dbAudit-win.sh
+bash uninstall-dbAudit.windows
+rm -f uninstall-dbAudit.windows
+unset DBAUDIT_GITHUB_TOKEN
 ```

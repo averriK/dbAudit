@@ -27,11 +27,12 @@ read -s -p "GitHub token: " DBAUDIT_GITHUB_TOKEN; echo
 curl -fsSL \
   -H "Authorization: Bearer $DBAUDIT_GITHUB_TOKEN" \
   -H "Accept: application/vnd.github.raw" \
-  "https://api.github.com/repos/averriK/dbAudit/contents/install/install-mac.sh?ref=main" \
-  -o install-dbAudit-mac.sh
+  "https://api.github.com/repos/averriK/dbAudit/contents/install/install.bash.sh?ref=main" \
+  -o install-dbAudit.bash.sh
 
-sudo env DBAUDIT_GITHUB_TOKEN="$DBAUDIT_GITHUB_TOKEN" bash install-dbAudit-mac.sh
-rm -f install-dbAudit-mac.sh
+sudo env DBAUDIT_GITHUB_TOKEN="$DBAUDIT_GITHUB_TOKEN" bash install-dbAudit.bash.sh
+rm -f install-dbAudit.bash.sh
+unset DBAUDIT_GITHUB_TOKEN
 ```
 
 ### Windows (Git Bash)
@@ -40,16 +41,16 @@ Open **Git Bash** and run:
 
 ```bash
 read -s -p "GitHub token: " DBAUDIT_GITHUB_TOKEN; echo
-export DBAUDIT_GITHUB_TOKEN
 
 curl -fsSL \
   -H "Authorization: Bearer $DBAUDIT_GITHUB_TOKEN" \
   -H "Accept: application/vnd.github.raw" \
-  "https://api.github.com/repos/averriK/dbAudit/contents/install/install-win.sh?ref=main" \
-  -o install-dbAudit-win.sh
+  "https://api.github.com/repos/averriK/dbAudit/contents/install/install.windows?ref=main" \
+  -o install-dbAudit.windows
 
-bash install-dbAudit-win.sh
-rm -f install-dbAudit-win.sh
+DBAUDIT_GITHUB_TOKEN="$DBAUDIT_GITHUB_TOKEN" bash install-dbAudit.windows
+rm -f install-dbAudit.windows
+unset DBAUDIT_GITHUB_TOKEN
 ```
 
 Make sure Git Bash can find `dbAudit`:
