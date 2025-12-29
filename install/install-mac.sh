@@ -14,7 +14,7 @@
 # Usage examples:
 #   # Local mode (recommended for contributors)
 #   cd /path/to/dbAudit
-#   sudo bash install/install.sh
+#   sudo bash install/install-mac.sh
 #
 #   # Remote mode
 #   # NOTE: if the repository is private, you must provide a GitHub token with read access.
@@ -25,9 +25,9 @@
 #   #   curl -fsSL \
 #   #     -H "Authorization: Bearer $DBAUDIT_GITHUB_TOKEN" \
 #   #     -H "Accept: application/vnd.github.raw" \
-#   #     "https://api.github.com/repos/averriK/dbAudit/contents/install/install.sh?ref=main" \
-#   #     -o install-dbAudit.sh
-#   #   sudo env DBAUDIT_GITHUB_TOKEN="$DBAUDIT_GITHUB_TOKEN" bash install-dbAudit.sh
+#   #     "https://api.github.com/repos/averriK/dbAudit/contents/install/install-mac.sh?ref=main" \
+#   #     -o install-dbAudit-mac.sh
+#   #   sudo env DBAUDIT_GITHUB_TOKEN="$DBAUDIT_GITHUB_TOKEN" bash install-dbAudit-mac.sh
 #
 # Note:
 #   This installer does not install R. R (Rscript) is a runtime dependency.

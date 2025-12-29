@@ -27,29 +27,36 @@ read -s -p "GitHub token: " DBAUDIT_GITHUB_TOKEN; echo
 curl -fsSL \
   -H "Authorization: Bearer $DBAUDIT_GITHUB_TOKEN" \
   -H "Accept: application/vnd.github.raw" \
-  "https://api.github.com/repos/averriK/dbAudit/contents/install/install.sh?ref=main" \
-  -o install-dbAudit.sh
+  "https://api.github.com/repos/averriK/dbAudit/contents/install/install-mac.sh?ref=main" \
+  -o install-dbAudit-mac.sh
 
-sudo env DBAUDIT_GITHUB_TOKEN="$DBAUDIT_GITHUB_TOKEN" bash install-dbAudit.sh
-rm -f install-dbAudit.sh
+sudo env DBAUDIT_GITHUB_TOKEN="$DBAUDIT_GITHUB_TOKEN" bash install-dbAudit-mac.sh
+rm -f install-dbAudit-mac.sh
 ```
 
-### Windows (PowerShell)
+### Windows (Git Bash)
 
-```powershell
-Set-ExecutionPolicy -Scope Process -ExecutionPolicy Bypass
+Open **Git Bash** and run:
 
-$token = Read-Host "GitHub token (read access to averriK/dbAudit)"
-$headers = @{ Authorization = "Bearer $token"; Accept = "application/vnd.github.raw" }
+```bash
+read -s -p "GitHub token: " DBAUDIT_GITHUB_TOKEN; echo
+export DBAUDIT_GITHUB_TOKEN
 
-$installer = Join-Path $env:TEMP "install-dbAudit.ps1"
-iwr -UseBasicParsing -Headers $headers "https://api.github.com/repos/averriK/dbAudit/contents/install/install.ps1?ref=main" -OutFile $installer
+curl -fsSL \
+  -H "Authorization: Bearer $DBAUDIT_GITHUB_TOKEN" \
+  -H "Accept: application/vnd.github.raw" \
+  "https://api.github.com/repos/averriK/dbAudit/contents/install/install-win.sh?ref=main" \
+  -o install-dbAudit-win.sh
 
-& $installer -AutoInstall -GitHubToken $token
-Remove-Item -Force $installer
+bash install-dbAudit-win.sh
+rm -f install-dbAudit-win.sh
 ```
 
-After installing, close and reopen PowerShell so PATH updates are picked up.
+Make sure Git Bash can find `dbAudit`:
+
+```bash
+echo 'export PATH="$HOME/.local/bin:$PATH"' >> ~/.bashrc
+```
 
 For more details (paths, uninstall, troubleshooting), see: [Install]({{ "/docs/install/" | relative_url }}).
 

@@ -11,7 +11,7 @@ To install without a GitHub account, you need a GitHub token (read access) provi
 
 ## macOS / Linux
 
-The macOS/Linux installer is `install/install.sh`.
+The macOS/Linux installer is `install/install-mac.sh`.
 It installs a system-wide layout under `/usr/local`, so you typically run it with `sudo`.
 
 ### Remote install (recommended)
@@ -22,11 +22,11 @@ read -s -p "GitHub token: " DBAUDIT_GITHUB_TOKEN; echo
 curl -fsSL \
   -H "Authorization: Bearer $DBAUDIT_GITHUB_TOKEN" \
   -H "Accept: application/vnd.github.raw" \
-  "https://api.github.com/repos/averriK/dbAudit/contents/install/install.sh?ref=main" \
-  -o install-dbAudit.sh
+  "https://api.github.com/repos/averriK/dbAudit/contents/install/install-mac.sh?ref=main" \
+  -o install-dbAudit-mac.sh
 
-sudo env DBAUDIT_GITHUB_TOKEN="$DBAUDIT_GITHUB_TOKEN" bash install-dbAudit.sh
-rm -f install-dbAudit.sh
+sudo env DBAUDIT_GITHUB_TOKEN="$DBAUDIT_GITHUB_TOKEN" bash install-dbAudit-mac.sh
+rm -f install-dbAudit-mac.sh
 ```
 
 ### Install from a local checkout
@@ -34,7 +34,7 @@ rm -f install-dbAudit.sh
 If you already have a local copy of the repo:
 
 ```bash
-sudo bash install/install.sh
+sudo bash install/install-mac.sh
 ```
 
 ### Installed paths
@@ -45,64 +45,77 @@ sudo bash install/install.sh
 ### Uninstall
 
 ```bash
+read -s -p "GitHub token: " DBAUDIT_GITHUB_TOKEN; echo
+
 curl -fsSL \
   -H "Authorization: Bearer $DBAUDIT_GITHUB_TOKEN" \
   -H "Accept: application/vnd.github.raw" \
-  "https://api.github.com/repos/averriK/dbAudit/contents/install/uninstall.sh?ref=main" \
-  -o uninstall-dbAudit.sh
+  "https://api.github.com/repos/averriK/dbAudit/contents/install/uninstall-mac.sh?ref=main" \
+  -o uninstall-dbAudit-mac.sh
 
-sudo bash uninstall-dbAudit.sh
-rm -f uninstall-dbAudit.sh
+sudo bash uninstall-dbAudit-mac.sh
+rm -f uninstall-dbAudit-mac.sh
 ```
 
-## Windows (PowerShell)
+## Windows (Git Bash)
 
-The Windows installer is `install/install.ps1`.
+dbAudit can be installed on Windows using **Git Bash**.
+
+It installs a user-local layout (no admin required):
+
+- Wrapper: `$HOME/.local/bin/dbAudit`
+- Runtime: `$HOME/.local/libexec/dbAudit`
 
 ### Remote install (recommended)
 
-```powershell
-Set-ExecutionPolicy -Scope Process -ExecutionPolicy Bypass
+Open **Git Bash**:
 
-$token = Read-Host "GitHub token (read access to averriK/dbAudit)"
-$headers = @{ Authorization = "Bearer $token"; Accept = "application/vnd.github.raw" }
+```bash
+read -s -p "GitHub token: " DBAUDIT_GITHUB_TOKEN; echo
+export DBAUDIT_GITHUB_TOKEN
 
-$installer = Join-Path $env:TEMP "install-dbAudit.ps1"
-iwr -UseBasicParsing -Headers $headers "https://api.github.com/repos/averriK/dbAudit/contents/install/install.ps1?ref=main" -OutFile $installer
+curl -fsSL \
+  -H "Authorization: Bearer $DBAUDIT_GITHUB_TOKEN" \
+  -H "Accept: application/vnd.github.raw" \
+  "https://api.github.com/repos/averriK/dbAudit/contents/install/install-win.sh?ref=main" \
+  -o install-dbAudit-win.sh
 
-& $installer -AutoInstall -GitHubToken $token
-Remove-Item -Force $installer
+bash install-dbAudit-win.sh
+rm -f install-dbAudit-win.sh
 ```
-
-After installing, close and reopen PowerShell so PATH updates are picked up.
 
 ### Install from a local checkout
 
-If you already have a local copy of the repo:
+From Git Bash, inside a repo checkout:
 
-```powershell
-Set-ExecutionPolicy -Scope Process -ExecutionPolicy Bypass
-.\install\install.ps1 -AutoInstall
+```bash
+bash install/install-win.sh
 ```
 
-### Installed paths
+### PATH (Git Bash)
 
-- Runtime: `%LOCALAPPDATA%\dbAudit\libexec\dbAudit`
-- Shims: `%USERPROFILE%\bin` (`dbAudit.ps1`, `dbAudit.cmd`)
+Make sure Git Bash can find the wrapper:
+
+```bash
+echo 'export PATH="$HOME/.local/bin:$PATH"' >> ~/.bashrc
+```
 
 ### Uninstall
 
-```powershell
-Set-ExecutionPolicy -Scope Process -ExecutionPolicy Bypass
+Remote uninstall (Git Bash):
 
-$token = Read-Host "GitHub token (read access to averriK/dbAudit)"
-$headers = @{ Authorization = "Bearer $token"; Accept = "application/vnd.github.raw" }
+```bash
+read -s -p "GitHub token: " DBAUDIT_GITHUB_TOKEN; echo
+export DBAUDIT_GITHUB_TOKEN
 
-$uninstaller = Join-Path $env:TEMP "uninstall-dbAudit.ps1"
-iwr -UseBasicParsing -Headers $headers "https://api.github.com/repos/averriK/dbAudit/contents/install/uninstall.ps1?ref=main" -OutFile $uninstaller
+curl -fsSL \
+  -H "Authorization: Bearer $DBAUDIT_GITHUB_TOKEN" \
+  -H "Accept: application/vnd.github.raw" \
+  "https://api.github.com/repos/averriK/dbAudit/contents/install/uninstall-win.sh?ref=main" \
+  -o uninstall-dbAudit-win.sh
 
-& $uninstaller
-Remove-Item -Force $uninstaller
+bash uninstall-dbAudit-win.sh
+rm -f uninstall-dbAudit-win.sh
 ```
 
 ## OS-specific notes

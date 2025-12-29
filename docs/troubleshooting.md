@@ -18,15 +18,15 @@ ls -l /usr/local/bin/dbAudit
 
 If it exists but your shell can’t find it, confirm `/usr/local/bin` is on your `PATH`.
 
-### Windows
+### Windows (Git Bash)
 
-Open a **new** PowerShell window (PATH updates require a new session), then run:
+Open a **new** Git Bash window and run:
 
-```powershell
-where.exe dbAudit
+```bash
+command -v dbAudit
 ```
 
-If nothing is returned, confirm `%USERPROFILE%\bin` is on your Windows **User PATH**.
+If nothing is returned, ensure `$HOME/.local/bin` is on your Git Bash `PATH`.
 
 ## Remote install errors (private repo)
 
@@ -44,12 +44,6 @@ Double-check that the URL contains `averriK/dbAudit` and that the token has **re
 - `401 Unauthorized`: token is missing/invalid.
 - `403 Forbidden`: token is valid but does not have permission.
 
-### `Access to the path 'C:\\install-*.ps1' is denied`
-
-This happens when you run from `PS C:\\>` and use a relative `-OutFile` like `install-dbAudit.ps1`.
-PowerShell tries to write to `C:\\install-dbAudit.ps1`.
-
-Fix: write to a safe path like `$env:TEMP` (see the [Install]({{ "/docs/install/" | relative_url }}) page).
 
 ## Permission denied during install on macOS/Linux
 
@@ -58,7 +52,7 @@ The macOS/Linux installer installs into `/usr/local` and does not run `sudo` int
 Run it with `sudo`:
 
 ```bash
-sudo bash install/install.sh
+sudo bash install/install-mac.sh
 ```
 
 ## `Rscript` not found
@@ -74,13 +68,13 @@ Rscript --version
 
 If `command -v` prints nothing, install R for your OS and ensure `Rscript` is on PATH.
 
-### Windows
+### Windows (Git Bash)
 
-```powershell
-where.exe Rscript
+```bash
+command -v Rscript || command -v Rscript.exe
 ```
 
-If `Rscript.exe` exists on disk but is not found on PATH, add its directory to your Windows **User PATH** (or rerun the installer).
+If `Rscript` is not found, install R for Windows and ensure Git Bash can discover it (it must be on PATH in Git Bash).
 
 ## R packages fail to install
 

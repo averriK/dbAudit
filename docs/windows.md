@@ -4,89 +4,81 @@ title: Windows
 permalink: /docs/windows/
 ---
 
-# Windows
+# Windows (Git Bash)
 
-`dbAudit` on Windows is installed via PowerShell (`install/install.ps1`). The Unix/macOS installer (`install/install.sh`) is not intended for Windows.
+dbAudit runs on Windows using the Bash CLI via **Git Bash**.
 
 ## Install
 
 Recommended (remote install):
 
 This repo is private, so `raw.githubusercontent.com/...` will return `404` unless you authenticate.
-Use the GitHub API with a token (read access):
+Use the GitHub API with a token (read access).
 
-```powershell
-Set-ExecutionPolicy -Scope Process -ExecutionPolicy Bypass
+Open **Git Bash**:
 
-$token = Read-Host "GitHub token (read access to averriK/dbAudit)"
-$headers = @{ Authorization = "Bearer $token"; Accept = "application/vnd.github.raw" }
+```bash
+read -s -p "GitHub token: " DBAUDIT_GITHUB_TOKEN; echo
+export DBAUDIT_GITHUB_TOKEN
 
-$installer = Join-Path $env:TEMP "install-dbAudit.ps1"
-iwr -UseBasicParsing -Headers $headers "https://api.github.com/repos/averriK/dbAudit/contents/install/install.ps1?ref=main" -OutFile $installer
+curl -fsSL \
+  -H "Authorization: Bearer $DBAUDIT_GITHUB_TOKEN" \
+  -H "Accept: application/vnd.github.raw" \
+  "https://api.github.com/repos/averriK/dbAudit/contents/install/install-win.sh?ref=main" \
+  -o install-dbAudit-win.sh
 
-& $installer -AutoInstall -GitHubToken $token
-Remove-Item -Force $installer
+bash install-dbAudit-win.sh
+rm -f install-dbAudit-win.sh
 ```
-
-After installing, **close and reopen** PowerShell so your updated PATH is loaded.
 
 ## What gets installed where
 
-- Runtime: `%LOCALAPPDATA%\dbAudit\libexec\dbAudit`
-- User shims: `%USERPROFILE%\bin`
-  - `dbAudit.ps1` (PowerShell launcher)
-  - `dbAudit.cmd` (CMD launcher)
+- Wrapper: `$HOME/.local/bin/dbAudit`
+- Runtime: `$HOME/.local/libexec/dbAudit`
 
-The installer adds both:
+## PATH (Git Bash)
 
-- `%USERPROFILE%\bin`
-- The directory containing `Rscript.exe`
+Make sure Git Bash can find the wrapper:
 
-…to the **Windows User PATH**.
-
-## R / Rscript detection
-
-`dbAudit` requires `Rscript.exe`.
-
-The installer:
-
-1. Checks whether `Rscript.exe` is already on PATH.
-2. If not, searches common locations such as:
-   - `C:\Program Files\R\R-*\bin\x64\Rscript.exe`
-   - `C:\R\R-*\bin\x64\Rscript.exe`
-3. If still not found and you used `-AutoInstall`, attempts to install R via `winget` or `choco` (best effort).
-
-### If you already have R installed but `Rscript` is not found
-
-In PowerShell:
-
-```powershell
-where.exe Rscript
+```bash
+echo 'export PATH="$HOME/.local/bin:$PATH"' >> ~/.bashrc
 ```
 
-If that prints nothing, locate your `Rscript.exe` (commonly under `C:\Program Files\R\R-<version>\bin\x64\`) and ensure that directory is on your **User PATH**.
+Open a new Git Bash window after updating `~/.bashrc`.
+
+## R / Rscript
+
+dbAudit requires R (Windows) and `Rscript` must be discoverable from Git Bash.
+
+Quick checks:
+
+```bash
+command -v Rscript || command -v Rscript.exe
+Rscript --version 2>/dev/null || Rscript.exe --version
+```
 
 ## Verify install
 
-In a new PowerShell session:
+In a new Git Bash:
 
-```powershell
+```bash
 dbAudit --help
 ```
 
 ## Uninstall
 
-Remote uninstall:
+Remote uninstall (Git Bash):
 
-```powershell
-Set-ExecutionPolicy -Scope Process -ExecutionPolicy Bypass
+```bash
+read -s -p "GitHub token: " DBAUDIT_GITHUB_TOKEN; echo
+export DBAUDIT_GITHUB_TOKEN
 
-$token = Read-Host "GitHub token (read access to averriK/dbAudit)"
-$headers = @{ Authorization = "Bearer $token"; Accept = "application/vnd.github.raw" }
+curl -fsSL \
+  -H "Authorization: Bearer $DBAUDIT_GITHUB_TOKEN" \
+  -H "Accept: application/vnd.github.raw" \
+  "https://api.github.com/repos/averriK/dbAudit/contents/install/uninstall-win.sh?ref=main" \
+  -o uninstall-dbAudit-win.sh
 
-$uninstaller = Join-Path $env:TEMP "uninstall-dbAudit.ps1"
-iwr -UseBasicParsing -Headers $headers "https://api.github.com/repos/averriK/dbAudit/contents/install/uninstall.ps1?ref=main" -OutFile $uninstaller
-
-& $uninstaller
-Remove-Item -Force $uninstaller
+bash uninstall-dbAudit-win.sh
+rm -f uninstall-dbAudit-win.sh
 ```

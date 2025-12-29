@@ -6,7 +6,7 @@ permalink: /docs/macos/
 
 # macOS / Linux
 
-The macOS/Linux installer is `install/install.sh`.
+The macOS/Linux installer is `install/install-mac.sh`.
 
 It installs a system-wide layout under `/usr/local`, so you typically run it with `sudo`.
 
@@ -21,11 +21,11 @@ read -s -p "GitHub token: " DBAUDIT_GITHUB_TOKEN; echo
 curl -fsSL \
   -H "Authorization: Bearer $DBAUDIT_GITHUB_TOKEN" \
   -H "Accept: application/vnd.github.raw" \
-  "https://api.github.com/repos/averriK/dbAudit/contents/install/install.sh?ref=main" \
-  -o install-dbAudit.sh
+  "https://api.github.com/repos/averriK/dbAudit/contents/install/install-mac.sh?ref=main" \
+  -o install-dbAudit-mac.sh
 
-sudo env DBAUDIT_GITHUB_TOKEN="$DBAUDIT_GITHUB_TOKEN" bash install-dbAudit.sh
-rm -f install-dbAudit.sh
+sudo env DBAUDIT_GITHUB_TOKEN="$DBAUDIT_GITHUB_TOKEN" bash install-dbAudit-mac.sh
+rm -f install-dbAudit-mac.sh
 ```
 
 ## Option B: install from a local checkout
@@ -33,7 +33,7 @@ rm -f install-dbAudit.sh
 If you already have a local copy of the repo:
 
 ```bash
-sudo bash install/install.sh
+sudo bash install/install-mac.sh
 ```
 
 ## What the installer does
@@ -62,15 +62,15 @@ read -s -p "GitHub token: " DBAUDIT_GITHUB_TOKEN; echo
 curl -fsSL \
   -H "Authorization: Bearer $DBAUDIT_GITHUB_TOKEN" \
   -H "Accept: application/vnd.github.raw" \
-  "https://api.github.com/repos/averriK/dbAudit/contents/install/uninstall.sh?ref=main" \
-  -o uninstall-dbAudit.sh
+  "https://api.github.com/repos/averriK/dbAudit/contents/install/uninstall-mac.sh?ref=main" \
+  -o uninstall-dbAudit-mac.sh
 
-sudo bash uninstall-dbAudit.sh
-rm -f uninstall-dbAudit.sh
+sudo bash uninstall-dbAudit-mac.sh
+rm -f uninstall-dbAudit-mac.sh
 ```
 
 Local uninstall (from a repo checkout):
 
 ```bash
-sudo bash install/uninstall.sh
+sudo bash install/uninstall-mac.sh
 ```

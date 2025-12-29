@@ -35,7 +35,7 @@ R pipeline for parsing laboratory geochemical certificates into normalized long-
 
 - **R (≥ 3.5)**: Core language (make sure `Rscript` is available in your terminal)
 - **Operating System**: Linux, macOS, Windows
-- **Windows shell**: PowerShell is used for installation (`install/install.ps1`). Git Bash is optional for bash-style CLI examples.
+- **Windows shell**: Git Bash is used for installation on Windows (`install/install-win.sh`).
 
 ### Install
 
@@ -44,7 +44,7 @@ R pipeline for parsing laboratory geochemical certificates into normalized long-
 From a local checkout:
 
 ```bash
-sudo bash install/install.sh
+sudo bash install/install-mac.sh
 ```
 
 Remote install (private repo via GitHub API + token):
@@ -55,44 +55,50 @@ read -s -p "GitHub token: " DBAUDIT_GITHUB_TOKEN; echo
 curl -fsSL \
   -H "Authorization: Bearer $DBAUDIT_GITHUB_TOKEN" \
   -H "Accept: application/vnd.github.raw" \
-  "https://api.github.com/repos/averriK/dbAudit/contents/install/install.sh?ref=main" \
-  -o install-dbAudit.sh
+  "https://api.github.com/repos/averriK/dbAudit/contents/install/install-mac.sh?ref=main" \
+  -o install-dbAudit-mac.sh
 
-sudo env DBAUDIT_GITHUB_TOKEN="$DBAUDIT_GITHUB_TOKEN" bash install-dbAudit.sh
-rm -f install-dbAudit.sh
+sudo env DBAUDIT_GITHUB_TOKEN="$DBAUDIT_GITHUB_TOKEN" bash install-dbAudit-mac.sh
+rm -f install-dbAudit-mac.sh
 ```
 
 Installed paths:
 - `/usr/local/bin/dbAudit`
 - `/usr/local/libexec/dbAudit/`
 
-#### Windows (PowerShell)
+#### Windows (Git Bash)
 
-From a local checkout:
+From Git Bash, inside a repo checkout:
 
-```powershell
-Set-ExecutionPolicy -Scope Process -ExecutionPolicy Bypass
-.\install\install.ps1 -AutoInstall
+```bash
+bash install/install-win.sh
 ```
 
 Remote install (private repo via GitHub API + token):
 
-```powershell
-Set-ExecutionPolicy -Scope Process -ExecutionPolicy Bypass
+```bash
+read -s -p "GitHub token: " DBAUDIT_GITHUB_TOKEN; echo
+export DBAUDIT_GITHUB_TOKEN
 
-$token = Read-Host "GitHub token (read access to averriK/dbAudit)"
-$headers = @{ Authorization = "Bearer $token"; Accept = "application/vnd.github.raw" }
+curl -fsSL \
+  -H "Authorization: Bearer $DBAUDIT_GITHUB_TOKEN" \
+  -H "Accept: application/vnd.github.raw" \
+  "https://api.github.com/repos/averriK/dbAudit/contents/install/install-win.sh?ref=main" \
+  -o install-dbAudit-win.sh
 
-$installer = Join-Path $env:TEMP "install-dbAudit.ps1"
-iwr -UseBasicParsing -Headers $headers "https://api.github.com/repos/averriK/dbAudit/contents/install/install.ps1?ref=main" -OutFile $installer
-
-& $installer -AutoInstall -GitHubToken $token
-Remove-Item -Force $installer
+bash install-dbAudit-win.sh
+rm -f install-dbAudit-win.sh
 ```
 
 Installed paths:
-- Runtime: `%LOCALAPPDATA%\dbAudit\libexec\dbAudit`
-- Shims: `%USERPROFILE%\bin` (`dbAudit.ps1`, `dbAudit.cmd`)
+- Wrapper: `$HOME/.local/bin/dbAudit`
+- Runtime: `$HOME/.local/libexec/dbAudit`
+
+PATH (Git Bash):
+
+```bash
+echo 'export PATH="$HOME/.local/bin:$PATH"' >> ~/.bashrc
+```
 
 Notes:
 - Close and reopen your shell so PATH updates are picked up.
@@ -568,8 +574,10 @@ dbAudit/
 ├── bin/
 │   └── dbAudit            # Bash CLI (preferred)
 ├── install/
-│   ├── install.sh         # Installer (user-mode, cross-platform)
-│   └── uninstall.sh       # Uninstaller (user-mode)
+│   ├── install-mac.sh     # Installer (macOS/Linux, /usr/local)
+│   ├── uninstall-mac.sh   # Uninstaller (macOS/Linux)
+│   ├── install-win.sh     # Installer (Windows, Git Bash, user-local)
+│   └── uninstall-win.sh   # Uninstaller (Windows, Git Bash)
 ├── R/
 │   ├── setup.R            # Package loading
 │   ├── dbAudit.R          # Project runner function (DBAudit)
@@ -614,10 +622,14 @@ dbAudit/
 
 ### Installation
 
-Use the repo installer (recommended):
+Use the OS installer (recommended):
 
 ```bash
-bash install/install.sh
+# macOS / Linux
+sudo bash install/install-mac.sh
+
+# Windows (Git Bash)
+bash install/install-win.sh
 ```
 
 ---
