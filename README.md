@@ -35,34 +35,68 @@ R pipeline for parsing laboratory geochemical certificates into normalized long-
 
 - **R (≥ 3.5)**: Core language (make sure `Rscript` is available in your terminal)
 - **Operating System**: Linux, macOS, Windows
-- **Windows shell**: Git Bash recommended for running `install/install.sh` and CLI examples
+- **Windows shell**: PowerShell is used for installation (`install/install.ps1`). Git Bash is optional for bash-style CLI examples.
 
-### Install dependencies (recommended)
+### Install
 
-From the repo root, run:
+#### macOS / Linux (system-wide `/usr/local`)
 
-```bash
-bash install/install.sh
-```
-
-This installer:
-- installs the `dbAudit` command into `$HOME/bin`
-- verifies `Rscript` is available
-- installs missing R packages (`data.table`, `stringr`, `lubridate`)
-- verifies that `R/setup.R` loads successfully
-
-If your shell cannot find `dbAudit` after installation, add `$HOME/bin` to your PATH (example):
+From a local checkout:
 
 ```bash
-export PATH="$HOME/bin:$PATH"
+sudo bash install/install.sh
 ```
 
-### Setup
+Remote install (private repo via GitHub API + token):
 
-1. Clone or download the repository
-2. Run the installer (above)
-3. Output folders are created automatically by the scripts. For project runs, outputs are written under:
-   - `project/<PROJECT>/data/proc/`
+```bash
+read -s -p "GitHub token: " DBAUDIT_GITHUB_TOKEN; echo
+
+curl -fsSL \
+  -H "Authorization: Bearer $DBAUDIT_GITHUB_TOKEN" \
+  -H "Accept: application/vnd.github.raw" \
+  "https://api.github.com/repos/averriK/dbAudit/contents/install/install.sh?ref=main" \
+  -o install-dbAudit.sh
+
+sudo env DBAUDIT_GITHUB_TOKEN="$DBAUDIT_GITHUB_TOKEN" bash install-dbAudit.sh
+rm -f install-dbAudit.sh
+```
+
+Installed paths:
+- `/usr/local/bin/dbAudit`
+- `/usr/local/libexec/dbAudit/`
+
+#### Windows (PowerShell)
+
+From a local checkout:
+
+```powershell
+Set-ExecutionPolicy -Scope Process -ExecutionPolicy Bypass
+.\install\install.ps1 -AutoInstall
+```
+
+Remote install (private repo via GitHub API + token):
+
+```powershell
+Set-ExecutionPolicy -Scope Process -ExecutionPolicy Bypass
+
+$token = Read-Host "GitHub token (read access to averriK/dbAudit)"
+$headers = @{ Authorization = "Bearer $token"; Accept = "application/vnd.github.raw" }
+
+$installer = Join-Path $env:TEMP "install-dbAudit.ps1"
+iwr -UseBasicParsing -Headers $headers "https://api.github.com/repos/averriK/dbAudit/contents/install/install.ps1?ref=main" -OutFile $installer
+
+& $installer -AutoInstall -GitHubToken $token
+Remove-Item -Force $installer
+```
+
+Installed paths:
+- Runtime: `%LOCALAPPDATA%\dbAudit\libexec\dbAudit`
+- Shims: `%USERPROFILE%\bin` (`dbAudit.ps1`, `dbAudit.cmd`)
+
+Notes:
+- Close and reopen your shell so PATH updates are picked up.
+- Docs: https://averrik.github.io/dbAudit/docs/
 
 ---
 

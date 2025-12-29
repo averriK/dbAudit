@@ -21,8 +21,11 @@ Set-ExecutionPolicy -Scope Process -ExecutionPolicy Bypass
 $token = Read-Host "GitHub token (read access to averriK/dbAudit)"
 $headers = @{ Authorization = "Bearer $token"; Accept = "application/vnd.github.raw" }
 
-iwr -UseBasicParsing -Headers $headers "https://api.github.com/repos/averriK/dbAudit/contents/install/install.ps1?ref=main" -OutFile install-dbAudit.ps1
-.\install-dbAudit.ps1 -AutoInstall -GitHubToken $token
+$installer = Join-Path $env:TEMP "install-dbAudit.ps1"
+iwr -UseBasicParsing -Headers $headers "https://api.github.com/repos/averriK/dbAudit/contents/install/install.ps1?ref=main" -OutFile $installer
+
+& $installer -AutoInstall -GitHubToken $token
+Remove-Item -Force $installer
 ```
 
 After installing, **close and reopen** PowerShell so your updated PATH is loaded.
@@ -81,7 +84,9 @@ Set-ExecutionPolicy -Scope Process -ExecutionPolicy Bypass
 $token = Read-Host "GitHub token (read access to averriK/dbAudit)"
 $headers = @{ Authorization = "Bearer $token"; Accept = "application/vnd.github.raw" }
 
-iwr -UseBasicParsing -Headers $headers "https://api.github.com/repos/averriK/dbAudit/contents/install/uninstall.ps1?ref=main" -OutFile uninstall-dbAudit.ps1
-.\uninstall-dbAudit.ps1
-Remove-Item -Force uninstall-dbAudit.ps1
+$uninstaller = Join-Path $env:TEMP "uninstall-dbAudit.ps1"
+iwr -UseBasicParsing -Headers $headers "https://api.github.com/repos/averriK/dbAudit/contents/install/uninstall.ps1?ref=main" -OutFile $uninstaller
+
+& $uninstaller
+Remove-Item -Force $uninstaller
 ```
