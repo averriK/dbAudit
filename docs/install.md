@@ -6,73 +6,49 @@ permalink: /docs/install/
 
 # Install
 
-This repo is private.
-To install without a GitHub account, you need a GitHub token (read access) provided by your administrator.
+dbAudit is installed from a local checkout / extracted package (repo-based). The installers do not download from GitHub.
 
 ## macOS / Linux
 
-The macOS/Linux installer is `install/install.bash.sh`.
-It installs a system-wide layout under `/usr/local`, so you typically run it with `sudo`.
-
-The installer is **remote-only**: it always downloads dbAudit and does not install from a local checkout.
-
-### Remote install (recommended)
-
-Put your GitHub token in `~/.config/dbAudit/github.token` (recommended; CRLF/newlines stripped), then run:
+Installer: `install/install.sh` (system-wide `/usr/local`)
 
 ```bash
-curl -fsSL -H "Authorization: Bearer $(tr -d $'\r\n' < ~/.config/dbAudit/github.token)" -H "Accept: application/vnd.github.raw" "https://api.github.com/repos/averriK/dbAudit/contents/install/install.bash.sh?ref=main" | sudo bash
+git clone git@github.com:averriK/dbAudit.git
+sudo bash dbAudit/install/install.sh
 ```
 
-### Installed paths
+Installed paths:
 
-- Binary: `/usr/local/bin/dbAudit`
-- Runtime: `/usr/local/libexec/dbAudit/`
+- `/usr/local/bin/dbAudit`
+- `/usr/local/libexec/dbAudit/`
 
-### Uninstall
+Uninstall:
 
 ```bash
-curl -fsSL -H "Authorization: Bearer $(tr -d $'\r\n' < ~/.config/dbAudit/github.token)" -H "Accept: application/vnd.github.raw" "https://api.github.com/repos/averriK/dbAudit/contents/install/uninstall.bash.sh?ref=main" | sudo bash
+sudo bash dbAudit/install/uninstall.bash.sh
 ```
 
-## Windows (Git Bash)
+## Windows
 
-dbAudit can be installed on Windows using **Git Bash**.
+Installer: `install/install.ps1` (PowerShell)
 
-It installs a user-local layout (no admin required):
-
-- Wrapper: `$HOME/.local/bin/dbAudit`
-- Runtime: `$HOME/.local/libexec/dbAudit`
-
-The installer is **remote-only**: it always downloads dbAudit and does not install from a local checkout.
-
-### Remote install (recommended)
-
-Open **Git Bash**:
-
-Put your GitHub token in `~/.config/dbAudit/github.token` (recommended; CRLF/newlines stripped), then run:
-
-```bash
-curl -fsSL -H "Authorization: Bearer $(tr -d $'\r\n' < ~/.config/dbAudit/github.token)" -H "Accept: application/vnd.github.raw" "https://api.github.com/repos/averriK/dbAudit/contents/install/install.windows?ref=main" | bash
+```powershell
+git clone git@github.com:averriK/dbAudit.git
+powershell -NoProfile -ExecutionPolicy Bypass -File .\dbAudit\install\install.ps1
 ```
 
-### PATH (Git Bash)
+The installer writes launchers under a per-user bin directory and adds it to the **User PATH** (unless `-SkipPath`).
+Open a **new** terminal after installing.
 
-Make sure Git Bash can find the wrapper:
+Uninstall:
 
-```bash
-echo 'export PATH=\"$HOME/.local/bin:$PATH\"' >> ~/.bashrc
+```powershell
+powershell -NoProfile -ExecutionPolicy Bypass -File .\dbAudit\install\uninstall.ps1
 ```
 
-### Uninstall
+## Notes
 
-Remote uninstall (Git Bash):
-
-```bash
-curl -fsSL -H "Authorization: Bearer $(tr -d $'\r\n' < ~/.config/dbAudit/github.token)" -H "Accept: application/vnd.github.raw" "https://api.github.com/repos/averriK/dbAudit/contents/install/uninstall.windows?ref=main" | bash
-```
-
-## OS-specific notes
-
-- macOS/Linux details: [macOS / Linux]({{ "/docs/macos/" | relative_url }})
-- Windows details: [Windows]({{ "/docs/windows/" | relative_url }})
+- R is required at runtime (`Rscript` must be discoverable).
+- OS-specific details:
+  - macOS/Linux: [macOS / Linux]({{ "/docs/macos/" | relative_url }})
+  - Windows: [Windows]({{ "/docs/windows/" | relative_url }})

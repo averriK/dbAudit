@@ -34,44 +34,30 @@ R pipeline for parsing laboratory geochemical certificates into normalized long-
 ### Requirements
 
 - **R (≥ 3.5)**: Core language (make sure `Rscript` is available in your terminal)
-- **Operating System**: Linux, macOS, Windows
-- **Windows shell**: Git Bash is used for installation on Windows (`install/install.windows`).
 
-### Install
+### Install (repo-based)
 
 #### macOS / Linux (system-wide `/usr/local`)
 
-Remote install (private repo via GitHub API + token):
-
 ```bash
-curl -fsSL -H "Authorization: Bearer $(tr -d $'\r\n' < ~/.config/dbAudit/github.token)" -H "Accept: application/vnd.github.raw" "https://api.github.com/repos/averriK/dbAudit/contents/install/install.bash.sh?ref=main" | sudo bash
+git clone git@github.com:averriK/dbAudit.git
+sudo bash dbAudit/install/install.sh
 ```
 
 Installed paths:
 - `/usr/local/bin/dbAudit`
 - `/usr/local/libexec/dbAudit/`
 
-#### Windows (Git Bash)
+#### Windows (PowerShell)
 
-Remote install (private repo via GitHub API + token):
-
-```bash
-curl -fsSL -H "Authorization: Bearer $(tr -d $'\r\n' < ~/.config/dbAudit/github.token)" -H "Accept: application/vnd.github.raw" "https://api.github.com/repos/averriK/dbAudit/contents/install/install.windows?ref=main" | bash
-```
-
-Installed paths:
-- Wrapper: `$HOME/.local/bin/dbAudit`
-- Runtime: `$HOME/.local/libexec/dbAudit`
-
-PATH (Git Bash):
-
-```bash
-echo 'export PATH="$HOME/.local/bin:$PATH"' >> ~/.bashrc
+```powershell
+git clone git@github.com:averriK/dbAudit.git
+powershell -NoProfile -ExecutionPolicy Bypass -File .\dbAudit\install\install.ps1
 ```
 
 Notes:
-- Close and reopen your shell so PATH updates are picked up.
-- Docs: https://averrik.github.io/dbAudit/docs/
+- The Windows installer adds its `bin` directory to the **User PATH** (unless you pass `-SkipPath`). Open a **new** terminal after installing.
+- dbAudit runs via `Rscript` at runtime; install R and ensure `Rscript` is discoverable.
 
 ---
 
@@ -543,10 +529,10 @@ dbAudit/
 ├── bin/
 │   └── dbAudit            # Bash CLI (preferred)
 ├── install/
-│   ├── install.bash.sh    # Installer (macOS/Linux, /usr/local)
+│   ├── install.sh         # Installer (macOS/Linux, /usr/local)
 │   ├── uninstall.bash.sh  # Uninstaller (macOS/Linux)
-│   ├── install.windows    # Installer (Windows, Git Bash, user-local)
-│   └── uninstall.windows  # Uninstaller (Windows, Git Bash)
+│   ├── install.ps1        # Installer (Windows, PowerShell)
+│   └── uninstall.ps1      # Uninstaller (Windows, PowerShell)
 ├── R/
 │   ├── setup.R            # Package loading
 │   ├── dbAudit.R          # Project runner function (DBAudit)
@@ -591,7 +577,7 @@ dbAudit/
 
 ### Installation
 
-Use the remote installers (recommended): see the **Installation** section at the top of this README, or `docs/install.md`.
+Use the repo-based installers: see the **Installation** section at the top of this README, or `docs/install.md`.
 
 ---
 

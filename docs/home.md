@@ -15,28 +15,21 @@ Geochemical certificate parser and audit tool.
 ## Requirements
 
 - R installed (`Rscript` must be available at runtime).
-- For remote installation from a **private** repo, you need a GitHub token provided by your administrator.
 
 ## Install
 
 ### macOS / Linux (system-wide `/usr/local`)
 
 ```bash
-curl -fsSL -H "Authorization: Bearer $(tr -d $'\r\n' < ~/.config/dbAudit/github.token)" -H "Accept: application/vnd.github.raw" "https://api.github.com/repos/averriK/dbAudit/contents/install/install.bash.sh?ref=main" | sudo bash
+git clone git@github.com:averriK/dbAudit.git
+sudo bash dbAudit/install/install.sh
 ```
 
-### Windows (Git Bash)
+### Windows (PowerShell)
 
-Open **Git Bash** and run:
-
-```bash
-curl -fsSL -H "Authorization: Bearer $(tr -d $'\r\n' < ~/.config/dbAudit/github.token)" -H "Accept: application/vnd.github.raw" "https://api.github.com/repos/averriK/dbAudit/contents/install/install.windows?ref=main" | bash
-```
-
-Make sure Git Bash can find `dbAudit`:
-
-```bash
-echo 'export PATH="$HOME/.local/bin:$PATH"' >> ~/.bashrc
+```powershell
+git clone git@github.com:averriK/dbAudit.git
+powershell -NoProfile -ExecutionPolicy Bypass -File .\dbAudit\install\install.ps1
 ```
 
 For more details (paths, uninstall, troubleshooting), see: [Install]({{ "/docs/install/" | relative_url }}).

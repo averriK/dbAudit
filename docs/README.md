@@ -19,7 +19,7 @@ User-facing documentation can be published via GitHub Pages (if configured):
 ## Quick commands
 
 - Install:
-  - See `docs/install.md` (remote-only; copy/paste commands).
+  - See `docs/install.md` (repo-based; copy/paste commands).
 
 - Run a project:
   - `dbAudit --project project/<PROJECT>/data`

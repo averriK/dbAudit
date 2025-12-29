@@ -6,19 +6,15 @@ permalink: /docs/macos/
 
 # macOS / Linux
 
-The macOS/Linux installer is `install/install.bash.sh`.
+The macOS/Linux installer is `install/install.sh`.
 
 It installs a system-wide layout under `/usr/local`, so you typically run it with `sudo`.
 
-## Install (remote-only)
-
-This repo is private, so `raw.githubusercontent.com/...` will return `404` unless you authenticate.
-Use the GitHub API with a token (read access):
-
-Put your GitHub token in `~/.config/dbAudit/github.token` (recommended; CRLF/newlines stripped), then run:
+## Install (repo-based)
 
 ```bash
-curl -fsSL -H "Authorization: Bearer $(tr -d $'\r\n' < ~/.config/dbAudit/github.token)" -H "Accept: application/vnd.github.raw" "https://api.github.com/repos/averriK/dbAudit/contents/install/install.bash.sh?ref=main" | sudo bash
+git clone git@github.com:averriK/dbAudit.git
+sudo bash dbAudit/install/install.sh
 ```
 
 ## What the installer does
@@ -34,13 +30,11 @@ Deterministic layout:
 Notes:
 
 - The installer does **not** install R.
-- `dbAudit` requires `Rscript` at runtime (the wrapper calls `Rscript "$DBAUDIT_HOME/DBAudit" ...`).
+- `dbAudit` requires `Rscript` at runtime.
 - `DBAudit` sources `R/setup.R` at startup; `R/setup.R` installs missing packages (`data.table`, `stringr`, `lubridate`) and loads them.
 
 ## Uninstall
 
-Remote uninstall:
-
 ```bash
-curl -fsSL -H "Authorization: Bearer $(tr -d $'\r\n' < ~/.config/dbAudit/github.token)" -H "Accept: application/vnd.github.raw" "https://api.github.com/repos/averriK/dbAudit/contents/install/uninstall.bash.sh?ref=main" | sudo bash
+sudo bash dbAudit/install/uninstall.bash.sh
 ```
