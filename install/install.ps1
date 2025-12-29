@@ -137,34 +137,31 @@ Copy-Item -LiteralPath $repoBin -Destination (Join-Path $LibexecDir "bin\\dbAudi
 $cmdPath = Join-Path $UserBinDir "dbAudit.cmd"
 $shimPath = Join-Path $UserBinDir "dbAudit"
 
-$cmdTemplate = @"
-@echo off
-setlocal
-set "DBAUDIT_HOME=__LIBEXEC__"
-
-where Rscript >nul 2>nul
-if %errorlevel%==0 (
-  set "RSCRIPT=Rscript"
-) else (
-  where Rscript.exe >nul 2>nul
-  if %errorlevel%==0 (
-    set "RSCRIPT=Rscript.exe"
-  ) else (
-    echo ERROR: Rscript not found in PATH. Install R and try again. 1>&2
-    exit /b 1
-  )
+# NOTE: avoid PowerShell here-strings for .cmd content; they are easy to break when a file is copied/rewritten.
+$cmdLines = @(
+    '@echo off',
+    'setlocal',
+    ('set "DBAUDIT_HOME={0}"' -f $LibexecDir),
+    '',
+    'where Rscript >nul 2>nul',
+    'if %errorlevel%==0 (',
+    '  set "RSCRIPT=Rscript"',
+    ') else (',
+    '  where Rscript.exe >nul 2>nul',
+    '  if %errorlevel%==0 (',
+    '    set "RSCRIPT=Rscript.exe"',
+    '  ) else (',
+    '    echo ERROR: Rscript not found in PATH. Install R and try again. 1>&2',
+    '    exit /b 1',
+    '  )',
+    ')',
+    '',
+    '"%RSCRIPT%" "%DBAUDIT_HOME%\DBAudit" %*'
 )
 
-"%RSCRIPT%" "%DBAUDIT_HOME%\\DBAudit" %*
-"@
-
-$cmd = $cmdTemplate.Replace('__LIBEXEC__', $LibexecDir)
 # Ensure CRLF for .cmd
-$cmd = $cmd -replace "`r?`n", "`r`n"
-
-# Write without BOM
-$utf8NoBom = New-Object System.Text.UTF8Encoding($false)
-[System.IO.File]::WriteAllText($cmdPath, $cmd, $utf8NoBom)
+$cmd = ($cmdLines -join "`r`n") + "`r`n"
+[System.IO.File]::WriteAllText($cmdPath, $cmd, [System.Text.Encoding]::ASCII)
 
 $shim = @'
 #!/usr/bin/env bash
