@@ -121,7 +121,7 @@ New-Item -ItemType Directory -Force -Path $UserBinDir | Out-Null
 
 # Replace runtime tree
 if (Test-Path $LibexecDir) {
-    Warn "Existing runtime directory found at $LibexecDir – it will be replaced."
+    Warn "Existing runtime directory found at $LibexecDir - it will be replaced."
     Remove-Item -LiteralPath $LibexecDir -Recurse -Force
 }
 New-Item -ItemType Directory -Force -Path (Join-Path $LibexecDir "bin") | Out-Null
@@ -163,11 +163,12 @@ $cmdLines = @(
 $cmd = ($cmdLines -join "`r`n") + "`r`n"
 [System.IO.File]::WriteAllText($cmdPath, $cmd, [System.Text.Encoding]::ASCII)
 
-$shim = @'
-#!/usr/bin/env bash
-set -Eeuo pipefail
-exec "$(dirname "$0")/dbAudit.cmd" "$@"
-'@
+$shimLines = @(
+    '#!/usr/bin/env bash',
+    'set -Eeuo pipefail',
+    'exec "$(dirname "$0")/dbAudit.cmd" "$@"'
+)
+$shim = ($shimLines -join "`n") + "`n"
 Write-LFFile -Path $shimPath -Content $shim
 
 # Ensure executability in Git Bash (best-effort)
