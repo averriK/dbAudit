@@ -82,6 +82,21 @@ From terminal:
 dbAudit --project project/<PROJECT>/data
 ```
 
+Recommended (avoid fragile auto-detection for production runs):
+
+Optional:
+- `--tol <NUMBER>` controls the **relative tolerance** used by value audits (default: `0.05`).
+
+```bash
+# Type A
+
+dbAudit --project project/<PROJECT>/data --lab-format A --assay-format A
+
+# Type B
+
+dbAudit --project project/<PROJECT>/data --lab-format B --assay-format B
+```
+
 ### 3. Check outputs
 
 ```r
@@ -117,8 +132,8 @@ This project provides an end-to-end R pipeline (`DBAudit`) that:
 - Runs audits:
   - Structure audit: detects and can apply systematic jobID/sampleID prefix/suffix fixes (in-memory).
   - Value audit:
-    - Type A: direct numeric comparison using a relative tolerance.
-    - Type B: infers `standardID` (method) per `(jobID, elementID, unitID)` using lab-derived `index.csv`, then audits tag/value consistency.
+    - Type A (`auditValues(format="A")`): direct numeric comparison using a relative tolerance.
+    - Type B (`auditValues(format="B")`): infers `standardID` (method) per `(jobID, elementID, unitID)` using lab-derived `index.csv`, then audits tag/value consistency.
 - Writes a structured CSV log (`log.csv`) with event codes and diagnostics.
 - Includes runnable tests for regression (type A) and smoke coverage (type B).
 
@@ -152,8 +167,7 @@ This project provides an end-to-end R pipeline (`DBAudit`) that:
 | Function | Description | Input | Output |
 |----------|-------------|-------|--------|
 | `auditStructure` | Detect jobID/sampleID mismatches | `data.client`, `data.lab` | Log warnings/errors |
-| `auditValues` | Type-A value audit (numeric tolerance) | `data.client`, `data.lab` | Log mismatches |
-| `auditValuesB` | Type-B value audit (infer method using `index.csv`, then audit tags + values) | `data.client`, `data.lab`, `index.lab` | Log mismatches + method inference diagnostics |
+| `auditValues` | Value audit (A/B): `format="A"` direct compare; `format="B"` infer method via `index.csv` then audit tags + values | `data.client`, `data.lab` (+ `index.lab` for B) | Log mismatches + inference diagnostics |
 
 **Key parameters:**
 - `fix`: `TRUE` to auto-correct systematic ID patterns (in-memory only)
@@ -489,7 +503,7 @@ All events logged to:
 - `INFO STRUCTURE_APPLIED`: Summary of structural fixes
 - `INFO VALUES_APPLIED`: Summary of value fixes
 
-**Type-B audit events (method inference + DL/tag checks):**
+**Type-B value audit events (method inference + DL/tag checks; `auditValues(format="B")`):**
 - `INFO METHOD_INFERRED`: Inferred `standardID` for an analyte group
 - `ERROR METHOD_UNDETERMINED`: Not enough evidence to pick one method
 - `ERROR METHOD_AMBIGUOUS`: Conflicting evidence (no unique winner)

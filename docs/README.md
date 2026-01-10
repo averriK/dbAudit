@@ -23,3 +23,4 @@ User-facing documentation can be published via GitHub Pages (if configured):
 
 - Run a project:
   - `dbAudit --project project/<PROJECT>/data`
+  - Optional: `--tol <NUMBER>` sets relative tolerance for value audits (default: `0.05`).

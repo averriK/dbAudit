@@ -11,11 +11,19 @@ showHelp <- function() {
   cat("REQUIRED:\n")
   cat("  --project <DATA_ROOT>\n\n")
   cat("OPTIONS:\n")
-  cat("  --lab-dir   <REL_PATH>   (default: raw/lab)\n")
-  cat("  --assay-dir <REL_PATH>   (default: raw/assay)\n")
-  cat("  --proc-dir  <REL_PATH>   (default: proc)\n")
-  cat("  --assay-file <PATH>      (optional override; absolute path OR basename under assay-dir)\n")
+  cat("  --lab-dir      <REL_PATH>           (default: raw/lab)\n")
+  cat("  --assay-dir    <REL_PATH>           (default: raw/assay)\n")
+  cat("  --proc-dir     <REL_PATH>           (default: proc)\n")
+  cat("  --assay-file   <PATH>               (optional override; absolute path OR basename under assay-dir)\n")
+  cat("  --lab-format   <auto|A|B>           (default: auto)\n")
+  cat("  --assay-format <auto|A|B>           (default: auto)\n")
+  cat("  --tol         <NUMBER>              (default: 0.05; relative tolerance for value audits)\n")
+  cat("  --version\n")
   cat("  --help, -h\n")
+  cat("\n")
+  cat("DOCS:\n")
+  cat("  In-repo: docs/ (see docs/quickstart.md, docs/project-layout.md, docs/audit.md, docs/logging.md)\n")
+  cat("  Pages : https://averrik.github.io/dbAudit/docs/\n")
   cat("\n")
 }
 
@@ -77,6 +85,9 @@ lab.dir.name <- file.path("raw", "lab")
 assay.dir.name <- file.path("raw", "assay")
 proc.dir.name <- "proc"
 assay.file <- ""
+lab.format <- "auto"
+assay.format <- "auto"
+tol <- 5e-2
 
 k <- 1L
 while (k <= length(args)) {
@@ -119,6 +130,30 @@ while (k <= length(args)) {
     next
   }
 
+  if (identical(a, "--lab-format")) {
+    if (k == length(args)) stop("--lab-format requires a value")
+    lab.format <- args[k + 1L]
+    k <- k + 2L
+    next
+  }
+
+  if (identical(a, "--assay-format")) {
+    if (k == length(args)) stop("--assay-format requires a value")
+    assay.format <- args[k + 1L]
+    k <- k + 2L
+    next
+  }
+
+  if (identical(a, "--tol")) {
+    if (k == length(args)) stop("--tol requires a value")
+    tol <- suppressWarnings(as.numeric(args[k + 1L]))
+    if (is.na(tol) || !is.finite(tol) || tol < 0) {
+      stop(sprintf("Invalid --tol: %s (expected a non-negative number)", args[k + 1L]))
+    }
+    k <- k + 2L
+    next
+  }
+
   stop(sprintf("Unknown argument: %s", a))
 }
 
@@ -129,10 +164,27 @@ if (!nzchar(project.path)) {
 assay.file.arg <- NULL
 if (nzchar(assay.file)) assay.file.arg <- assay.file
 
+lab.format <- toupper(lab.format)
+assay.format <- toupper(assay.format)
+
+if (!(lab.format %in% c("AUTO", "A", "B"))) {
+  stop(sprintf("Invalid --lab-format: %s (expected auto|A|B)", lab.format))
+}
+if (!(assay.format %in% c("AUTO", "A", "B"))) {
+  stop(sprintf("Invalid --assay-format: %s (expected auto|A|B)", assay.format))
+}
+
+# Normalize to canonical tokens used by parseLabData()/parseAssayData()
+if (lab.format == "AUTO") lab.format <- "auto"
+if (assay.format == "AUTO") assay.format <- "auto"
+
 DBAudit(
   project.path = project.path,
   lab.dir.name = lab.dir.name,
   assay.dir.name = assay.dir.name,
   proc.dir.name = proc.dir.name,
-  assay.file = assay.file.arg
+  assay.file = assay.file.arg,
+  lab.format = lab.format,
+  assay.format = assay.format,
+  tol = tol
 )

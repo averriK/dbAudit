@@ -80,25 +80,17 @@ OUT <- auditStructure(log.file = log.file, data.lab = DATA.lab, data.client = DA
 DATA.client <- OUT$data.client
 
 # Audit values:
-# - If client does not declare standardID (type B assay), infer method using INDEX.lab and compare.
-# - Otherwise, run the type-A style audit.
+# - Use B if client standardID is entirely missing (type-B assay), else A.
 std.missing <- is.na(DATA.client$standardID) | DATA.client$standardID == ""
-if (all(std.missing)) {
-  OUT <- auditValuesB(
-    log.file = log.file,
-    data.lab = DATA.lab,
-    data.client = DATA.client,
-    index.lab = INDEX.lab,
-    fix = fix.values
-  )
-} else {
-  OUT <- auditValues(
-    log.file = log.file,
-    data.lab = DATA.lab,
-    data.client = DATA.client,
-    fix = fix.values
-  )
-}
+audit.format <- if (all(std.missing)) "B" else "A"
+OUT <- auditValues(
+  log.file = log.file,
+  data.lab = DATA.lab,
+  data.client = DATA.client,
+  index.lab = INDEX.lab,
+  format = audit.format,
+  fix = fix.values
+)
 DATA.client <- OUT$data.client
 
 # Clean LOG with repeated entries

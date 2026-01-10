@@ -40,6 +40,9 @@ For more details (paths, uninstall, troubleshooting), see: [Install]({{ "/docs/i
 dbAudit --project project/<PROJECT>/data
 ```
 
+Value audit tolerance:
+- `--tol <NUMBER>` sets the relative tolerance for value audits (default: `0.05`).
+
 Outputs under `--project`:
 
 - `proc/`
