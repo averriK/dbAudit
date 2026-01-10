@@ -21,6 +21,18 @@ The CLI expects a **data root** folder:
 dbAudit --project project/<PROJECT>/data
 ```
 
+Recommended (avoid fragile auto-detection for production runs):
+
+```bash
+# Type A
+
+dbAudit --project project/<PROJECT>/data --lab-format A --assay-format A
+
+# Type B
+
+dbAudit --project project/<PROJECT>/data --lab-format B --assay-format B
+```
+
 Defaults under `--project`:
 
 - Lab certificates: `raw/lab/`
@@ -37,6 +49,10 @@ dbAudit --project project/<PROJECT>/data --lab-dir raw/lab --assay-dir raw/assay
 # Override assay file (basename resolved under raw/assay)
 
 dbAudit --project project/<PROJECT>/data --assay-file AAQ_Sample_Assay.csv
+
+# Override audit tolerance (relative tolerance; default 0.05)
+
+dbAudit --project project/<PROJECT>/data --tol 0.02
 ```
 
 ## 3) Inspect outputs

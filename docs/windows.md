@@ -4,81 +4,57 @@ title: Windows
 permalink: /docs/windows/
 ---
 
-# Windows (Git Bash)
+# Windows
 
-dbAudit runs on Windows using the Bash CLI via **Git Bash**.
+dbAudit installs via **PowerShell** and runs via `Rscript` at runtime.
 
 ## Install
 
-Recommended (remote install):
-
-This repo is private, so `raw.githubusercontent.com/...` will return `404` unless you authenticate.
-Use the GitHub API with a token (read access).
-
-Open **Git Bash**:
-
-```bash
-read -s -p "GitHub token: " DBAUDIT_GITHUB_TOKEN; echo
-export DBAUDIT_GITHUB_TOKEN
-
-curl -fsSL \
-  -H "Authorization: Bearer $DBAUDIT_GITHUB_TOKEN" \
-  -H "Accept: application/vnd.github.raw" \
-  "https://api.github.com/repos/averriK/dbAudit/contents/install/install-win.sh?ref=main" \
-  -o install-dbAudit-win.sh
-
-bash install-dbAudit-win.sh
-rm -f install-dbAudit-win.sh
+```powershell
+git clone git@github.com:averriK/dbAudit.git
+powershell -NoProfile -ExecutionPolicy Bypass -File .\dbAudit\install\install.ps1
 ```
 
-## What gets installed where
+The installer:
 
-- Wrapper: `$HOME/.local/bin/dbAudit`
-- Runtime: `$HOME/.local/libexec/dbAudit`
+- Copies the runtime under a per-user directory (default: `%LOCALAPPDATA%\Programs\dbAudit\libexec\dbAudit`)
+- Writes launchers under a per-user bin directory (default: `%LOCALAPPDATA%\Programs\dbAudit\bin`)
+- Adds that bin directory to the **User PATH** (unless `-SkipPath`)
 
-## PATH (Git Bash)
+Open a **new terminal** after installing so PATH updates are picked up.
 
-Make sure Git Bash can find the wrapper:
+## Verify
 
-```bash
-echo 'export PATH="$HOME/.local/bin:$PATH"' >> ~/.bashrc
+PowerShell:
+
+```powershell
+dbAudit --help
 ```
 
-Open a new Git Bash window after updating `~/.bashrc`.
-
-## R / Rscript
-
-dbAudit requires R (Windows) and `Rscript` must be discoverable from Git Bash.
-
-Quick checks:
-
-```bash
-command -v Rscript || command -v Rscript.exe
-Rscript --version 2>/dev/null || Rscript.exe --version
-```
-
-## Verify install
-
-In a new Git Bash:
+Git Bash:
 
 ```bash
 dbAudit --help
 ```
 
-## Uninstall
+## R / Rscript
 
-Remote uninstall (Git Bash):
+Quick checks:
+
+PowerShell:
+
+```powershell
+Get-Command Rscript -ErrorAction SilentlyContinue
+```
+
+Git Bash:
 
 ```bash
-read -s -p "GitHub token: " DBAUDIT_GITHUB_TOKEN; echo
-export DBAUDIT_GITHUB_TOKEN
+command -v Rscript || command -v Rscript.exe
+```
 
-curl -fsSL \
-  -H "Authorization: Bearer $DBAUDIT_GITHUB_TOKEN" \
-  -H "Accept: application/vnd.github.raw" \
-  "https://api.github.com/repos/averriK/dbAudit/contents/install/uninstall-win.sh?ref=main" \
-  -o uninstall-dbAudit-win.sh
+## Uninstall
 
-bash uninstall-dbAudit-win.sh
-rm -f uninstall-dbAudit-win.sh
+```powershell
+powershell -NoProfile -ExecutionPolicy Bypass -File .\dbAudit\install\uninstall.ps1
 ```

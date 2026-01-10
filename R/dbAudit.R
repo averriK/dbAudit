@@ -55,7 +55,10 @@ DBAudit <- function(
   lab.dir.name = file.path("raw", "lab"),
   assay.dir.name = file.path("raw", "assay"),
   proc.dir.name = "proc",
-  assay.file = NULL
+  assay.file = NULL,
+  lab.format = c("auto", "A", "B"),
+  assay.format = c("auto", "A", "B"),
+  tol = 5e-2
 ) {
 
   project.path <- path.expand(project.path)
@@ -114,7 +117,11 @@ DBAudit <- function(
   # ----------------------------------------------------------------------
   # Parse Stage
 
+  lab.format <- match.arg(lab.format)
+  assay.format <- match.arg(assay.format)
+
   parseLabData(
+    format = lab.format,
     mode = "append",
     log.file = log.file,
     path = raw.path,
@@ -128,6 +135,7 @@ DBAudit <- function(
   fwrite(LOG, log.file)
 
   parseAssayData(
+    format = assay.format,
     input.file = input.file,
     log.file = log.file,
     output.file = output.file
@@ -147,6 +155,10 @@ DBAudit <- function(
 
   fix.structure <- TRUE
   fix.values <- FALSE
+
+  if (!is.numeric(tol) || length(tol) != 1L || is.na(tol) || !is.finite(tol) || tol < 0) {
+    stop(sprintf("Invalid tol: %s (expected a non-negative number)", as.character(tol)))
+  }
 
   INDEX.lab <- fread(index.file)
   DATA.lab <- fread(data.file)
@@ -170,22 +182,17 @@ DBAudit <- function(
   DATA.client <- OUT$data.client
 
   std.missing <- is.na(DATA.client$standardID) | DATA.client$standardID == ""
-  if (all(std.missing)) {
-    OUT <- auditValuesB(
-      log.file = log.file,
-      data.lab = DATA.lab,
-      data.client = DATA.client,
-      index.lab = INDEX.lab,
-      fix = fix.values
-    )
-  } else {
-    OUT <- auditValues(
-      log.file = log.file,
-      data.lab = DATA.lab,
-      data.client = DATA.client,
-      fix = fix.values
-    )
-  }
+  audit.format <- if (all(std.missing)) "B" else "A"
+
+  OUT <- auditValues(
+    log.file = log.file,
+    data.lab = DATA.lab,
+    data.client = DATA.client,
+    index.lab = INDEX.lab,
+    format = audit.format,
+    fix = fix.values,
+    tol = tol
+  )
   DATA.client <- OUT$data.client
 
   # Clean LOG with repeated entries

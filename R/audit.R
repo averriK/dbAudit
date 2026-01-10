@@ -120,7 +120,57 @@ auditStructure <- function(log.file, data.client, data.lab, fix = FALSE, file.id
   return(list(data.client = DATA.client))
 }
 
-auditValues <- function(log.file, data.lab, data.client, fix = FALSE, file.id = file.path("data","proc","client.csv")) {
+auditValues <- function(
+  log.file,
+  data.lab,
+  data.client,
+  index.lab = NULL,
+  format = c("A", "B"),
+  fix = FALSE,
+  min.votes = 2L,
+  tol = 5e-2,
+  file.id = file.path("data", "proc", "client.csv")
+) {
+  DATA.lab <- data.lab
+  DATA.client <- data.client
+
+  format <- match.arg(format)
+
+  if (!is.numeric(tol) || length(tol) != 1L || is.na(tol) || !is.finite(tol) || tol < 0) {
+    stop(sprintf("Invalid tol: %s (expected a non-negative number)", as.character(tol)))
+  }
+
+  if (identical(format, "A")) {
+    return(.auditValuesA(
+      log.file = log.file,
+      data.lab = DATA.lab,
+      data.client = DATA.client,
+      fix = fix,
+      tol = tol,
+      file.id = file.id
+    ))
+  }
+
+  if (identical(format, "B")) {
+    if (is.null(index.lab)) {
+      stop("auditValues(format='B') requires index.lab (lab-derived index.csv)")
+    }
+    return(.auditValuesB(
+      log.file = log.file,
+      data.lab = DATA.lab,
+      data.client = DATA.client,
+      index.lab = index.lab,
+      fix = fix,
+      min.votes = min.votes,
+      tol = tol,
+      file.id = file.id
+    ))
+  }
+
+  stop("Invalid format")
+}
+
+.auditValuesA <- function(log.file, data.lab, data.client, fix = FALSE, tol = 5e-2, file.id = file.path("data","proc","client.csv")) {
   DATA.lab <- data.lab
   DATA.client <- data.client
 
@@ -129,7 +179,6 @@ auditValues <- function(log.file, data.lab, data.client, fix = FALSE, file.id = 
   DT.lab <- unique(DATA.lab[, .(jobID, sampleID, elementID, standardID, unitID, value.lab = value)])
   DT <- DT.lab[DT.client, on = keys, nomatch = 0L] |> unique()
 
-  tol <- 5e-2
   OUT <- .auditValuesNumericJoin(
     log.file = log.file,
     file.id = file.id,
@@ -407,7 +456,7 @@ auditValues <- function(log.file, data.lab, data.client, fix = FALSE, file.id = 
 # Values audit for type B: infer standardID first, then compare values.
 # NOTE: No fallback method selection. If ambiguous/undetermined -> ERROR and skip value audit for that group.
 
-auditValuesB <- function(log.file, data.lab, data.client, index.lab = NULL, fix = FALSE,
+.auditValuesB <- function(log.file, data.lab, data.client, index.lab, fix = FALSE,
                         file.id = file.path("data", "proc", "client.csv"),
                         min.votes = 2L, tol = 5e-2) {
   DATA.lab <- data.lab
@@ -417,12 +466,7 @@ auditValuesB <- function(log.file, data.lab, data.client, index.lab = NULL, fix 
   DATA.client[, standardID := as.character(standardID)]
 
   # Use lab-derived index (DL + method info) as the source of candidates.
-  if (is.null(index.lab)) {
-    INDEX.lab <- unique(DATA.lab[, .(jobID, elementID, unitID, standardID, minDL, maxDL)])
-  } else {
-    INDEX.lab <- copy(index.lab)
-  }
-
+  INDEX.lab <- copy(index.lab)
   INDEX.lab[, standardID := as.character(standardID)]
 
   # Infer method per (jobID, elementID, unitID)

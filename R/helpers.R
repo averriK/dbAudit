@@ -278,8 +278,17 @@
 
 .jobIDsWithLabParseErrors <- function(log.file = "data/proc/log.csv") {
   DT <- data.table::fread(log.file, colClasses = "character")
-  ev <- c("PARSE_ERROR", "DUPLICATE_VID", "SAMPLEID_NOT_UNIQUE", "UNKNOWN_FORMAT")
-  .extractJobIDsFromMessages(DT[level == "ERROR" & event %in% ev, message])
+
+  # NOTE: This helper is used to decide which lab jobIDs to exclude from audit.
+  # Treat only truly fatal parsing outcomes as exclusion-worthy.
+  fatal.events <- c("PARSE_ERROR", "DUPLICATE_VID", "UNKNOWN_FORMAT")
+
+  job.fatal <- .extractJobIDsFromMessages(DT[level == "ERROR" & event %in% fatal.events, message])
+  job.ok <- .extractJobIDsFromMessages(DT[level == "INFO" & event == "PARSE_OK", message])
+
+  # Be conservative: if a jobID has PARSE_OK, do not exclude it even if other ERROR
+  # diagnostics were logged (e.g. SAMPLEID_NOT_UNIQUE).
+  setdiff(job.fatal, job.ok)
 }
 
 .jobIDsWithClientParseErrors <- function(log.file = "data/proc/log.csv") {

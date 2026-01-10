@@ -91,7 +91,10 @@ Input schema checks:
 - `WRONG_VALUE` (ERROR): per-row mismatch (only when `fix=FALSE`)
 - `VALUES_APPLIED` (INFO): summary of applied value fixes
 
-### 5) Type-B method inference + DL/tag checks (`auditValuesB` in `R/audit.R`)
+Notes:
+- `tol` is configurable via the runner CLI flag `--tol` (default: `0.05`).
+
+### 5) Type-B method inference + DL/tag checks (`auditValues(format="B")` in `R/audit.R`)
 
 Method inference:
 

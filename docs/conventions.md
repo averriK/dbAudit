@@ -14,7 +14,7 @@ Examples:
 - `DBAudit()` (runner)
 - `parseLabData()`, `parseLabDataA()`
 - `parseAssayData()`, `parseAssayDataA()`, `parseAssayDataB()`
-- `auditStructure()`, `auditValues()`, `auditValuesB()`
+- `auditStructure()`, `auditValues()`
 
 ### Internal helpers (not part of the public API)
 Internal helpers start with a **leading dot** (`.`) and are not intended to be used externally.

@@ -34,75 +34,30 @@ R pipeline for parsing laboratory geochemical certificates into normalized long-
 ### Requirements
 
 - **R (≥ 3.5)**: Core language (make sure `Rscript` is available in your terminal)
-- **Operating System**: Linux, macOS, Windows
-- **Windows shell**: Git Bash is used for installation on Windows (`install/install-win.sh`).
 
-### Install
+### Install (repo-based)
 
 #### macOS / Linux (system-wide `/usr/local`)
 
-From a local checkout:
-
 ```bash
-sudo bash install/install-mac.sh
-```
-
-Remote install (private repo via GitHub API + token):
-
-```bash
-read -s -p "GitHub token: " DBAUDIT_GITHUB_TOKEN; echo
-
-curl -fsSL \
-  -H "Authorization: Bearer $DBAUDIT_GITHUB_TOKEN" \
-  -H "Accept: application/vnd.github.raw" \
-  "https://api.github.com/repos/averriK/dbAudit/contents/install/install-mac.sh?ref=main" \
-  -o install-dbAudit-mac.sh
-
-sudo env DBAUDIT_GITHUB_TOKEN="$DBAUDIT_GITHUB_TOKEN" bash install-dbAudit-mac.sh
-rm -f install-dbAudit-mac.sh
+git clone git@github.com:averriK/dbAudit.git
+sudo bash dbAudit/install/install.sh
 ```
 
 Installed paths:
 - `/usr/local/bin/dbAudit`
 - `/usr/local/libexec/dbAudit/`
 
-#### Windows (Git Bash)
+#### Windows (PowerShell)
 
-From Git Bash, inside a repo checkout:
-
-```bash
-bash install/install-win.sh
-```
-
-Remote install (private repo via GitHub API + token):
-
-```bash
-read -s -p "GitHub token: " DBAUDIT_GITHUB_TOKEN; echo
-export DBAUDIT_GITHUB_TOKEN
-
-curl -fsSL \
-  -H "Authorization: Bearer $DBAUDIT_GITHUB_TOKEN" \
-  -H "Accept: application/vnd.github.raw" \
-  "https://api.github.com/repos/averriK/dbAudit/contents/install/install-win.sh?ref=main" \
-  -o install-dbAudit-win.sh
-
-bash install-dbAudit-win.sh
-rm -f install-dbAudit-win.sh
-```
-
-Installed paths:
-- Wrapper: `$HOME/.local/bin/dbAudit`
-- Runtime: `$HOME/.local/libexec/dbAudit`
-
-PATH (Git Bash):
-
-```bash
-echo 'export PATH="$HOME/.local/bin:$PATH"' >> ~/.bashrc
+```powershell
+git clone git@github.com:averriK/dbAudit.git
+powershell -NoProfile -ExecutionPolicy Bypass -File .\dbAudit\install\install.ps1
 ```
 
 Notes:
-- Close and reopen your shell so PATH updates are picked up.
-- Docs: https://averrik.github.io/dbAudit/docs/
+- The Windows installer adds its `bin` directory to the **User PATH** (unless you pass `-SkipPath`). Open a **new** terminal after installing.
+- dbAudit runs via `Rscript` at runtime; install R and ensure `Rscript` is discoverable.
 
 ---
 
@@ -125,6 +80,21 @@ From terminal:
 
 ```bash
 dbAudit --project project/<PROJECT>/data
+```
+
+Recommended (avoid fragile auto-detection for production runs):
+
+Optional:
+- `--tol <NUMBER>` controls the **relative tolerance** used by value audits (default: `0.05`).
+
+```bash
+# Type A
+
+dbAudit --project project/<PROJECT>/data --lab-format A --assay-format A
+
+# Type B
+
+dbAudit --project project/<PROJECT>/data --lab-format B --assay-format B
 ```
 
 ### 3. Check outputs
@@ -162,8 +132,8 @@ This project provides an end-to-end R pipeline (`DBAudit`) that:
 - Runs audits:
   - Structure audit: detects and can apply systematic jobID/sampleID prefix/suffix fixes (in-memory).
   - Value audit:
-    - Type A: direct numeric comparison using a relative tolerance.
-    - Type B: infers `standardID` (method) per `(jobID, elementID, unitID)` using lab-derived `index.csv`, then audits tag/value consistency.
+    - Type A (`auditValues(format="A")`): direct numeric comparison using a relative tolerance.
+    - Type B (`auditValues(format="B")`): infers `standardID` (method) per `(jobID, elementID, unitID)` using lab-derived `index.csv`, then audits tag/value consistency.
 - Writes a structured CSV log (`log.csv`) with event codes and diagnostics.
 - Includes runnable tests for regression (type A) and smoke coverage (type B).
 
@@ -197,8 +167,7 @@ This project provides an end-to-end R pipeline (`DBAudit`) that:
 | Function | Description | Input | Output |
 |----------|-------------|-------|--------|
 | `auditStructure` | Detect jobID/sampleID mismatches | `data.client`, `data.lab` | Log warnings/errors |
-| `auditValues` | Type-A value audit (numeric tolerance) | `data.client`, `data.lab` | Log mismatches |
-| `auditValuesB` | Type-B value audit (infer method using `index.csv`, then audit tags + values) | `data.client`, `data.lab`, `index.lab` | Log mismatches + method inference diagnostics |
+| `auditValues` | Value audit (A/B): `format="A"` direct compare; `format="B"` infer method via `index.csv` then audit tags + values | `data.client`, `data.lab` (+ `index.lab` for B) | Log mismatches + inference diagnostics |
 
 **Key parameters:**
 - `fix`: `TRUE` to auto-correct systematic ID patterns (in-memory only)
@@ -534,7 +503,7 @@ All events logged to:
 - `INFO STRUCTURE_APPLIED`: Summary of structural fixes
 - `INFO VALUES_APPLIED`: Summary of value fixes
 
-**Type-B audit events (method inference + DL/tag checks):**
+**Type-B value audit events (method inference + DL/tag checks; `auditValues(format="B")`):**
 - `INFO METHOD_INFERRED`: Inferred `standardID` for an analyte group
 - `ERROR METHOD_UNDETERMINED`: Not enough evidence to pick one method
 - `ERROR METHOD_AMBIGUOUS`: Conflicting evidence (no unique winner)
@@ -574,10 +543,10 @@ dbAudit/
 ├── bin/
 │   └── dbAudit            # Bash CLI (preferred)
 ├── install/
-│   ├── install-mac.sh     # Installer (macOS/Linux, /usr/local)
-│   ├── uninstall-mac.sh   # Uninstaller (macOS/Linux)
-│   ├── install-win.sh     # Installer (Windows, Git Bash, user-local)
-│   └── uninstall-win.sh   # Uninstaller (Windows, Git Bash)
+│   ├── install.sh         # Installer (macOS/Linux, /usr/local)
+│   ├── uninstall.bash.sh  # Uninstaller (macOS/Linux)
+│   ├── install.ps1        # Installer (Windows, PowerShell)
+│   └── uninstall.ps1      # Uninstaller (Windows, PowerShell)
 ├── R/
 │   ├── setup.R            # Package loading
 │   ├── dbAudit.R          # Project runner function (DBAudit)
@@ -622,15 +591,7 @@ dbAudit/
 
 ### Installation
 
-Use the OS installer (recommended):
-
-```bash
-# macOS / Linux
-sudo bash install/install-mac.sh
-
-# Windows (Git Bash)
-bash install/install-win.sh
-```
+Use the repo-based installers: see the **Installation** section at the top of this README, or `docs/install.md`.
 
 ---
 

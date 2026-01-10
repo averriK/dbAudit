@@ -55,8 +55,8 @@ Los runners `test-A/run.R` y `test-B/run.R` sourcean directamente desde `R/*`.
 - Parsers universales:
   - `parseLabData(format=c("auto","A","B"), ...)`
   - `parseAssayData(format=c("auto","A","B"), ...)`
-- Auditoría tipo B:
-  - `auditValuesB(..., min.votes=2L, tol=5e-2)`
+- Auditoría valores (A y B):
+  - `auditValues(..., format=c("A","B"), ...)` (en B usa inferencia de método)
 
 ## Pruebas
 ### Test A (regresión)
@@ -76,7 +76,7 @@ Qué valida:
 - Parse assay tipo B (`parseAssayData(format="B")`).
 - Corre auditoría:
   - `auditStructure()` (estructura)
-  - `auditValuesB()` (infiere `standardID` por (jobID, elementID, unitID) y luego audita tags/valores)
+  - `auditValues(format="B")` (infiere `standardID` por (jobID, elementID, unitID) y luego audita tags/valores)
 
 ## Resultados
 Última verificación:

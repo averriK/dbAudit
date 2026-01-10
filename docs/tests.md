@@ -33,7 +33,7 @@ Run:
 What it does:
 - Parses a type-B lab certificate directory (`project/test-B/raw/`) using `parseLabData(format="B")`.
 - Parses a type-B assay table (`project/test-B/assay/AAQ_Sample_Assay.csv`) using `parseAssayData(format="B")`.
-- Runs `auditStructure()` and `auditValuesB()` using `index.csv` produced from the lab.
+- Runs `auditStructure()` and `auditValues(format="B")` using `index.csv` produced from the lab.
 
 Outputs:
 - `project/test-B/proc/` (generated; ignored by git).

@@ -129,21 +129,35 @@ parseLabData <- function(
 # Detector de formato
 
 .detectLabFormat <- function(FILE) {
-  # Use fread's skip= (string search) so delimiter guessing happens on the structured block,
-  # not on free-text headers.
-  okB <- tryCatch({
-    fread(FILE, skip = "ELEMENT", nrows = 1L, header = FALSE, colClasses = "character", fill = TRUE)
-    TRUE
-  }, error = function(e) FALSE)
+  # Detect A vs B from header markers.
+  #
+  # NOTE: The previous implementation used fread(skip="Analysis Order"), but many real type-A
+  # certificates use "ANALYSISORDER" (no space) in the header row, which caused massive
+  # UNKNOWN_FORMAT false positives.
 
-  if (isTRUE(okB)) return("B")
+  head.lines <- readLines(FILE, n = 80L, warn = FALSE)
 
-  okA <- tryCatch({
-    fread(FILE, skip = "Analysis Order", nrows = 1L, header = FALSE, colClasses = "character", fill = TRUE)
-    TRUE
-  }, error = function(e) FALSE)
+  # Some real-world certificates contain non-UTF8 bytes. Normalize to UTF-8 so regex ops
+  # do not error. Unknown/invalid sequences are dropped (only used for detection).
+  head.lines <- iconv(head.lines, from = "", to = "UTF-8", sub = "")
+  head.lines[is.na(head.lines)] <- ""
 
-  if (isTRUE(okA)) return("A")
+  head.lines <- sub("^\\ufeff", "", head.lines)
+  low <- tolower(head.lines)
+
+  # Type B: typically contains a "Method:" marker and/or an ELEMENT header row.
+  if (any(grepl("^\\s*element\\b", low)) || any(grepl("method:", low, fixed = TRUE))) {
+    return("B")
+  }
+
+  # Type A: header row often contains ANALYSISORDER (sometimes "Analysis Order") and has
+  # MIN/MAX DETECTION rows.
+  if (any(grepl("analysis\\s*order", low)) || any(grepl("analysisorder", low, fixed = TRUE))) {
+    return("A")
+  }
+  if (any(grepl("^\\s*min\\s*detection", low)) && any(grepl("^\\s*max\\s*detection", low))) {
+    return("A")
+  }
 
   NA_character_
 }

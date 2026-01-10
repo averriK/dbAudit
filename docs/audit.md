@@ -28,14 +28,17 @@ Function: `auditStructure(log.file, data.client, data.lab, fix=FALSE)`
 - If `fix=TRUE`, applies in-memory corrections and logs what was changed.
 
 ## Value audit (type A)
-Function: `auditValues(log.file, data.lab, data.client, fix=FALSE)`
+Function: `auditValues(log.file, data.lab, data.client, format="A", fix=FALSE, tol=5e-2)`
 - Compares numeric values for matching keys:
   `(jobID, sampleID, elementID, standardID, unitID)`
 - Uses relative tolerance (`tol`) via `.valuesEqual()`.
 - Does **not** infer methods; it assumes the client table declares `standardID`.
 
+CLI note:
+- The runner exposes this tolerance as `--tol` (default: `0.05`).
+
 ## Value audit (type B)
-Function: `auditValuesB(log.file, data.lab, data.client, index.lab, fix=FALSE, min.votes=2L, tol=5e-2)`
+Function: `auditValues(log.file, data.lab, data.client, index.lab, format="B", fix=FALSE, min.votes=2L, tol=5e-2)`
 
 ### Why type B needs extra logic
 Type-B assay tables do not declare `standardID`, while type-B lab certificates can include multiple methods per analyte.
@@ -82,5 +85,5 @@ Numeric mismatches are evaluated only on rows where `tagDL` matches (to avoid do
 - `VALUE_MISMATCH` / `WRONG_VALUE` / `VALUE_FIXED` / `VALUES_APPLIED`
 
 ## Notes on robustness
-- The “method inference + tagDL audit” is currently **type-B specific**.
-- The type-A audit remains a direct numeric comparison (no method inference).
+- The “method inference + tagDL audit” is specific to `auditValues(format="B")`.
+- `auditValues(format="A")` remains a direct numeric comparison (no method inference).
