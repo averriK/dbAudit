@@ -544,7 +544,7 @@ dbAudit/
 │   └── dbAudit            # Bash CLI (preferred)
 ├── install/
 │   ├── install.sh         # Installer (macOS/Linux, /usr/local)
-│   ├── uninstall.bash.sh  # Uninstaller (macOS/Linux)
+│   ├── uninstall.sh       # Uninstaller (macOS/Linux)
 │   ├── install.ps1        # Installer (Windows, PowerShell)
 │   └── uninstall.ps1      # Uninstaller (Windows, PowerShell)
 ├── R/
