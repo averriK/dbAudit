@@ -33,7 +33,17 @@ R pipeline for parsing laboratory geochemical certificates into normalized long-
 
 ### Requirements
 
-- **R (≥ 3.5)**: Core language (make sure `Rscript` is available in your terminal)
+- **R (≥ 3.5)**: Core language
+  - Verify: `Rscript --version`
+  - Install: [CRAN Downloads](https://cran.r-project.org/)
+  - Ensure `Rscript` is in your PATH
+
+- **R Packages** (auto-installed by installer):
+  - `data.table` - Fast data I/O and manipulation
+  - `stringr` - String processing
+  - `lubridate` - Date parsing
+
+**Note:** The installer will check for R (≥ 3.5) and install required packages automatically. If you prefer to manage packages manually, use the `--skip-packages` flag (macOS/Linux) or `-SkipPackages` (Windows).
 
 ### Install (repo-based)
 
@@ -44,9 +54,14 @@ git clone git@github.com:averriK/dbAudit.git
 sudo bash dbAudit/install/install.sh
 ```
 
-Installed paths:
+**Installed paths:**
 - `/usr/local/bin/dbAudit`
 - `/usr/local/libexec/dbAudit/`
+
+**Skip package installation:**
+```bash
+sudo bash dbAudit/install/install.sh --skip-packages
+```
 
 #### Windows (PowerShell)
 
@@ -55,9 +70,70 @@ git clone git@github.com:averriK/dbAudit.git
 powershell -NoProfile -ExecutionPolicy Bypass -File .\dbAudit\install\install.ps1
 ```
 
-Notes:
+**Installed paths:**
+- `%LOCALAPPDATA%\Programs\dbAudit\bin\`
+- `%LOCALAPPDATA%\Programs\dbAudit\libexec\dbAudit\`
+
+**Skip package installation:**
+```powershell
+powershell -NoProfile -ExecutionPolicy Bypass -File .\dbAudit\install\install.ps1 -SkipPackages
+```
+
+**Notes:**
 - The Windows installer adds its `bin` directory to the **User PATH** (unless you pass `-SkipPath`). Open a **new** terminal after installing.
-- dbAudit runs via `Rscript` at runtime; install R and ensure `Rscript` is discoverable.
+- Windows uses **pre-compiled binary packages only** (cannot compile from source without Rtools).
+- If you have an older R version without binary packages available, upgrade R first.
+
+### Verify Installation
+
+After installing, verify all dependencies are satisfied:
+
+```bash
+dbAudit --check
+```
+
+**Expected output:**
+```
+dbAudit System Diagnostics
+==================================================
+
+R version: 4.5.2
+Rscript: /usr/local/bin/Rscript
+Installation: /usr/local/libexec/dbAudit
+
+Required R Packages:
+  [✓] data.table (version 1.18.0)
+  [✓] stringr (version 1.6.0)
+  [✓] lubridate (version 1.9.4)
+
+Status: ✓ All dependencies satisfied
+```
+
+### Troubleshooting Installation
+
+**R not found:**
+- Install R from [CRAN](https://cran.r-project.org/)
+- Ensure `Rscript` is in your PATH
+- Restart terminal after installing R
+
+**R version too old:**
+- Check version: `Rscript --version`
+- Upgrade to R ≥ 3.5 from [CRAN](https://cran.r-project.org/)
+
+**Package installation fails (Windows):**
+- Check if binary packages are available for your R version
+- Upgrade to the latest R version if binaries are unavailable
+- **Do NOT install Rtools** unless you know you need it - dbAudit only uses binaries
+
+**Package installation fails (macOS/Linux):**
+- Check internet connectivity
+- Verify CRAN mirror is accessible: https://cloud.r-project.org
+- Check library permissions: `Rscript -e '.libPaths()'`
+- Install manually: `Rscript -e 'install.packages(c("data.table", "stringr", "lubridate"))'`
+
+**Corporate network / proxy issues:**
+- Configure R proxy: `Rscript -e 'Sys.setenv(http_proxy="http://proxy:port")'`
+- Or use manual installation and transfer packages offline
 
 ---
 
