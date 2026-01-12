@@ -18,6 +18,7 @@ showHelp <- function() {
   cat("  --lab-format   <auto|A|B>           (default: auto)\n")
   cat("  --assay-format <auto|A|B>           (default: auto)\n")
   cat("  --tol         <NUMBER>              (default: 0.05; relative tolerance for value audits)\n")
+  cat("  --check                             (verify installation and dependencies)\n")
   cat("  --version\n")
   cat("  --help, -h\n")
   cat("\n")
@@ -29,6 +30,104 @@ showHelp <- function() {
 
 showVersion <- function() {
   cat("dbAudit\n")
+
+  root <- tryCatch(.dbauditRoot(), error = function(e) NULL)
+  if (is.null(root)) {
+    cat("Build: unknown (installation not detected)\n")
+    return(invisible(NULL))
+  }
+
+  version.file <- file.path(root, ".version")
+  if (!file.exists(version.file)) {
+    cat("Build: unknown (version file not found)\n")
+    return(invisible(NULL))
+  }
+
+  lines <- tryCatch(readLines(version.file, warn = FALSE), error = function(e) NULL)
+  if (is.null(lines) || length(lines) == 0) {
+    cat("Build: unknown (could not read version file)\n")
+    return(invisible(NULL))
+  }
+
+  info <- list()
+  for (line in lines) {
+    parts <- strsplit(line, "=", fixed = TRUE)[[1]]
+    if (length(parts) == 2) {
+      info[[parts[1]]] <- parts[2]
+    }
+  }
+
+  commit <- if (!is.null(info$commit) && nzchar(info$commit)) info$commit else "unknown"
+  branch <- if (!is.null(info$branch) && nzchar(info$branch)) info$branch else "unknown"
+  tag <- if (!is.null(info$tag) && nzchar(info$tag)) info$tag else ""
+  install_date <- if (!is.null(info$install_date) && nzchar(info$install_date)) info$install_date else "unknown"
+
+  if (nzchar(tag)) {
+    cat(sprintf("Build: %s (%s) [%s]\n", commit, branch, tag))
+  } else {
+    cat(sprintf("Build: %s (%s)\n", commit, branch))
+  }
+  cat(sprintf("Installed: %s\n", install_date))
+
+  invisible(NULL)
+}
+
+showSystemInfo <- function() {
+  cat("dbAudit System Diagnostics\n")
+  cat(rep("=", 50), "\n\n", sep = "")
+
+  # R version
+  r_version <- paste(R.version$major, R.version$minor, sep = ".")
+  cat(sprintf("R version: %s\n", r_version))
+
+  # Rscript location
+  rscript_path <- Sys.which("Rscript")
+  if (nzchar(rscript_path)) {
+    cat(sprintf("Rscript: %s\n", rscript_path))
+  } else {
+    cat("Rscript: NOT FOUND\n")
+  }
+
+  # Installation root
+  root <- tryCatch(.dbauditRoot(), error = function(e) NULL)
+  if (!is.null(root)) {
+    cat(sprintf("Installation: %s\n", root))
+  } else {
+    cat("Installation: NOT DETECTED\n")
+  }
+
+  cat("\n")
+
+  # Package status
+  required_pkgs <- c("data.table", "stringr", "lubridate")
+  cat("Required R Packages:\n")
+
+  all_ok <- TRUE
+  for (pkg in required_pkgs) {
+    is_installed <- requireNamespace(pkg, quietly = TRUE)
+    status_icon <- if (is_installed) "\u2713" else "\u2717"
+
+    if (is_installed) {
+      pkg_version <- tryCatch(
+        as.character(packageVersion(pkg)),
+        error = function(e) "unknown"
+      )
+      cat(sprintf("  [%s] %s (version %s)\n", status_icon, pkg, pkg_version))
+    } else {
+      cat(sprintf("  [%s] %s - MISSING\n", status_icon, pkg))
+      all_ok <- FALSE
+    }
+  }
+
+  cat("\n")
+
+  if (all_ok) {
+    cat("Status: \u2713 All dependencies satisfied\n")
+  } else {
+    cat("Status: \u2717 Missing dependencies - run dbAudit to auto-install\n")
+  }
+
+  invisible(NULL)
 }
 
 .getScriptFile <- function() {
@@ -77,6 +176,11 @@ if (length(args) == 0L || any(args %in% c("-h", "--help"))) {
 
 if (any(args %in% c("--version"))) {
   showVersion()
+  quit(save = "no", status = 0)
+}
+
+if (any(args %in% c("--check", "--system-info"))) {
+  showSystemInfo()
   quit(save = "no", status = 0)
 }
 
