@@ -6,9 +6,16 @@
 #   git clone git@github.com:averriK/dbAudit.git
 #   powershell -NoProfile -ExecutionPolicy Bypass -File .\dbAudit\install\install.ps1
 #
+# Options:
+#   -SkipPath      Skip adding bin directory to User PATH
+#   -SkipPackages  Skip R package installation (packages will be installed on first run)
+#
+# Requirements:
+#   - R (>= 3.5) must be installed and Rscript must be in PATH
+#   - Internet connectivity (for package installation, unless -SkipPackages is used)
+#
 # Notes:
 #   - Installs from the local repo / extracted package (no GitHub API).
-#   - R is required at runtime (Rscript in PATH).
 #   - Creates launchers in a per-user bin dir and (optionally) adds it to User PATH.
 
 [CmdletBinding()]
@@ -25,7 +32,10 @@ param(
     [string]$UserBinDir = (Join-Path ([Environment]::GetFolderPath('LocalApplicationData')) 'Programs\dbAudit\bin'),
 
     # Skip adding $UserBinDir to the User PATH
-    [switch]$SkipPath
+    [switch]$SkipPath,
+
+    # Skip R package installation (packages will be installed on first run)
+    [switch]$SkipPackages
 )
 
 $ErrorActionPreference = "Stop"
@@ -144,6 +154,139 @@ if (-not (Test-Path $installedSetup)) {
     Fail "Invalid installed layout: missing $installedSetup"
 }
 
+# Generate version file
+Info "Generating version file..."
+try {
+    Push-Location $RepoRoot
+    $ErrorActionPreference = "SilentlyContinue"
+
+    $commit = & git rev-parse --short HEAD 2>$null
+    $branch = & git rev-parse --abbrev-ref HEAD 2>$null
+    $tag = & git describe --tags --exact-match 2>$null
+    $installDate = (Get-Date).ToUniversalTime().ToString("yyyy-MM-dd HH:mm:ss UTC")
+
+    if (-not $commit) { $commit = "unknown" }
+    if (-not $branch) { $branch = "unknown" }
+    if (-not $tag) { $tag = "" }
+
+    $versionContent = @"
+commit=$commit
+branch=$branch
+tag=$tag
+install_date=$installDate
+"@
+
+    $versionPath = Join-Path $LibexecDir ".version"
+    [System.IO.File]::WriteAllText($versionPath, $versionContent, [System.Text.Encoding]::UTF8)
+    Pop-Location
+    $ErrorActionPreference = "Stop"
+} catch {
+    Warn "Could not generate version file: $_"
+    if ((Get-Location).Path -ne (Get-Item $PSScriptRoot).Parent.FullName) {
+        Pop-Location
+    }
+    $ErrorActionPreference = "Stop"
+}
+
+# Strict R availability check
+Write-Host ""
+Info "Checking R installation..."
+$rscript = $null
+try {
+    $rscript = Get-Command Rscript -ErrorAction SilentlyContinue
+    if (-not $rscript) { $rscript = Get-Command Rscript.exe -ErrorAction SilentlyContinue }
+} catch {}
+
+if (-not $rscript) {
+    Fail @"
+R is not installed or Rscript is not in PATH.
+
+dbAudit requires R (>= 3.5) to run.
+
+Install R for Windows from CRAN:
+  https://cran.r-project.org/bin/windows/base/
+
+After installing R:
+  1. Restart your terminal (to pick up PATH changes)
+  2. Run this installer again
+
+"@
+}
+
+# Verify R version >= 3.5
+$versionOutput = & $rscript.Source --version 2>&1 | Out-String
+if ($versionOutput -match 'version (\d+)\.(\d+)') {
+    $major = [int]$matches[1]
+    $minor = [int]$matches[2]
+
+    if (($major -lt 3) -or ($major -eq 3 -and $minor -lt 5)) {
+        Fail @"
+R version $major.$minor found, but dbAudit requires R >= 3.5.
+
+Please upgrade R from: https://cran.r-project.org/bin/windows/base/
+"@
+    }
+
+    Ok "R version $major.$minor detected"
+} else {
+    Warn "Could not parse R version - assuming it's compatible"
+}
+
+# Install R package dependencies
+Write-Host ""
+if (-not $SkipPackages) {
+    Info "Installing R package dependencies (data.table, stringr, lubridate)..."
+    Info "This may take a few minutes..."
+
+    $installScript = @'
+repos <- "https://cloud.r-project.org"
+required <- c("data.table", "stringr", "lubridate")
+missing <- required[!sapply(required, requireNamespace, quietly = TRUE)]
+
+if (length(missing) > 0) {
+  cat(sprintf("Installing: %s\n", paste(missing, collapse=", ")))
+  cat("Note: Installing pre-compiled binaries (Windows does not compile from source)\n\n")
+
+  # Windows: ALWAYS use binaries, never compile from source (would require Rtools)
+  install.packages(missing, repos = repos, type = "binary", quiet = FALSE)
+
+  # Verify installation succeeded
+  still_missing <- missing[!sapply(missing, requireNamespace, quietly = TRUE)]
+  if (length(still_missing) > 0) {
+    cat(sprintf("\nERROR: Failed to install packages: %s\n", paste(still_missing, collapse=", ")))
+    cat("\nTroubleshooting:\n")
+    cat("  1. Check internet connectivity\n")
+    cat("  2. Verify CRAN mirror is accessible: https://cloud.r-project.org\n")
+    cat("  3. Check if binary packages are available for your R version\n")
+    cat("  4. Try manual installation in PowerShell:\n")
+    cat("       Rscript -e 'install.packages(c(\"data.table\", \"stringr\", \"lubridate\"), type=\"binary\")'\n")
+    cat("  5. Check R library permissions: .libPaths()\n")
+    cat("\nNOTE: Windows cannot compile R packages from source without Rtools.\n")
+    cat("      If binaries are unavailable, upgrade R to a version with binary packages.\n")
+    quit(status = 1)
+  }
+
+  cat("\nPackages installed successfully.\n")
+} else {
+  cat("All required packages already installed.\n")
+}
+'@
+
+    try {
+        $result = $installScript | & $rscript.Source -
+        if ($LASTEXITCODE -ne 0) {
+            Fail "Failed to install R packages. See troubleshooting steps above."
+        }
+        Ok "R packages installed successfully"
+    } catch {
+        Fail "Failed to install R packages: $_"
+    }
+} else {
+    Warn "Skipping R package installation (-SkipPackages flag used)"
+    Info "Packages will be auto-installed on first dbAudit run"
+}
+
+Write-Host ""
 # Create launchers in UserBinDir
 $cmdPath = Join-Path $UserBinDir "dbAudit.cmd"
 $shimPath = Join-Path $UserBinDir "dbAudit"
@@ -204,14 +347,9 @@ if (-not $SkipPath) {
     }
 }
 
-# Runtime sanity check
-$r = Get-Command Rscript -ErrorAction SilentlyContinue
-if (-not $r) { $r = Get-Command Rscript.exe -ErrorAction SilentlyContinue }
-if ($r) {
-    Ok "Rscript: $($r.Source)"
-} else {
-    Warn "Rscript not found in PATH (dbAudit will not run until R is installed/discoverable)."
-}
-
-Info "Verify in a new terminal:"
+Write-Host ""
+Info "Verify installation in a new terminal:"
+Info "  dbAudit --check"
+Info ""
+Info "Get help:"
 Info "  dbAudit --help"

@@ -25,7 +25,7 @@ Installed paths:
 Uninstall:
 
 ```bash
-sudo bash dbAudit/install/uninstall.bash.sh
+sudo bash dbAudit/install/uninstall.sh
 ```
 
 ## Windows
