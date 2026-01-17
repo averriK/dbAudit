@@ -55,7 +55,7 @@ sudo bash dbAudit/install/install.sh
 ```
 
 **Installed paths:**
-- `/usr/local/bin/dbAudit`
+- `/usr/local/bin/dbaudit`
 - `/usr/local/libexec/dbAudit/`
 
 **Skip package installation:**
@@ -89,12 +89,12 @@ powershell -NoProfile -ExecutionPolicy Bypass -File .\dbAudit\install\install.ps
 After installing, verify all dependencies are satisfied:
 
 ```bash
-dbAudit --check
+dbaudit --check
 ```
 
 **Expected output:**
 ```
-dbAudit System Diagnostics
+dbaudit System Diagnostics
 ==================================================
 
 R version: 4.5.2
@@ -171,7 +171,7 @@ bin/verify-docs
 From terminal:
 
 ```bash
-dbAudit --project project/<PROJECT>/data
+dbaudit --project project/<PROJECT>/data
 ```
 
 Recommended (avoid fragile auto-detection for production runs):
@@ -182,11 +182,11 @@ Optional:
 ```bash
 # Type A
 
-dbAudit --project project/<PROJECT>/data --lab-format A --assay-format A
+dbaudit --project project/<PROJECT>/data --lab-format A --assay-format A
 
 # Type B
 
-dbAudit --project project/<PROJECT>/data --lab-format B --assay-format B
+dbaudit --project project/<PROJECT>/data --lab-format B --assay-format B
 ```
 
 ### 3. Check outputs
@@ -284,7 +284,7 @@ The typical analysis chain:
 ```bash
 # Run pipeline
 
-dbAudit --project project/<PROJECT>/data
+dbaudit --project project/<PROJECT>/data
 ```
 
 Optional path overrides:
@@ -292,7 +292,7 @@ Optional path overrides:
 ```bash
 # If your data-root layout differs
 
-dbAudit --project project/<PROJECT>/data \
+dbaudit --project project/<PROJECT>/data \
   --lab-dir raw/lab \
   --assay-dir raw/assay \
   --proc-dir proc
@@ -303,7 +303,7 @@ Optional assay file override:
 ```bash
 # Use a specific assay file (basename is resolved under raw/assay)
 
-dbAudit --project project/<PROJECT>/data --assay-file AAQ_Sample_Assay.csv
+dbaudit --project project/<PROJECT>/data --assay-file AAQ_Sample_Assay.csv
 ```
 
 ```r
@@ -631,9 +631,9 @@ log[grepl("jobID=LAB12345", message)]
 
 ```
 dbAudit/
-├── DBAudit                # R CLI entrypoint (invoked by dbAudit)
+├── DBAudit                # R CLI entrypoint (invoked by dbaudit)
 ├── bin/
-│   └── dbAudit            # Bash CLI (preferred)
+│   └── dbaudit            # Bash CLI (preferred)
 ├── install/
 │   ├── install.sh         # Installer (macOS/Linux, /usr/local)
 │   ├── uninstall.sh       # Uninstaller (macOS/Linux)
@@ -696,7 +696,7 @@ For project runs, ensure:
 - `project/<PROJECT>/data/raw/assay/` exists and contains the assay CSV
 
 In CLI terms, you run:
-- `dbAudit --project project/<PROJECT>/data`
+- `dbaudit --project project/<PROJECT>/data`
 
 For a self-contained check, run `Rscript project/test-A/run.R` or `Rscript project/test-B/run.R`.
 

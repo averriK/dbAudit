@@ -18,7 +18,7 @@ Choose your OS:
 The CLI expects a **data root** folder:
 
 ```bash
-dbAudit --project project/<PROJECT>/data
+dbaudit --project project/<PROJECT>/data
 ```
 
 Recommended (avoid fragile auto-detection for production runs):
@@ -26,11 +26,11 @@ Recommended (avoid fragile auto-detection for production runs):
 ```bash
 # Type A
 
-dbAudit --project project/<PROJECT>/data --lab-format A --assay-format A
+dbaudit --project project/<PROJECT>/data --lab-format A --assay-format A
 
 # Type B
 
-dbAudit --project project/<PROJECT>/data --lab-format B --assay-format B
+dbaudit --project project/<PROJECT>/data --lab-format B --assay-format B
 ```
 
 Defaults under `--project`:
@@ -44,15 +44,15 @@ Optional overrides:
 ```bash
 # Override folder names (relative to --project)
 
-dbAudit --project project/<PROJECT>/data --lab-dir raw/lab --assay-dir raw/assay --proc-dir proc
+dbaudit --project project/<PROJECT>/data --lab-dir raw/lab --assay-dir raw/assay --proc-dir proc
 
 # Override assay file (basename resolved under raw/assay)
 
-dbAudit --project project/<PROJECT>/data --assay-file AAQ_Sample_Assay.csv
+dbaudit --project project/<PROJECT>/data --assay-file AAQ_Sample_Assay.csv
 
 # Override audit tolerance (relative tolerance; default 0.05)
 
-dbAudit --project project/<PROJECT>/data --tol 0.02
+dbaudit --project project/<PROJECT>/data --tol 0.02
 ```
 
 ## 3) Inspect outputs

@@ -19,7 +19,7 @@ sudo bash dbAudit/install/install.sh
 
 Installed paths:
 
-- `/usr/local/bin/dbAudit`
+- `/usr/local/bin/dbaudit`
 - `/usr/local/libexec/dbAudit/`
 
 Uninstall:

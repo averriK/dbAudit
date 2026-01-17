@@ -1,8 +1,8 @@
 #!/usr/bin/env bash
-# dbAudit Uninstaller for macOS/Linux (single /usr/local layout)
+# dbaudit Uninstaller for macOS/Linux (single /usr/local layout)
 #
 # Removes:
-#   - /usr/local/bin/dbAudit
+#   - /usr/local/bin/dbaudit
 #   - /usr/local/libexec/dbAudit
 #
 # Note:
@@ -10,11 +10,21 @@
 
 set -euo pipefail
 
-BIN_PATH="/usr/local/bin/dbAudit"
-# Some environments may have a non-canonical alias with different casing.
-# We remove it only if it points into our runtime.
-BIN_PATH_ALIAS="/usr/local/bin/dbaudit"
+BIN_PATH="/usr/local/bin/dbaudit"
 LIBEXEC_DIR="/usr/local/libexec/dbAudit"
+VERSION_FILE="$LIBEXEC_DIR/.version"
+
+# If a manifest exists, prefer the recorded paths.
+if [[ -f "$VERSION_FILE" ]]; then
+  BIN_PATH_MANIFEST="$(grep -E '^bin_path=' "$VERSION_FILE" | head -1 | cut -d= -f2- || true)"
+  LIBEXEC_MANIFEST="$(grep -E '^libexec_dir=' "$VERSION_FILE" | head -1 | cut -d= -f2- || true)"
+  if [[ -n "$BIN_PATH_MANIFEST" ]]; then
+    BIN_PATH="$BIN_PATH_MANIFEST"
+  fi
+  if [[ -n "$LIBEXEC_MANIFEST" ]]; then
+    LIBEXEC_DIR="$LIBEXEC_MANIFEST"
+  fi
+fi
 
 # Colours
 RED='\033[0;31m'
@@ -28,50 +38,17 @@ ok()     { echo -e "${GREEN}[OK]${NC} $*"; }
 warn()   { echo -e "${YELLOW}[WARN]${NC} $*"; }
 error()  { echo -e "${RED}[ERROR]${NC} $*"; exit 1; }
 
-info "dbAudit Uninstaller (single /usr/local layout)"
+info "dbaudit Uninstaller (single /usr/local layout)"
 
-# Remove bin entries, but be conservative: only remove the alias if it points into our runtime.
-
-removeIfLinkPointsToRuntime() {
-  local bin_path="$1"
-
-  if [[ ! -e "$bin_path" ]]; then
-    warn "Not found: $bin_path"
-    return 0
+if [[ -e "$BIN_PATH" ]]; then
+  info "Removing $BIN_PATH"
+  if ! rm -f "$BIN_PATH" 2>/dev/null; then
+    error "Could not remove $BIN_PATH (permission denied?). Run this uninstaller with sudo."
   fi
-
-  # Canonical binary symlink: remove unconditionally.
-  if [[ "$bin_path" == "$BIN_PATH" ]]; then
-    info "Removing $bin_path"
-    if ! rm -f "$bin_path" 2>/dev/null; then
-      error "Could not remove $bin_path (permission denied?). Run this uninstaller with sudo."
-    fi
-    ok "Removed $bin_path"
-    return 0
-  fi
-
-  # Alias: remove only if it is a symlink into our runtime.
-  if [[ -L "$bin_path" ]]; then
-    local link
-    link="$(readlink "$bin_path" 2>/dev/null || true)"
-
-    # If link is relative, we keep the conservative check and do not attempt to resolve.
-    if [[ "$link" == "$LIBEXEC_DIR"/* ]]; then
-      info "Removing alias symlink $bin_path -> $link"
-      if ! rm -f "$bin_path" 2>/dev/null; then
-        error "Could not remove $bin_path (permission denied?). Run this uninstaller with sudo."
-      fi
-      ok "Removed $bin_path"
-    else
-      warn "Skipping $bin_path (symlink target not under $LIBEXEC_DIR)"
-    fi
-  else
-    warn "Skipping $bin_path (not a symlink; not removing unknown file)"
-  fi
-}
-
-removeIfLinkPointsToRuntime "$BIN_PATH"
-removeIfLinkPointsToRuntime "$BIN_PATH_ALIAS"
+  ok "Removed $BIN_PATH"
+else
+  warn "Not found: $BIN_PATH"
+fi
 
 if [[ -d "$LIBEXEC_DIR" ]]; then
   info "Removing $LIBEXEC_DIR"

@@ -1,5 +1,5 @@
 #!/usr/bin/env bash
-# dbAudit - user-facing CLI wrapper
+# dbaudit - user-facing CLI wrapper
 # Runs the R entrypoint (DBAudit) from the runtime root, regardless of caller CWD.
 
 set -Eeuo pipefail
@@ -18,13 +18,13 @@ export DBAUDIT_HOME="$(cd "$SCRIPT_DIR/.." >/dev/null 2>&1 && pwd)"
 
 # Validate runtime structure
 if [[ ! -f "$DBAUDIT_HOME/DBAudit" ]]; then
-  echo "ERROR: Invalid dbAudit installation: missing DBAudit entrypoint" >&2
+  echo "ERROR: Invalid dbaudit installation: missing DBAudit entrypoint" >&2
   echo "DBAUDIT_HOME: $DBAUDIT_HOME" >&2
   exit 1
 fi
 
 if [[ ! -f "$DBAUDIT_HOME/R/setup.R" ]]; then
-  echo "ERROR: Invalid dbAudit installation: missing R/setup.R" >&2
+  echo "ERROR: Invalid dbaudit installation: missing R/setup.R" >&2
   echo "DBAUDIT_HOME: $DBAUDIT_HOME" >&2
   exit 1
 fi

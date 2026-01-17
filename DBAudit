@@ -2,7 +2,7 @@ rm(list = ls())
 
 # CLI entrypoint
 # Preferred usage:
-#   dbAudit --project <DATA_ROOT>
+#   dbaudit --project <DATA_ROOT>
 
 showHelp <- function() {
   defaults <- NULL
@@ -34,9 +34,9 @@ showHelp <- function() {
     "https://averrik.github.io/dbAudit/docs/"
   }
 
-  cat("dbAudit\n\n")
+  cat("dbaudit\n\n")
   cat("USAGE:\n")
-  cat("  dbAudit --project <DATA_ROOT> [OPTIONS]\n\n")
+  cat("  dbaudit --project <DATA_ROOT> [OPTIONS]\n\n")
   cat("REQUIRED:\n")
   cat("  --project <DATA_ROOT>\n\n")
   cat("OPTIONS:\n")
@@ -58,7 +58,7 @@ showHelp <- function() {
 }
 
 showVersion <- function() {
-  cat("dbAudit\n")
+  cat("dbaudit\n")
 
   root <- tryCatch(.dbauditRoot(), error = function(e) NULL)
   if (is.null(root)) {
@@ -102,19 +102,46 @@ showVersion <- function() {
 }
 
 showSystemInfo <- function() {
-  cat("dbAudit System Diagnostics\n")
+  cat("dbaudit System Diagnostics\n")
   cat(rep("=", 50), "\n\n", sep = "")
 
   # R version
   r_version <- paste(R.version$major, R.version$minor, sep = ".")
   cat(sprintf("R version: %s\n", r_version))
 
-  # Rscript location
+  # Rscript location + execution check
   rscript_path <- Sys.which("Rscript")
+  rscript_current <- file.path(
+    R.home("bin"),
+    if (.Platform$OS.type == "windows") "Rscript.exe" else "Rscript"
+  )
+
   if (nzchar(rscript_path)) {
-    cat(sprintf("Rscript: %s\n", rscript_path))
+    cat(sprintf("Rscript (PATH): %s\n", rscript_path))
   } else {
-    cat("Rscript: NOT FOUND\n")
+    cat("Rscript (PATH): NOT FOUND\n")
+  }
+
+  if (file.exists(rscript_current)) {
+    cat(sprintf("Rscript (current): %s\n", rscript_current))
+  } else {
+    cat("Rscript (current): NOT FOUND\n")
+  }
+
+  rscript_check <- if (nzchar(rscript_path)) rscript_path else rscript_current
+  if (nzchar(rscript_check) && file.exists(rscript_check)) {
+    out <- tryCatch(
+      system2(rscript_check, "--version", stdout = TRUE, stderr = TRUE),
+      error = function(e) NULL
+    )
+    status <- if (is.null(out)) 1 else attr(out, "status")
+    if (is.null(status)) {
+      cat("Rscript run: OK\n")
+    } else {
+      cat(sprintf("Rscript run: FAILED (exit %s)\n", status))
+    }
+  } else {
+    cat("Rscript run: FAILED (not found)\n")
   }
 
   # Installation root
@@ -153,7 +180,7 @@ showSystemInfo <- function() {
   if (all_ok) {
     cat("Status: \u2713 All dependencies satisfied\n")
   } else {
-    cat("Status: \u2717 Missing dependencies - run dbAudit to auto-install\n")
+    cat("Status: \u2717 Missing dependencies - run dbaudit to auto-install\n")
   }
 
   invisible(NULL)
@@ -177,7 +204,7 @@ showSystemInfo <- function() {
 
   f <- .getScriptFile()
   if (is.na(f) || !nzchar(f)) {
-    stop("Cannot locate DBAudit script path (--file=... missing). Run via 'dbAudit' or 'Rscript /path/to/DBAudit'.")
+    stop("Cannot locate DBAudit script path (--file=... missing). Run via 'dbaudit' or 'Rscript /path/to/DBAudit'.")
   }
   normalizePath(dirname(f), mustWork = TRUE)
 }
@@ -304,7 +331,7 @@ while (k <= length(args)) {
 }
 
 if (!nzchar(project.path)) {
-  stop("Missing --project. Try: dbAudit --project project/<PROJECT>/data")
+  stop("Missing --project. Try: dbaudit --project project/<PROJECT>/data")
 }
 
 assay.file.arg <- NULL

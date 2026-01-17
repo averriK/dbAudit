@@ -21,16 +21,16 @@ sudo bash dbAudit/install/install.sh
 
 Deterministic layout:
 
-- Binary: `/usr/local/bin/dbAudit`
+- Binary: `/usr/local/bin/dbaudit`
 - Runtime: `/usr/local/libexec/dbAudit/`
-  - `/usr/local/libexec/dbAudit/bin/dbAudit` (bash wrapper)
+  - `/usr/local/libexec/dbAudit/bin/dbaudit` (bash wrapper)
   - `/usr/local/libexec/dbAudit/DBAudit` (R entrypoint)
   - `/usr/local/libexec/dbAudit/R/...`
 
 Notes:
 
 - The installer does **not** install R.
-- `dbAudit` requires `Rscript` at runtime.
+- `dbaudit` requires `Rscript` at runtime.
 - `DBAudit` sources `R/setup.R` at startup; `R/setup.R` installs missing packages (`data.table`, `stringr`, `lubridate`) and loads them.
 
 ## Uninstall

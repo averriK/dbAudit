@@ -1,6 +1,6 @@
 #Requires -Version 5.1
 # uninstall.ps1
-# dbAudit Uninstaller for Windows
+# dbaudit Uninstaller for Windows
 #
 # Usage (PowerShell):
 #   git clone git@github.com:averriK/dbAudit.git
@@ -64,23 +64,32 @@ function Remove-FromUserPath {
     return $true
 }
 
-Info "dbAudit Uninstaller (Windows / PowerShell)"
+Info "dbaudit Uninstaller (Windows / PowerShell)"
 Info "Runtime : $LibexecDir"
 Info "Bin     : $UserBinDir"
 
-# Remove launchers
+$versionFile = Join-Path $LibexecDir ".version"
+$pathAdded = $false
+$cmdPath = $null
+$shimPath = $null
+if (Test-Path $versionFile) {
+    $info = @{}
+    Get-Content -LiteralPath $versionFile | ForEach-Object {
+        if ($_ -match '^([^=]+)=(.*)$') { $info[$matches[1]] = $matches[2] }
+    }
+    if ($info.ContainsKey("libexec_dir") -and $info["libexec_dir"]) { $LibexecDir = $info["libexec_dir"] }
+    if ($info.ContainsKey("bin_dir") -and $info["bin_dir"]) { $UserBinDir = $info["bin_dir"] }
+    if ($info.ContainsKey("cmd_path") -and $info["cmd_path"]) { $cmdPath = $info["cmd_path"] }
+    if ($info.ContainsKey("shim_path") -and $info["shim_path"]) { $shimPath = $info["shim_path"] }
+    if ($info.ContainsKey("path_added") -and $info["path_added"]) {
+        $pathAdded = $info["path_added"] -ieq "true"
+    }
+}
+
+# Remove launchers installed by this installer
 $files = @(
-    (Join-Path $UserBinDir "dbAudit.cmd"),
-    (Join-Path $UserBinDir "dbAudit"),
-    # Cleanup from older experiments if present
-    (Join-Path $UserBinDir "dbAudit.ps1"),
-    # Cleanup non-canonical case variants / aliases (harmless on default case-insensitive FS)
-    (Join-Path $UserBinDir "dbaudit.cmd"),
-    (Join-Path $UserBinDir "dbaudit"),
-    (Join-Path $UserBinDir "dbaudit.ps1"),
-    (Join-Path $UserBinDir "DBAudit.cmd"),
-    (Join-Path $UserBinDir "DBAudit"),
-    (Join-Path $UserBinDir "DBAudit.ps1")
+    $(if ($cmdPath) { $cmdPath } else { Join-Path $UserBinDir "dbaudit.cmd" }),
+    $(if ($shimPath) { $shimPath } else { Join-Path $UserBinDir "dbaudit" })
 )
 
 foreach ($f in $files) {
@@ -117,8 +126,8 @@ if (Test-Path $UserBinDir) {
     } catch {}
 }
 
-# Remove from User PATH
-if (-not $SkipPath) {
+# Remove from User PATH only if installer added it
+if (-not $SkipPath -and $pathAdded) {
     $removed = Remove-FromUserPath -Dir $UserBinDir
     if ($removed) {
         Ok "Removed from User PATH: $UserBinDir"
@@ -128,12 +137,5 @@ if (-not $SkipPath) {
     }
 }
 
-# Informational: detect a likely older mis-cased install location
-try {
-    $altBinDir = (Join-Path ([Environment]::GetFolderPath('LocalApplicationData')) 'Programs\dbaudit\bin')
-    if (Test-Path $altBinDir) {
-        Warn "Non-canonical bin directory still exists (possible old install): $altBinDir"
-    }
-} catch {}
 
 Ok "Uninstall complete"

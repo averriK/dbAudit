@@ -77,7 +77,7 @@ proc.tokens <- unique(c(proc.def, paste0(proc.def, "/")))
 
 # ----------------------------------------------------------------------
 # Validate CLI help output matches canonical defaults
-# NOTE: Do NOT call bin/dbAudit from inside R, because R subprocesses may not inherit
+# NOTE: Do NOT call bin/dbaudit from inside R, because R subprocesses may not inherit
 # a PATH that can resolve Rscript. Instead, call the entrypoint script using an
 # absolute Rscript path from R.home().
 
@@ -110,7 +110,7 @@ checks <- list(
   list(path = "docs/macos.md", require = c("install/uninstall.sh"), forbid = c("uninstall.bash.sh")),
   list(path = "install/install.sh", require = c(docs.url), forbid = c("https://averrik.github.io/dbAudit/\"")),
   # Windows: discourage documenting non-canonical launcher names (case variants)
-  list(path = "docs/windows.md", require = c("install\\install.ps1", "install\\uninstall.ps1"), forbid = c("dbaudit.cmd", "DBAudit.cmd"))
+  list(path = "docs/windows.md", require = c("install\\install.ps1", "install\\uninstall.ps1", "dbaudit"), forbid = c("dbAudit.cmd", "DBAudit.cmd"))
 )
 
 for (c in checks) {

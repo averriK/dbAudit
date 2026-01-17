@@ -6,14 +6,14 @@ permalink: /docs/troubleshooting/
 
 # Troubleshooting
 
-## `dbAudit: command not found`
+## `dbaudit: command not found`
 
 ### macOS / Linux
 
 Confirm the binary exists:
 
 ```bash
-ls -l /usr/local/bin/dbAudit
+ls -l /usr/local/bin/dbaudit
 ```
 
 If it exists but your shell can’t find it, confirm `/usr/local/bin` is on your `PATH`.
@@ -21,18 +21,18 @@ If it exists but your shell can’t find it, confirm `/usr/local/bin` is on your
 ### Windows
 
 - Open a **new** terminal after running the installer (PATH changes are not picked up by existing terminals).
-- Confirm the launcher exists (default location): `%LOCALAPPDATA%\Programs\dbAudit\bin\dbAudit.cmd`.
+- Confirm the launcher exists (default location): `%LOCALAPPDATA%\Programs\dbAudit\bin\dbaudit.cmd`.
 
 In PowerShell:
 
 ```powershell
-Get-Command dbAudit -ErrorAction SilentlyContinue
+Get-Command dbaudit -ErrorAction SilentlyContinue
 ```
 
 In Git Bash:
 
 ```bash
-command -v dbAudit
+command -v dbaudit
 ```
 
 ## Permission denied during install on macOS/Linux
@@ -47,7 +47,7 @@ sudo bash dbAudit/install/install.sh
 
 ## `Rscript` not found
 
-`dbAudit` requires `Rscript` at runtime.
+`dbaudit` requires `Rscript` at runtime.
 
 ### macOS / Linux
 
@@ -74,7 +74,7 @@ command -v Rscript || command -v Rscript.exe
 
 ## R packages fail to install
 
-When `dbAudit` runs, it sources `R/setup.R` and installs missing packages:
+When `dbaudit` runs, it sources `R/setup.R` and installs missing packages:
 
 - `data.table`
 - `stringr`

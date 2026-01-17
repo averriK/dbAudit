@@ -6,7 +6,7 @@ permalink: /docs/windows/
 
 # Windows
 
-dbAudit installs via **PowerShell** and runs via `Rscript` at runtime.
+dbaudit installs via **PowerShell** and runs via `Rscript` at runtime.
 
 ## Install
 
@@ -19,8 +19,8 @@ The installer:
 
 - Copies the runtime under a per-user directory (default: `%LOCALAPPDATA%\Programs\dbAudit\libexec\dbAudit`)
 - Writes launchers under a per-user bin directory (default: `%LOCALAPPDATA%\Programs\dbAudit\bin`)
-  - `dbAudit.cmd` (PowerShell / CMD)
-  - `dbAudit` (Git Bash shim)
+  - `dbaudit.cmd` (PowerShell / CMD)
+  - `dbaudit` (Git Bash shim)
 - Adds that bin directory to the **User PATH** (unless `-SkipPath`)
 
 Open a **new terminal** after installing so PATH updates are picked up.
@@ -30,13 +30,13 @@ Open a **new terminal** after installing so PATH updates are picked up.
 PowerShell:
 
 ```powershell
-dbAudit --help
+dbaudit --help
 ```
 
 Git Bash:
 
 ```bash
-dbAudit --help
+dbaudit --help
 ```
 
 ## R / Rscript

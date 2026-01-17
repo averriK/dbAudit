@@ -1,6 +1,6 @@
 #Requires -Version 5.1
 # install.ps1
-# dbAudit Installer for Windows (repo-based)
+# dbaudit Installer for Windows (repo-based)
 #
 # Usage (PowerShell):
 #   git clone git@github.com:averriK/dbAudit.git
@@ -115,25 +115,66 @@ if (-not $RepoRoot -or $RepoRoot.Trim() -eq "") {
 
 $repoEntrypoint = Join-Path $RepoRoot "DBAudit"
 $repoSetup = Join-Path $RepoRoot "R\\setup.R"
-$repoBin = Join-Path $RepoRoot "bin\\dbAudit"
+$repoBin = Join-Path $RepoRoot "bin\\dbaudit"
 
 if (-not (Test-Path $repoEntrypoint) -or -not (Test-Path $repoSetup) -or -not (Test-Path $repoBin)) {
-    Fail "Invalid source tree. Run this installer from inside the dbAudit repo/package (expected DBAudit + R\\setup.R + bin\\dbAudit)."
+    Fail "Invalid source tree. Run this installer from inside the dbAudit repo/package (expected DBAudit + R\\setup.R + bin\\dbaudit)."
 }
 
-Info "dbAudit Installer (Windows / PowerShell, repo-based)"
+Info "dbaudit Installer (Windows / PowerShell, repo-based)"
 Info "RepoRoot: $RepoRoot"
 Info "Runtime : $LibexecDir"
 Info "Bin     : $UserBinDir"
+$versionPath = Join-Path $LibexecDir ".version"
+$cmdPath = Join-Path $UserBinDir "dbaudit.cmd"
+$shimPath = Join-Path $UserBinDir "dbaudit"
+# If an existing install is detected, confirm removal first.
+$existingCmd = Join-Path $UserBinDir "dbaudit.cmd"
+$existingShim = Join-Path $UserBinDir "dbaudit"
+$removeLibexec = $LibexecDir
+$removeCmd = $existingCmd
+$removeShim = $existingShim
+if ((Test-Path $LibexecDir) -or (Test-Path $existingCmd) -or (Test-Path $existingShim)) {
+    Warn "Existing dbaudit installation detected."
+    $versionFile = Join-Path $LibexecDir ".version"
+    if (Test-Path $versionFile) {
+        $info = @{}
+        Get-Content -LiteralPath $versionFile | ForEach-Object {
+            if ($_ -match '^([^=]+)=(.*)$') { $info[$matches[1]] = $matches[2] }
+        }
+        if ($info.ContainsKey("bin_dir") -and $info["bin_dir"]) {
+            $removeCmd = Join-Path $info["bin_dir"] "dbaudit.cmd"
+            $removeShim = Join-Path $info["bin_dir"] "dbaudit"
+        }
+        if ($info.ContainsKey("libexec_dir") -and $info["libexec_dir"]) {
+            $removeLibexec = $info["libexec_dir"]
+        }
+        if ($info.ContainsKey("commit")) {
+            $ver = $info["commit"]
+            if ($info.ContainsKey("branch") -and $info["branch"]) { $ver = "$ver ($($info["branch"]))" }
+            if ($info.ContainsKey("tag") -and $info["tag"]) { $ver = "$ver [$($info["tag"])]" }
+            Warn "  version: $ver"
+        }
+        if ($info.ContainsKey("install_date") -and $info["install_date"]) {
+            Warn "  installed: $($info["install_date"])"
+        }
+    }
+    $resp = Read-Host "Existing dbaudit will be removed. Continue? [y/N]"
+    if ($resp -notmatch '^[Yy]$') { Fail "Aborted by user." }
+
+    if (Test-Path $removeCmd) {
+        try { Remove-Item -LiteralPath $removeCmd -Force } catch { Fail "Failed to remove $removeCmd: $_" }
+    }
+    if (Test-Path $removeShim) {
+        try { Remove-Item -LiteralPath $removeShim -Force } catch { Fail "Failed to remove $removeShim: $_" }
+    }
+    if (Test-Path $removeLibexec) {
+        try { Remove-Item -LiteralPath $removeLibexec -Recurse -Force } catch { Fail "Failed to remove $removeLibexec: $_" }
+    }
+}
 
 # Ensure target dirs exist
 New-Item -ItemType Directory -Force -Path $UserBinDir | Out-Null
-
-# Replace runtime tree
-if (Test-Path $LibexecDir) {
-    Warn "Existing runtime directory found at $LibexecDir - it will be replaced."
-    Remove-Item -LiteralPath $LibexecDir -Recurse -Force
-}
 New-Item -ItemType Directory -Force -Path (Join-Path $LibexecDir "bin") | Out-Null
 New-Item -ItemType Directory -Force -Path (Join-Path $LibexecDir "R") | Out-Null
 
@@ -146,7 +187,7 @@ $srcR = Join-Path $RepoRoot "R"
 $dstR = Join-Path $LibexecDir "R"
 Copy-Item -Path (Join-Path $srcR "*") -Destination $dstR -Recurse -Force
 
-Copy-Item -LiteralPath $repoBin -Destination (Join-Path $LibexecDir "bin\\dbAudit") -Force
+Copy-Item -LiteralPath $repoBin -Destination (Join-Path $LibexecDir "bin\\dbaudit") -Force
 
 # Validate installed layout
 $installedSetup = Join-Path $LibexecDir "R\\setup.R"
@@ -174,9 +215,12 @@ commit=$commit
 branch=$branch
 tag=$tag
 install_date=$installDate
+libexec_dir=$LibexecDir
+bin_dir=$UserBinDir
+cmd_path=$cmdPath
+shim_path=$shimPath
 "@
 
-    $versionPath = Join-Path $LibexecDir ".version"
     [System.IO.File]::WriteAllText($versionPath, $versionContent, [System.Text.Encoding]::UTF8)
     Pop-Location
     $ErrorActionPreference = "Stop"
@@ -201,7 +245,7 @@ if (-not $rscript) {
     Fail @"
 R is not installed or Rscript is not in PATH.
 
-dbAudit requires R (>= 3.5) to run.
+dbaudit requires R (>= 3.5) to run.
 
 Install R for Windows from CRAN:
   https://cran.r-project.org/bin/windows/base/
@@ -221,7 +265,7 @@ if ($versionOutput -match 'version (\d+)\.(\d+)') {
 
     if (($major -lt 3) -or ($major -eq 3 -and $minor -lt 5)) {
         Fail @"
-R version $major.$minor found, but dbAudit requires R >= 3.5.
+R version $major.$minor found, but dbaudit requires R >= 3.5.
 
 Please upgrade R from: https://cran.r-project.org/bin/windows/base/
 "@
@@ -283,37 +327,12 @@ if (length(missing) > 0) {
     }
 } else {
     Warn "Skipping R package installation (-SkipPackages flag used)"
-    Info "Packages will be auto-installed on first dbAudit run"
+    Info "Packages will be auto-installed on first dbaudit run"
 }
 
 Write-Host ""
 
-# Clean up non-canonical launcher variants (case variants / legacy names).
-# On default Windows filesystems this is usually redundant, but on case-sensitive directories
-# or after manual experimentation it helps avoid confusing duplicates.
-$aliasNames = @(
-    "dbaudit.cmd",
-    "dbaudit",
-    "dbaudit.ps1",
-    "DBAudit.cmd",
-    "DBAudit",
-    "DBAudit.ps1"
-)
-foreach ($n in $aliasNames) {
-    $p = Join-Path $UserBinDir $n
-    if (Test-Path $p) {
-        try {
-            Remove-Item -LiteralPath $p -Force
-            Warn "Removed non-canonical launcher: $p"
-        } catch {
-            Warn "Failed to remove non-canonical launcher: $p ($_ )"
-        }
-    }
-}
-
 # Create launchers in UserBinDir
-$cmdPath = Join-Path $UserBinDir "dbAudit.cmd"
-$shimPath = Join-Path $UserBinDir "dbAudit"
 
 # NOTE: avoid PowerShell here-strings for .cmd content; they are easy to break when a file is copied/rewritten.
 $cmdLines = @(
@@ -344,7 +363,7 @@ $cmd = ($cmdLines -join "`r`n") + "`r`n"
 $shimLines = @(
     '#!/usr/bin/env bash',
     'set -Eeuo pipefail',
-    'exec "$(dirname "$0")/dbAudit.cmd" "$@"'
+    'exec "$(dirname "$0")/dbaudit.cmd" "$@"'
 )
 $shim = ($shimLines -join "`n") + "`n"
 Write-LFFile -Path $shimPath -Content $shim
@@ -354,7 +373,7 @@ $bashExe = Resolve-GitBashExe
 if ($bashExe) {
     try {
         $binBash = To-GitBashPath -WinPath $UserBinDir
-        & $bashExe -lc "chmod +x '$binBash/dbAudit'" | Out-Null
+        & $bashExe -lc "chmod +x '$binBash/dbaudit'" | Out-Null
     } catch {}
 }
 
@@ -362,40 +381,30 @@ Ok "Created launchers:"
 Ok "  $cmdPath"
 Ok "  $shimPath"
 
+#
 # Add to User PATH
+$pathAdded = $false
 if (-not $SkipPath) {
-    $added = Add-ToUserPath -Dir $UserBinDir
-    if ($added) {
+    $pathAdded = Add-ToUserPath -Dir $UserBinDir
+    if ($pathAdded) {
         Ok "Ensured User PATH contains: $UserBinDir"
         Warn "Open a NEW terminal so PATH updates are picked up."
     }
 }
 
-# Detect possible duplicate installs (best-effort)
-try {
-    $cmds = Get-Command dbAudit -All -ErrorAction SilentlyContinue
-    if ($cmds -and $cmds.Count -gt 1) {
-        Warn "Multiple 'dbAudit' commands found in PATH (possible duplicate installs):"
-        foreach ($c in $cmds) {
-            $loc = $null
-            if ($c.Source) { $loc = $c.Source }
-            elseif ($c.Definition) { $loc = $c.Definition }
-            if ($loc) { Warn "  $loc" }
-        }
+# Persist PATH modification status in manifest (best-effort)
+if (Test-Path $versionPath) {
+    try {
+        Add-Content -LiteralPath $versionPath -Value ("path_added=" + ($(if ($pathAdded) { "true" } else { "false" })))
+    } catch {
+        Warn "Could not update manifest with path_added: $_"
     }
-} catch {}
+}
 
-# Detect a likely older mis-cased install location (informational only)
-try {
-    $altBinDir = (Join-Path ([Environment]::GetFolderPath('LocalApplicationData')) 'Programs\dbaudit\bin')
-    if (Test-Path $altBinDir) {
-        Warn "Found a non-canonical bin directory (possible old install): $altBinDir"
-    }
-} catch {}
 
 Write-Host ""
 Info "Verify installation in a new terminal:"
-Info "  dbAudit --check"
+Info "  dbaudit --check"
 Info ""
 Info "Get help:"
-Info "  dbAudit --help"
+Info "  dbaudit --help"

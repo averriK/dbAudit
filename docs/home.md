@@ -37,7 +37,7 @@ For more details (paths, uninstall, troubleshooting), see: [Install]({{ "/docs/i
 ## Run
 
 ```bash
-dbAudit --project project/<PROJECT>/data
+dbaudit --project project/<PROJECT>/data
 ```
 
 Value audit tolerance:

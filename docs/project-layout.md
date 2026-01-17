@@ -10,7 +10,7 @@ A project lives under `project/<PROJECT>/data/`.
 You run the pipeline by passing the **data root** to `--project`:
 
 ```bash
-dbAudit --project project/<PROJECT>/data
+dbaudit --project project/<PROJECT>/data
 ```
 
 Recommended (avoid fragile auto-detection for production runs):
@@ -18,15 +18,15 @@ Recommended (avoid fragile auto-detection for production runs):
 ```bash
 # Type A
 
-dbAudit --project project/<PROJECT>/data --lab-format A --assay-format A
+dbaudit --project project/<PROJECT>/data --lab-format A --assay-format A
 
 # Type B
 
-dbAudit --project project/<PROJECT>/data --lab-format B --assay-format B
+dbaudit --project project/<PROJECT>/data --lab-format B --assay-format B
 
 # Optional: override audit tolerance (relative tolerance; default 0.05)
 
-dbAudit --project project/<PROJECT>/data --tol 0.02
+dbaudit --project project/<PROJECT>/data --tol 0.02
 ```
 
 ## Expected folders under the data root
