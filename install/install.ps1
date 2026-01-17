@@ -165,13 +165,13 @@ if ((Test-Path $LibexecDir) -or (Test-Path $existingCmd) -or (Test-Path $existin
     }
 
     if (Test-Path $removeCmd) {
-        try { Remove-Item -LiteralPath $removeCmd -Force } catch { Fail "Failed to remove $removeCmd: $_" }
+        try { Remove-Item -LiteralPath $removeCmd -Force } catch { Fail "Failed to remove ${removeCmd}: $_" }
     }
     if (Test-Path $removeShim) {
-        try { Remove-Item -LiteralPath $removeShim -Force } catch { Fail "Failed to remove $removeShim: $_" }
+        try { Remove-Item -LiteralPath $removeShim -Force } catch { Fail "Failed to remove ${removeShim}: $_" }
     }
     if (Test-Path $removeLibexec) {
-        try { Remove-Item -LiteralPath $removeLibexec -Recurse -Force } catch { Fail "Failed to remove $removeLibexec: $_" }
+        try { Remove-Item -LiteralPath $removeLibexec -Recurse -Force } catch { Fail "Failed to remove ${removeLibexec}: $_" }
     }
 }
 
