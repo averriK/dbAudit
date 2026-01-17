@@ -287,6 +287,30 @@ if (length(missing) > 0) {
 }
 
 Write-Host ""
+
+# Clean up non-canonical launcher variants (case variants / legacy names).
+# On default Windows filesystems this is usually redundant, but on case-sensitive directories
+# or after manual experimentation it helps avoid confusing duplicates.
+$aliasNames = @(
+    "dbaudit.cmd",
+    "dbaudit",
+    "dbaudit.ps1",
+    "DBAudit.cmd",
+    "DBAudit",
+    "DBAudit.ps1"
+)
+foreach ($n in $aliasNames) {
+    $p = Join-Path $UserBinDir $n
+    if (Test-Path $p) {
+        try {
+            Remove-Item -LiteralPath $p -Force
+            Warn "Removed non-canonical launcher: $p"
+        } catch {
+            Warn "Failed to remove non-canonical launcher: $p ($_ )"
+        }
+    }
+}
+
 # Create launchers in UserBinDir
 $cmdPath = Join-Path $UserBinDir "dbAudit.cmd"
 $shimPath = Join-Path $UserBinDir "dbAudit"
@@ -346,6 +370,28 @@ if (-not $SkipPath) {
         Warn "Open a NEW terminal so PATH updates are picked up."
     }
 }
+
+# Detect possible duplicate installs (best-effort)
+try {
+    $cmds = Get-Command dbAudit -All -ErrorAction SilentlyContinue
+    if ($cmds -and $cmds.Count -gt 1) {
+        Warn "Multiple 'dbAudit' commands found in PATH (possible duplicate installs):"
+        foreach ($c in $cmds) {
+            $loc = $null
+            if ($c.Source) { $loc = $c.Source }
+            elseif ($c.Definition) { $loc = $c.Definition }
+            if ($loc) { Warn "  $loc" }
+        }
+    }
+} catch {}
+
+# Detect a likely older mis-cased install location (informational only)
+try {
+    $altBinDir = (Join-Path ([Environment]::GetFolderPath('LocalApplicationData')) 'Programs\dbaudit\bin')
+    if (Test-Path $altBinDir) {
+        Warn "Found a non-canonical bin directory (possible old install): $altBinDir"
+    }
+} catch {}
 
 Write-Host ""
 Info "Verify installation in a new terminal:"

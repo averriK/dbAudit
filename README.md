@@ -150,6 +150,22 @@ For project runs, `DBAudit` expects the following layout under a `project.path` 
 - Assay folder: `project.path/raw/assay/` (assay CSV is auto-detected inside)
 - Outputs: `project.path/proc/`
 
+### Path contract (defaults)
+
+The project-relative default folders are the **single source of truth** for CLI help and the runner:
+
+- `raw/lab` (lab certificates)
+- `raw/assay` (assay/client folder)
+- `proc` (outputs)
+
+Canonical definitions live in `R/dbAudit.R` (`.dbauditPathDefaults`).
+
+To prevent documentation drift, run:
+
+```bash
+bin/verify-docs
+```
+
 ### 2. Run the pipeline
 
 From terminal:

@@ -5,15 +5,44 @@ rm(list = ls())
 #   dbAudit --project <DATA_ROOT>
 
 showHelp <- function() {
+  defaults <- NULL
+  if (exists(".dbauditPathDefaults", mode = "any")) {
+    defaults <- get(".dbauditPathDefaults", mode = "any")
+  }
+
+  lab.def <- if (is.list(defaults) && !is.null(defaults$lab.dir.name) && nzchar(defaults$lab.dir.name)) {
+    defaults$lab.dir.name
+  } else {
+    "raw/lab"
+  }
+
+  assay.def <- if (is.list(defaults) && !is.null(defaults$assay.dir.name) && nzchar(defaults$assay.dir.name)) {
+    defaults$assay.dir.name
+  } else {
+    "raw/assay"
+  }
+
+  proc.def <- if (is.list(defaults) && !is.null(defaults$proc.dir.name) && nzchar(defaults$proc.dir.name)) {
+    defaults$proc.dir.name
+  } else {
+    "proc"
+  }
+
+  docs.url <- if (exists(".dbauditDocsUrl", mode = "any")) {
+    get(".dbauditDocsUrl", mode = "any")
+  } else {
+    "https://averrik.github.io/dbAudit/docs/"
+  }
+
   cat("dbAudit\n\n")
   cat("USAGE:\n")
   cat("  dbAudit --project <DATA_ROOT> [OPTIONS]\n\n")
   cat("REQUIRED:\n")
   cat("  --project <DATA_ROOT>\n\n")
   cat("OPTIONS:\n")
-  cat("  --lab-dir      <REL_PATH>           (default: raw/lab)\n")
-  cat("  --assay-dir    <REL_PATH>           (default: raw/assay)\n")
-  cat("  --proc-dir     <REL_PATH>           (default: proc)\n")
+  cat(sprintf("  --lab-dir      <REL_PATH>           (default: %s)\n", lab.def))
+  cat(sprintf("  --assay-dir    <REL_PATH>           (default: %s)\n", assay.def))
+  cat(sprintf("  --proc-dir     <REL_PATH>           (default: %s)\n", proc.def))
   cat("  --assay-file   <PATH>               (optional override; absolute path OR basename under assay-dir)\n")
   cat("  --lab-format   <auto|A|B>           (default: auto)\n")
   cat("  --assay-format <auto|A|B>           (default: auto)\n")
@@ -24,7 +53,7 @@ showHelp <- function() {
   cat("\n")
   cat("DOCS:\n")
   cat("  In-repo: docs/ (see docs/quickstart.md, docs/project-layout.md, docs/audit.md, docs/logging.md)\n")
-  cat("  Pages : https://averrik.github.io/dbAudit/docs/\n")
+  cat(sprintf("  Pages : %s\n", docs.url))
   cat("\n")
 }
 
@@ -155,21 +184,14 @@ showSystemInfo <- function() {
 
 root <- .dbauditRoot()
 
-setup.file <- file.path(root, "R", "setup.R")
-if (!file.exists(setup.file)) {
-  stop(sprintf("Invalid installation: missing %s", setup.file))
-}
-
-source(setup.file)
-source(file.path(root, "R", "helpers.R"))
-source(file.path(root, "R", "parseLab.R"))
-source(file.path(root, "R", "parseAssay.R"))
-source(file.path(root, "R", "audit.R"))
-source(file.path(root, "R", "dbAudit.R"))
-
 args <- commandArgs(trailingOnly = TRUE)
 
+# Early exits (avoid loading packages / triggering auto-installs just to print help/version/check)
 if (length(args) == 0L || any(args %in% c("-h", "--help"))) {
+  # Source the runner to load canonical defaults for help output.
+  dbAudit.file <- file.path(root, "R", "dbAudit.R")
+  if (file.exists(dbAudit.file)) source(dbAudit.file)
+
   showHelp()
   quit(save = "no", status = 0)
 }
@@ -184,10 +206,30 @@ if (any(args %in% c("--check", "--system-info"))) {
   quit(save = "no", status = 0)
 }
 
+# Full runtime (may auto-install R packages via R/setup.R)
+setup.file <- file.path(root, "R", "setup.R")
+if (!file.exists(setup.file)) {
+  stop(sprintf("Invalid installation: missing %s", setup.file))
+}
+
+source(setup.file)
+source(file.path(root, "R", "helpers.R"))
+source(file.path(root, "R", "parseLab.R"))
+source(file.path(root, "R", "parseAssay.R"))
+source(file.path(root, "R", "audit.R"))
+source(file.path(root, "R", "dbAudit.R"))
+
+# Canonical path defaults (single source of truth)
+defaults <- if (exists(".dbauditPathDefaults", mode = "any")) {
+  get(".dbauditPathDefaults", mode = "any")
+} else {
+  list(lab.dir.name = "raw/lab", assay.dir.name = "raw/assay", proc.dir.name = "proc")
+}
+
 project.path <- ""
-lab.dir.name <- file.path("raw", "lab")
-assay.dir.name <- file.path("raw", "assay")
-proc.dir.name <- "proc"
+lab.dir.name <- defaults$lab.dir.name
+assay.dir.name <- defaults$assay.dir.name
+proc.dir.name <- defaults$proc.dir.name
 assay.file <- ""
 lab.format <- "auto"
 assay.format <- "auto"

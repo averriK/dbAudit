@@ -4,6 +4,18 @@
 # - Working directory must be the repo root.
 # - CLI provides only the project path; everything else uses defaults.
 # - Assay file is detected deterministically within the assay folder.
+#
+# Canonical defaults (single source of truth for project-relative paths):
+# - Keep these as forward-slash strings so they match CLI help + docs verbatim.
+# - These are interpreted relative to --project (data root) unless overridden.
+
+.dbauditPathDefaults <- list(
+  lab.dir.name = "raw/lab",
+  assay.dir.name = "raw/assay",
+  proc.dir.name = "proc"
+)
+
+.dbauditDocsUrl <- "https://averrik.github.io/dbAudit/docs/"
 
 .chooseAssayFile <- function(assay.dir) {
   if (!dir.exists(assay.dir)) stop(sprintf("assay.dir not found: %s", assay.dir))
@@ -52,9 +64,9 @@
 
 DBAudit <- function(
   project.path,
-  lab.dir.name = file.path("raw", "lab"),
-  assay.dir.name = file.path("raw", "assay"),
-  proc.dir.name = "proc",
+  lab.dir.name = .dbauditPathDefaults$lab.dir.name,
+  assay.dir.name = .dbauditPathDefaults$assay.dir.name,
+  proc.dir.name = .dbauditPathDefaults$proc.dir.name,
   assay.file = NULL,
   lab.format = c("auto", "A", "B"),
   assay.format = c("auto", "A", "B"),
