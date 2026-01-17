@@ -73,7 +73,14 @@ $files = @(
     (Join-Path $UserBinDir "dbAudit.cmd"),
     (Join-Path $UserBinDir "dbAudit"),
     # Cleanup from older experiments if present
-    (Join-Path $UserBinDir "dbAudit.ps1")
+    (Join-Path $UserBinDir "dbAudit.ps1"),
+    # Cleanup non-canonical case variants / aliases (harmless on default case-insensitive FS)
+    (Join-Path $UserBinDir "dbaudit.cmd"),
+    (Join-Path $UserBinDir "dbaudit"),
+    (Join-Path $UserBinDir "dbaudit.ps1"),
+    (Join-Path $UserBinDir "DBAudit.cmd"),
+    (Join-Path $UserBinDir "DBAudit"),
+    (Join-Path $UserBinDir "DBAudit.ps1")
 )
 
 foreach ($f in $files) {
@@ -120,5 +127,13 @@ if (-not $SkipPath) {
         Ok "User PATH did not contain: $UserBinDir"
     }
 }
+
+# Informational: detect a likely older mis-cased install location
+try {
+    $altBinDir = (Join-Path ([Environment]::GetFolderPath('LocalApplicationData')) 'Programs\dbaudit\bin')
+    if (Test-Path $altBinDir) {
+        Warn "Non-canonical bin directory still exists (possible old install): $altBinDir"
+    }
+} catch {}
 
 Ok "Uninstall complete"

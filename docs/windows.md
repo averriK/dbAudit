@@ -19,6 +19,8 @@ The installer:
 
 - Copies the runtime under a per-user directory (default: `%LOCALAPPDATA%\Programs\dbAudit\libexec\dbAudit`)
 - Writes launchers under a per-user bin directory (default: `%LOCALAPPDATA%\Programs\dbAudit\bin`)
+  - `dbAudit.cmd` (PowerShell / CMD)
+  - `dbAudit` (Git Bash shim)
 - Adds that bin directory to the **User PATH** (unless `-SkipPath`)
 
 Open a **new terminal** after installing so PATH updates are picked up.

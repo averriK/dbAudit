@@ -63,7 +63,7 @@ esac
 # macOS/Linux system-wide install
 BIN_DIR="/usr/local/bin"
 LIBEXEC_DIR="/usr/local/libexec/dbAudit"
-DOCS_URL="https://averrik.github.io/dbAudit/"
+DOCS_URL="https://averrik.github.io/dbAudit/docs/"
 
 info "dbAudit Installer (macOS/Linux, repo-based)"
 
@@ -207,6 +207,17 @@ echo ""
 info "Linking $BIN_DIR/dbAudit -> $LIBEXEC_DIR/bin/dbAudit"
 if ! ln -sf "$LIBEXEC_DIR/bin/dbAudit" "$BIN_DIR/dbAudit" 2>/dev/null; then
   error "Could not create symlink $BIN_DIR/dbAudit (permission denied?). Run this installer with sudo for a system-wide install."
+fi
+
+# Avoid extra alias symlinks (case variants) lingering from older installs.
+# Remove only if it points into our runtime.
+ALIAS_PATH="$BIN_DIR/dbaudit"
+if [[ -L "$ALIAS_PATH" ]]; then
+  ALIAS_TARGET="$(readlink "$ALIAS_PATH" 2>/dev/null || true)"
+  if [[ "$ALIAS_TARGET" == "$LIBEXEC_DIR"/* ]]; then
+    warn "Removing non-canonical alias symlink: $ALIAS_PATH -> $ALIAS_TARGET"
+    rm -f "$ALIAS_PATH" 2>/dev/null || warn "Could not remove $ALIAS_PATH"
+  fi
 fi
 
 ok "Installation complete"
