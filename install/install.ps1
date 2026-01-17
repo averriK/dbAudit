@@ -7,7 +7,7 @@
 #   powershell -NoProfile -ExecutionPolicy Bypass -File .\dbAudit\install\install.ps1
 #
 # Options:
-#   -SkipPath      Skip adding bin directory to User PATH
+#   -Force         Proceed without prompts (replace existing install)
 #   -SkipPackages  Skip R package installation (packages will be installed on first run)
 #
 # Requirements:
@@ -16,7 +16,7 @@
 #
 # Notes:
 #   - Installs from the local repo / extracted package (no GitHub API).
-#   - Creates launchers in a per-user bin dir and (optionally) adds it to User PATH.
+#   - Creates launchers in a per-user bin dir and adds it to User PATH.
 
 [CmdletBinding()]
 param(
@@ -24,15 +24,15 @@ param(
     [string]$RepoRoot,
 
     # Runtime installation directory
-    # Default: %LOCALAPPDATA%\Programs\dbAudit\libexec\dbAudit
-    [string]$LibexecDir = (Join-Path ([Environment]::GetFolderPath('LocalApplicationData')) 'Programs\dbAudit\libexec\dbAudit'),
+    # Default: %LOCALAPPDATA%\Programs\_runtime\dbAudit
+    [string]$LibexecDir = (Join-Path ([Environment]::GetFolderPath('LocalApplicationData')) 'Programs\_runtime\dbAudit'),
 
     # User bin directory to place launchers
-    # Default: %LOCALAPPDATA%\Programs\dbAudit\bin
-    [string]$UserBinDir = (Join-Path ([Environment]::GetFolderPath('LocalApplicationData')) 'Programs\dbAudit\bin'),
+    # Default: %LOCALAPPDATA%\Programs
+    [string]$UserBinDir = (Join-Path ([Environment]::GetFolderPath('LocalApplicationData')) 'Programs'),
 
-    # Skip adding $UserBinDir to the User PATH
-    [switch]$SkipPath,
+    # Proceed without prompts (replace existing install)
+    [switch]$Force,
 
     # Skip R package installation (packages will be installed on first run)
     [switch]$SkipPackages
@@ -159,8 +159,10 @@ if ((Test-Path $LibexecDir) -or (Test-Path $existingCmd) -or (Test-Path $existin
             Warn "  installed: $($info["install_date"])"
         }
     }
-    $resp = Read-Host "Existing dbaudit will be removed. Continue? [y/N]"
-    if ($resp -notmatch '^[Yy]$') { Fail "Aborted by user." }
+    if (-not $Force) {
+        $resp = Read-Host "Existing dbaudit will be removed. Continue? [y/N]"
+        if ($resp -notmatch '^[Yy]$') { Fail "Aborted by user." }
+    }
 
     if (Test-Path $removeCmd) {
         try { Remove-Item -LiteralPath $removeCmd -Force } catch { Fail "Failed to remove $removeCmd: $_" }
@@ -384,12 +386,10 @@ Ok "  $shimPath"
 #
 # Add to User PATH
 $pathAdded = $false
-if (-not $SkipPath) {
-    $pathAdded = Add-ToUserPath -Dir $UserBinDir
-    if ($pathAdded) {
-        Ok "Ensured User PATH contains: $UserBinDir"
-        Warn "Open a NEW terminal so PATH updates are picked up."
-    }
+$pathAdded = Add-ToUserPath -Dir $UserBinDir
+if ($pathAdded) {
+    Ok "Ensured User PATH contains: $UserBinDir"
+    Warn "Open a NEW terminal so PATH updates are picked up."
 }
 
 # Persist PATH modification status in manifest (best-effort)
@@ -400,6 +400,22 @@ if (Test-Path $versionPath) {
         Warn "Could not update manifest with path_added: $_"
     }
 }
+
+# Write install manifest in UserBinDir (tito-style)
+$installManifestPath = Join-Path $UserBinDir "dbaudit.INSTALL_MANIFEST"
+$installLines = @(
+    "manifest_version=1",
+    ("installed_at_utc=" + (Get-Date).ToUniversalTime().ToString('yyyy-MM-ddTHH:mm:ssZ')),
+    ("libexec_dir=" + $LibexecDir),
+    ("bin_dir=" + $UserBinDir),
+    ("path_added=" + ($(if ($pathAdded) { "true" } else { "false" }))),
+    ("file=" + $cmdPath),
+    ("file=" + $shimPath),
+    ("file=" + $versionPath),
+    ("file=" + $installManifestPath),
+    ("dir=" + $LibexecDir)
+)
+Write-LFFile -Path $installManifestPath -Content (($installLines -join "`n") + "`n")
 
 
 Write-Host ""
