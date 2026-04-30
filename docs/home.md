@@ -6,50 +6,29 @@ permalink: /
 
 # dbAudit
 
-Geochemical certificate parser and audit tool.
+**Geochemical certificate parser and audit pipeline (type A / type B)**
 
-- Parses **lab certificates** (type A and type B) into `lab.csv` + `index.csv`.
-- Parses **assay/client tables** (type A and type B) into `client.csv`.
-- Runs audits (structure + values).
+Parses lab certificates and assay/client tables (both type A and type B layouts) into normalized `lab.csv` + `index.csv` + `client.csv` and runs structural and value audits with configurable tolerance.
 
-## Requirements
+## Start here
 
-- R installed (`Rscript` must be available at runtime).
+- [Install]({{ "/docs/install/" | relative_url }}) — macOS / Linux / Windows install scripts, paths, uninstall.
+- [Quick start]({{ "/docs/quickstart/" | relative_url }}) — run a project end-to-end.
+- [Documentation hub]({{ "/docs/" | relative_url }}) — full index.
 
-## Install
+## Topics
 
-### macOS / Linux (system-wide `/usr/local`)
-
-```bash
-git clone git@github.com:averriK/dbAudit.git
-sudo bash dbAudit/install/install.sh
-```
-
-### Windows (PowerShell)
-
-```powershell
-git clone git@github.com:averriK/dbAudit.git
-powershell -NoProfile -ExecutionPolicy Bypass -File .\dbAudit\install\install.ps1
-```
-
-For more details (paths, uninstall, troubleshooting), see: [Install]({{ "/docs/install/" | relative_url }}).
-
-## Run
-
-```bash
-dbaudit --project project/<PROJECT>/data
-```
-
-Value audit tolerance:
-- `--tol <NUMBER>` sets the relative tolerance for value audits (default: `0.05`).
-
-Outputs under `--project`:
-
-- `proc/`
-- `proc/log.csv`
-
-Next:
-
-- [Quick start]({{ "/docs/quickstart/" | relative_url }})
-- [Logging]({{ "/docs/logging/" | relative_url }})
+- [Typical project layout]({{ "/docs/project-layout/" | relative_url }})
+- [Parsers (type A + type B)]({{ "/docs/parsers/" | relative_url }})
+- [Audits (structure + values; type-B method inference)]({{ "/docs/audit/" | relative_url }})
+- [Logging (schema, filters, event reference)]({{ "/docs/logging/" | relative_url }})
 - [Troubleshooting]({{ "/docs/troubleshooting/" | relative_url }})
+
+## Platform notes
+
+- [macOS]({{ "/docs/macos/" | relative_url }})
+- [Windows]({{ "/docs/windows/" | relative_url }})
+
+## If you read one page only
+
+Read: [Quick start]({{ "/docs/quickstart/" | relative_url }}).
