@@ -8,6 +8,9 @@ kramdown:
   input: GFM
   syntax_highlighter: rouge
 
+github:
+  repository_url: https://github.com/averriK/dbAudit
+
 # Keep the docs site self-contained when GitHub Pages is configured to build from /docs
 # (Settings → Pages → Deploy from a branch → /docs).
 exclude:
@@ -16,3 +19,4 @@ exclude:
   - "conventions.md"   # internal developer conventions
   - "plan.md"          # internal history/plan log
   - "tests.md"         # internal self-check notes (not part of the public docs site)
+  - "installers.md"    # internal canonical installer spec (no frontmatter)
