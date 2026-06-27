@@ -1,0 +1,4 @@
+export(DBAudit)
+import(data.table)
+importFrom(utils,adist)
+importFrom(utils,globalVariables)

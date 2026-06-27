@@ -11,4 +11,4 @@ if ! command -v Rscript >/dev/null 2>&1; then
   exit 1
 fi
 
-exec Rscript "$ROOT/R/verifyDocs.R"
+exec Rscript "$ROOT/inst/scripts/verifyDocs.R"

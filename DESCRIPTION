@@ -1,0 +1,27 @@
+Package: dbAudit
+Type: Package
+Title: Geochemical Certificate Parser and Validator
+Version: 0.0.0.9000
+Authors@R:
+    person("Alejandro", "Verri Kozlowski", , "averri@fi.uba.ar",
+           role = c("aut", "cre", "cph"),
+           comment = c(ORCID = "0000-0002-8535-1170"))
+Description: Parses laboratory geochemical certificates into normalized
+    long-format tables and audits them against client assay compositions.
+    The package detects systematic identifier mismatches, flags value
+    discrepancies, and writes audit logs for review.
+License: MIT + file LICENSE
+Encoding: UTF-8
+Language: en-US
+URL: https://averrik.github.io/dbAudit/docs/
+Depends:
+    R (>= 4.1.0)
+Imports:
+    data.table,
+    lubridate,
+    stringr,
+    utils
+Suggests:
+    testthat (>= 3.0.0)
+Config/testthat/edition: 3
+NeedsCompilation: no

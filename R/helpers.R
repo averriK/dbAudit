@@ -224,7 +224,7 @@
   # normalize common synonyms
   v <- gsub("^g/t$|^gpt$|^g\\/t$", "ppm", v)
   v <- gsub("^mg/kg$", "ppm", v)
-  v <- gsub("^ug/g$|^µg/g$|^mcg/g$", "ppm", v)
+  v <- gsub("^ug/g$|^\\u00B5g/g$|^mcg/g$", "ppm", v)
   v <- gsub("^percent$|^%$|^wt%$", "pct", v)
   v
 }

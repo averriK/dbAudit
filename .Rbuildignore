@@ -1,0 +1,17 @@
+^DBAudit$
+^bin$
+^dev$
+^docs$
+^install$
+^project$
+^PE-DBAudit[.]Rproj$
+^R/setup[.]R$
+^R/legacy$
+^R/legacy/
+^[.]claude$
+^[.]idea$
+^[.]Rproj[.]user$
+^[.]github$
+^[.]git$
+^[.]gitignore$
+^[.]gitattributes$

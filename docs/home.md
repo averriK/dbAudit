@@ -10,6 +10,8 @@ permalink: /
 
 Parses lab certificates and assay/client tables (both type A and type B layouts) into normalized `lab.csv` + `index.csv` + `client.csv` and runs structural and value audits with configurable tolerance.
 
+Run with `dbaudit --project <DATA_ROOT>`; outputs are written under `proc/`.
+
 ## Start here
 
 - [Install]({{ "/docs/install/" | relative_url }}) — macOS / Linux / Windows install scripts, paths, uninstall.

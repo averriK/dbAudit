@@ -49,7 +49,7 @@ if (is.na(script) || !nzchar(script)) {
   .fail("Cannot locate script path (--file=... missing). Run via Rscript R/verifyDocs.R")
 }
 
-root <- normalizePath(file.path(dirname(script), ".."), mustWork = TRUE)
+root <- normalizePath(file.path(dirname(script), "..", ".."), mustWork = TRUE)
 
 # Load canonical defaults (single source of truth)
 source(file.path(root, "R", "dbAudit.R"))

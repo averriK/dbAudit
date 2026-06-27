@@ -1,78 +1,72 @@
-# Dependencies
-# This file is sourced by the CLI (`DBAudit`) and by interactive sessions.
-# It installs missing packages (first run only) and then loads them.
+.dbauditRequiredPkgs <- c("data.table", "stringr", "lubridate")
 
-.requiredPkgs <- c("data.table", "stringr", "lubridate")
+.dbauditMissingPkgs <- function() {
+  .dbauditRequiredPkgs[!vapply(.dbauditRequiredPkgs, requireNamespace, logical(1), quietly = TRUE)]
+}
 
-.missingPkgs <- .requiredPkgs[!vapply(.requiredPkgs, requireNamespace, logical(1), quietly = TRUE)]
-
-if (length(.missingPkgs) > 0L) {
+.dbauditInstallPkgs <- function(pkgs) {
   repos <- getOption("repos")
   if (is.null(repos) || length(repos) == 0L || isTRUE(all(repos == "@CRAN@"))) {
     options(repos = c(CRAN = "https://cloud.r-project.org"))
   }
 
-  message("Installing missing R packages: ", paste(.missingPkgs, collapse = ", "))
+  message("Installing missing R packages: ", paste(pkgs, collapse = ", "))
   message("This may take a few minutes on first run...\n")
 
-  # Determine if we're on Windows (use binaries only, no compilation)
-  is_windows <- .Platform$OS.type == "windows"
-
-  if (is_windows) {
+  if (.Platform$OS.type == "windows") {
     message("Note: Installing pre-compiled binaries (Windows does not compile from source)\n")
+    utils::install.packages(pkgs, type = "binary")
+  } else {
+    utils::install.packages(pkgs)
+  }
+}
+
+.dbauditLoadRuntime <- function(install = TRUE) {
+  missing <- .dbauditMissingPkgs()
+
+  if (length(missing) > 0L && isTRUE(install)) {
+    ok <- tryCatch({
+      .dbauditInstallPkgs(missing)
+      TRUE
+    }, error = function(e) {
+      message("\nERROR: Failed to install R packages automatically.")
+      message("Error details: ", conditionMessage(e))
+      message("\nTroubleshooting:")
+      message("  1. Check internet connectivity")
+      message("  2. Verify CRAN mirror is accessible: https://cloud.r-project.org")
+      if (.Platform$OS.type == "windows") {
+        message("  3. Check if binary packages are available for your R version")
+        message("  4. Try manual installation in R console:")
+        message("       install.packages(c(\"", paste(missing, collapse = "\", \""), "\"), type=\"binary\")")
+        message("  5. Check library path permissions: .libPaths()")
+        message("\nNOTE: Windows cannot compile R packages from source without Rtools.")
+      } else {
+        message("  3. Try manual installation in R console:")
+        message("       install.packages(c(\"", paste(missing, collapse = "\", \""), "\"))")
+        message("  4. Check library path permissions: .libPaths()")
+      }
+      FALSE
+    })
+
+    if (!isTRUE(ok)) {
+      stop("Cannot proceed without required R packages. See troubleshooting steps above.")
+    }
+
+    missing <- .dbauditMissingPkgs()
   }
 
-  install_success <- tryCatch({
-    if (is_windows) {
-      # Windows: ALWAYS use binaries, never compile from source (would require Rtools)
-      install.packages(.missingPkgs, type = "binary")
-    } else {
-      # macOS/Linux: can compile from source if needed
-      install.packages(.missingPkgs)
-    }
-    TRUE
-  }, error = function(e) {
-    message("\nERROR: Failed to install R packages automatically.")
-    message("Error details: ", conditionMessage(e))
-    message("\nTroubleshooting:")
-    message("  1. Check internet connectivity")
-    message("  2. Verify CRAN mirror is accessible: https://cloud.r-project.org")
-
-    if (is_windows) {
-      message("  3. Check if binary packages are available for your R version")
-      message("  4. Try manual installation in R console:")
-      message("       install.packages(c(\"", paste(.missingPkgs, collapse = "\", \""), "\"), type=\"binary\")")
-      message("  5. Check library path permissions: .libPaths()")
-      message("\nNOTE: Windows cannot compile R packages from source without Rtools.")
-      message("      If binaries are unavailable, upgrade R to a version with binary packages.")
-    } else {
-      message("  3. Try manual installation in R console:")
-      message("       install.packages(c(\"", paste(.missingPkgs, collapse = "\", \""), "\"))")
-      message("  4. Check library path permissions: .libPaths()")
-      message("  5. If using corporate network, check proxy settings")
-    }
-    FALSE
-  })
-
-  if (!install_success) {
-    stop("Cannot proceed without required R packages. See troubleshooting steps above.")
-  }
-
-  # Verify all packages installed successfully
-  still_missing <- .missingPkgs[!vapply(.missingPkgs, requireNamespace, logical(1), quietly = TRUE)]
-
-  if (length(still_missing) > 0L) {
+  if (length(missing) > 0L) {
     stop(sprintf(
-      "Package installation reported success but packages still missing: %s\n\nPlease install manually.",
-      paste(still_missing, collapse = ", ")
+      "Missing required R packages: %s",
+      paste(missing, collapse = ", ")
     ))
   }
 
-  message("Packages installed successfully.\n")
-}
+  suppressPackageStartupMessages({
+    library(data.table)
+    library(stringr)
+    library(lubridate)
+  })
 
-suppressPackageStartupMessages({
-  library(data.table)
-  library(stringr)
-  library(lubridate)
-})
+  invisible(TRUE)
+}

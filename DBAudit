@@ -240,6 +240,9 @@ if (!file.exists(setup.file)) {
 }
 
 source(setup.file)
+if (exists(".dbauditLoadRuntime", mode = "function")) {
+  .dbauditLoadRuntime()
+}
 source(file.path(root, "R", "helpers.R"))
 source(file.path(root, "R", "parseLab.R"))
 source(file.path(root, "R", "parseAssay.R"))
