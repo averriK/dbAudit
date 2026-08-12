@@ -149,6 +149,26 @@ Secuencia validada contra `R-PIPELINES.md`, `CONFIG.md`, `COMPATIBILITY.md` y
 `PRACTICE.md`, mas revision adversarial con verificacion en codigo. Cada paso
 es reversible y se valida antes del siguiente.
 
+Estado de ejecucion, 2026-08-12:
+
+- A1 hecho: `e7d1524`. Checkout `FAIL 0 PASS 5`; check `Status: OK` con los
+  goldens saltando limpio en el tarball.
+- A2 pendiente: ruling del usuario sobre `.Rbuildignore ^examples$`. No
+  bloquea: A3 uso el gate relativo al baseline.
+- A3 hecho: `a7a58dc`. Goldens `FAIL 0 PASS 5` contra el paquete renombrado
+  reinstalado; check `Status: OK` con los chequeos code/doc pasando.
+- A4 hecho: `7bb3445`. Paridad legacy y slug sobre test-A: md5 identicos a
+  los goldens, exit 0 ambos; slug desconocido exit 1; `verify-docs` pasa sin
+  cambios.
+- A5 pendiente: accion del usuario (sudo), con el arbol limpio ya dado:
+
+  ```sh
+  cd ~/github/tools/dbAudit && sudo ./install/install.sh
+  ```
+
+  Cierre obligatorio tras instalar: invocacion legacy del binario instalado
+  sobre una copia de test-A, md5 contra los goldens registrados arriba.
+
 A1. Harness golden `tests/testthat/test-golden-outputs.R`:
 
 - copiar SOLO `raw/` y `assay/` de `project/test-A` y `test-B` a tempdir (no
