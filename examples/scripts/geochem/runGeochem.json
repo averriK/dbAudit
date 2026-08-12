@@ -1,0 +1,22 @@
+{
+  "runs": [
+    {
+      "projectPath": "project/test-A",
+      "labDir": "raw",
+      "assayDir": "assay",
+      "procDir": "proc",
+      "labFormat": "A",
+      "assayFormat": "A",
+      "tol": 0.05
+    },
+    {
+      "projectPath": "project/test-B",
+      "labDir": "raw",
+      "assayDir": "assay",
+      "procDir": "proc",
+      "labFormat": "B",
+      "assayFormat": "B",
+      "tol": 0.05
+    }
+  ]
+}
