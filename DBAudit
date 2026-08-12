@@ -36,7 +36,7 @@ showHelp <- function() {
 
   cat("dbaudit\n\n")
   cat("USAGE:\n")
-  cat("  dbaudit --project <DATA_ROOT> [OPTIONS]\n\n")
+  cat("  dbaudit [geochem] --project <DATA_ROOT> [OPTIONS]\n\n")
   cat("REQUIRED:\n")
   cat("  --project <DATA_ROOT>\n\n")
   cat("OPTIONS:\n")
@@ -212,6 +212,18 @@ showSystemInfo <- function() {
 root <- .dbauditRoot()
 
 args <- commandArgs(trailingOnly = TRUE)
+
+# Contract dispatch: a leading non-flag token selects the pipeline contract.
+# A leading '-' (or no arguments) keeps the legacy geochemical invocation
+# unchanged, so existing callers are unaffected.
+slug <- ""
+if (length(args) > 0L && !startsWith(args[1L], "-")) {
+  slug <- args[1L]
+  args <- args[-1L]
+  if (!(slug %in% c("geochem"))) {
+    stop(sprintf("Unknown command: %s (expected: geochem)", slug))
+  }
+}
 
 # Early exits (avoid loading packages / triggering auto-installs just to print help/version/check)
 if (length(args) == 0L || any(args %in% c("-h", "--help"))) {
