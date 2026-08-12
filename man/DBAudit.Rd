@@ -1,7 +1,19 @@
 \name{DBAudit}
 \alias{DBAudit}
-\title{Run a dbAudit project}
+\alias{auditGeochem}
+\title{Audit a geochemical certificate project}
 \usage{
+auditGeochem(
+  project.path,
+  lab.dir.name = .dbauditPathDefaults$lab.dir.name,
+  assay.dir.name = .dbauditPathDefaults$assay.dir.name,
+  proc.dir.name = .dbauditPathDefaults$proc.dir.name,
+  assay.file = NULL,
+  lab.format = c("auto", "A", "B"),
+  assay.format = c("auto", "A", "B"),
+  tol = 5e-2
+)
+
 DBAudit(
   project.path,
   lab.dir.name = .dbauditPathDefaults$lab.dir.name,
@@ -24,8 +36,9 @@ DBAudit(
 \item{tol}{Relative tolerance for value audits.}
 }
 \description{
-Runs the existing dbAudit pipeline for laboratory certificates, client assay
-data, and audit logs.
+Runs the geochemical pipeline for laboratory certificates, client assay
+data, and audit logs. \code{DBAudit} is the legacy public name and remains
+supported; \code{auditGeochem} is the domain-qualified name.
 }
 \value{
 An invisible list of output paths.

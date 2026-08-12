@@ -62,7 +62,7 @@
   ))
 }
 
-DBAudit <- function(
+auditGeochem <- function(
   project.path,
   lab.dir.name = .dbauditPathDefaults$lab.dir.name,
   assay.dir.name = .dbauditPathDefaults$assay.dir.name,
@@ -224,3 +224,8 @@ DBAudit <- function(
     client.file = output.file
   ))
 }
+
+# Legacy public name. A binding copy, not a wrapper, so the formals stay
+# identical to the documented usage. Called by the CLI entrypoint and by
+# existing consumers; do not remove without a consumer audit.
+DBAudit <- auditGeochem
