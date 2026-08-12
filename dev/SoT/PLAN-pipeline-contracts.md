@@ -139,9 +139,18 @@ irrecuperable.
   la corrida (hoy un valor invalido mata `runData.R` sin dejar log), backfill
   de `header.csv`, y ruling de persistencia de fixes.
 - Etapa I inclinometros: abierta; requiere contexto del usuario.
-- Etapa II: validacion de lecturas por forecast. Sin contexto ni directrices;
-  no disenar. `AR-S2L1X/dev/SoT/PLAN-ingest-gate-contract.md` y el esquema de
-  log con decision pass/repair/reject quedan reservados como su esqueleto.
+- Nivel III (vision del usuario, 2026-08-12): validar la ULTIMA lectura de un
+  piezometro con dos gates predictivos: (1) espacial — correlaciones entre el
+  piezometro i y los demas piezometros j a la fecha de la lectura, prediccion
+  desde la distribucion espacial de niveles freaticos; el modelo ML ya existe
+  en `~/github/libraries/ssel` y solo debe aplicarse; (2) temporal, el
+  dificil — forecast desde la historia del propio piezometro. Una lectura
+  fuera de ambos intervalos de confianza se marca como probable dato malo.
+  Todo lo que se construye ahora es QA/QC de niveles I y II. No disenar el
+  nivel III todavia; los requisitos que impone hoy estan registrados en
+  `AR-S2L1X/dev/SoT/PLAN-agent-boundary.md` (coordenadas de instrumento como
+  producto de db, series por sensor, vocabulario de log extensible con
+  veredicto probabilistico). `PLAN-ingest-gate-contract.md` es su esqueleto.
 
 ## Roadmap Arquitectura (validado 2026-08-12)
 
