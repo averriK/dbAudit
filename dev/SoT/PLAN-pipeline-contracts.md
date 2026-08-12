@@ -160,14 +160,15 @@ Estado de ejecucion, 2026-08-12:
 - A4 hecho: `7bb3445`. Paridad legacy y slug sobre test-A: md5 identicos a
   los goldens, exit 0 ambos; slug desconocido exit 1; `verify-docs` pasa sin
   cambios.
-- A5 pendiente: accion del usuario (sudo), con el arbol limpio ya dado:
+- A5 hecho: reinstalado por el usuario el 2026-08-12 18:34 UTC. `.version`
+  registra `73dc2fa (dev)`, que existe en git — la deriva del build `ac4001e`
+  quedo cerrada. Cero drift entre `/usr/local/libexec/dbAudit` y el checkout.
+  Cierre verificado: `dbaudit --project <copia test-A> --lab-dir raw
+  --assay-dir assay` exit 0 con los tres md5 identicos a los goldens; el
+  dispatch (`geochem --help` exit 0, slug desconocido exit 1) funciona en el
+  binario instalado.
 
-  ```sh
-  cd ~/github/tools/dbAudit && sudo ./install/install.sh
-  ```
-
-  Cierre obligatorio tras instalar: invocacion legacy del binario instalado
-  sobre una copia de test-A, md5 contra los goldens registrados arriba.
+El roadmap A quedo completo salvo el ruling A2, que no bloquea nada.
 
 A1. Harness golden `tests/testthat/test-golden-outputs.R`:
 
