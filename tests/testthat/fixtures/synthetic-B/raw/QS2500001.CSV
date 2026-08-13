@@ -1,0 +1,20 @@
+Laboratorio Sintetico S.A.C.,,,,,,,
+Proyecto Sintetico,PROJECT,SINTETICO,,,,,
+QS2500001,Received:,05/01/2025,Date Completed:,12/01/2025,,,
+DespatchNo:,SYNQ00001A,,,,,,
+Laboratory:,SYN LIM,,,SYN-LAB,SYN-LAB,SYN-LAB,SYN-LAB
+Method:,,,,Cu-AAS41B,Mo-AAS42C,CuCn-CSC65G,CuS-AAS74B
+Digestion:,,,,DIG1,DIG1,DIG1,DIG1
+Acid/Strenght:,,,,,,,
+Sample Wt (grams):,,,,0.25,0.5,0.25,0.2
+Units:,,,,%,ppm,%,%
+Det. Lim:,,,,0.001,2,0.01,0.001
+Upper Lim:,,,,40,10000,100,20
+,,,,,,,
+ELEMENT,SYN-LAB,Sample,Analytical,Cu,Mo,CuCn,CuS
+SAMPLES,Batch No,Wt. g,Order,%,ppm,%,%
+SYN25_00001,QS2500001,,1,0.412,158,0.05,0.031
+SYN25_00002,QS2500001,,2,1.105,64,0.12,0.088
+SYN25_00003,QS2500001,,3,<0.001,<2,<0.01,<0.001
+SYN25_00004,QS2500001,,4,0.238,231,0.03,0.017
+SYN25_00005,QS2500001,,5,0.771,95,0.08,0.052
