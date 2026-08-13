@@ -274,9 +274,17 @@ en `AR-S2L1X`, y exige resolver antes:
   `stressAudit.R` ejercitaria una version divergente del checkout — la misma
   deriva `ac4001e`. Asercion de version en runners o reinstalacion mandatoria
   en la receta de validacion;
-- ruling de procedencia de fixtures: los datos reales llevan identificadores
-  del cliente (Catalina Huanca) y este repo publica un sitio; anonimizar,
-  sintetizar o aceptar — decidido ANTES de crear los goldens piezometricos;
+- ruling de procedencia de fixtures, decidido 2026-08-12: el repo publico no
+  lleva fixtures derivados de clientes. `project/test-A` y `test-B` fueron
+  des-trackeados en `f4de24d` (quedan en disco, los goldens los leen
+  localmente y saltan limpio si faltan; `project/` esta ignorado). Los
+  fixtures piezometricos futuros se SINTETIZAN — el patron es
+  `AR-S2L1X/dev/SoT/buildCorruptSource.R`. Pendiente derivado: generador de
+  fixtures geoquimicos sinteticos para que los clones frescos recuperen
+  cobertura de regresion. Letra chica abierta: la historia publicada y el
+  remoto LFS todavia contienen test-A/test-B; una purga real exige
+  reescritura de historia + force push + purga LFS en GitHub (operacion
+  destructiva, decision separada del usuario, no tomada);
 - ruling semantico: ¿`auditPiezometer()` envuelve el gate de ingreso o la
   revision post-db? Pregunta 5 de `PLAN-ingest-gate-contract.md`, aun
   abierta.
