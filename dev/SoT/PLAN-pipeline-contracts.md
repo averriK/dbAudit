@@ -285,6 +285,25 @@ en `AR-S2L1X`, y exige resolver antes:
   remoto LFS todavia contienen test-A/test-B; una purga real exige
   reescritura de historia + force push + purga LFS en GitHub (operacion
   destructiva, decision separada del usuario, no tomada);
+  ACTUALIZACION 2026-08-12: el usuario ORDENO la purga de historia. Registro
+  del efecto (ORCHESTRATION.md): efecto = reescribir la historia completa de
+  github.com/averriK/dbAudit eliminando todo path bajo project/ de todos los
+  refs (dev, main; verificado: sin tags, sin refs/pull, 0 PRs) y force-push;
+  ejecutor y coordinador unico = esta sesion; autoridad = orden explicita del
+  usuario de esta fecha; precondicion = arbol limpio, bundle de respaldo
+  pre-reescritura en el scratchpad de la sesion, espejo reescrito verificado
+  (0 paths project/ en toda la historia, arboles de punta identicos salvo
+  project/); senal de exito = ls-remote muestra solo hashes reescritos y un
+  clon de prueba no contiene project/; ancla de rollback = el bundle mas la
+  historia vieja intacta en el repo de trabajo local hasta la reconciliacion;
+  politica de reintento = un solo push --mirror, si falla se re-observa el
+  remoto antes de cualquier reintento; reanudacion = si se interrumpe tras el
+  push, reconciliar el repo local con fetch + reset, jamas re-ejecutar
+  filter-repo sobre un espejo ya reescrito. Residual conocido e inevitable
+  sin soporte de GitHub: los objetos LFS permanecen en el servidor hasta
+  purga por soporte o recreacion del repo; los clones viejos conservan la
+  historia. El .version del CLI instalado (73dc2fa) quedara apuntando a un
+  hash inexistente: reinstalar tras la purga.
 - ruling semantico: ¿`auditPiezometer()` envuelve el gate de ingreso o la
   revision post-db? Pregunta 5 de `PLAN-ingest-gate-contract.md`, aun
   abierta.
