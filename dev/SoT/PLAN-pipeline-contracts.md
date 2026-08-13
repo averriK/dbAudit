@@ -279,9 +279,13 @@ en `AR-S2L1X`, y exige resolver antes:
   des-trackeados en `f4de24d` (quedan en disco, los goldens los leen
   localmente y saltan limpio si faltan; `project/` esta ignorado). Los
   fixtures piezometricos futuros se SINTETIZAN — el patron es
-  `AR-S2L1X/dev/SoT/buildCorruptSource.R`. Pendiente derivado: generador de
-  fixtures geoquimicos sinteticos para que los clones frescos recuperen
-  cobertura de regresion. Letra chica abierta: la historia publicada y el
+  `AR-S2L1X/dev/SoT/buildCorruptSource.R`. Generador geoquimico sintetico
+  HECHO en `8f688f1`: `dev/buildFixtures.R` escribe
+  `tests/testthat/fixtures/synthetic-A` y `synthetic-B` (identificadores
+  inventados, un desvio de valor plantado por fixture, conversion ppm/pct y
+  tags de deteccion en B); sus goldens corren en todas partes incluida la
+  verificacion del tarball (`R CMD check` PASS 6), asi que los clones
+  frescos recuperaron cobertura de regresion. Letra chica abierta: la historia publicada y el
   remoto LFS todavia contienen test-A/test-B; una purga real exige
   reescritura de historia + force push + purga LFS en GitHub (operacion
   destructiva, decision separada del usuario, no tomada);
