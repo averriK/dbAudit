@@ -1,6 +1,5 @@
 data/*
-project/*/data/proc/
-project/*/proc/
+project/
 .idea/
 AGENTS.md
 CLAUDE.md
