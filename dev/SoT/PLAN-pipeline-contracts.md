@@ -314,7 +314,7 @@ en `AR-S2L1X`, y exige resolver antes:
   sesion (dbAudit-pre-purge.bundle, commit-map.txt); mapeos clave:
   73dc2fa -> f9aa2c0 (build del CLI instalado), e7d1524 -> f3b60bd,
   a7a58dc -> f996348.
-  Residuales que la reescritura no puede tocar: (1) los objetos LFS de los
+  Ruling del usuario 2026-08-13: NO se solicita purga LFS a soporte de GitHub; el residual se acepta. Residuales que la reescritura no puede tocar: (1) los objetos LFS de los
   fixtures siguen en el servidor LFS de GitHub hasta purga por soporte o
   recreacion del repo — accion del usuario si la quiere; (2) clones viejos
   en otras maquinas conservan la historia previa; (3) el .version del CLI
