@@ -409,3 +409,26 @@ en `AR-S2L1X`, y exige resolver antes:
 ```sh
 git status --short --branch
 ```
+
+## Handoff 2026-08-13
+
+Checkpoint de sesion para una tarea fresca. El repo esta limpio en `dev`,
+sincronizado con origin, CLI instalado trazable (`.version` = HEAD de la
+historia reescrita), goldens verdes en los tres niveles y fixtures
+sinteticos corriendo dentro de `R CMD check`.
+
+Pendientes exactos de este repo, todos gateados por decisiones del usuario:
+
+1. Ruling A2: `.Rbuildignore ^examples$` (si/no; hoy `examples/` viaja en el
+   tarball y genera un NOTE bajo `--as-cran`).
+2. Ruling de forma para `auditPiezometer()`: (a) runner completo
+   parse+gate+db+revision como `DBAudit()`, (b) solo gate+build, (c) solo
+   revision post-db. Recomendada (a). Sin este ruling no se disena la API.
+3. Item 6 (migracion piezometrica): bloqueado ademas por las precondiciones
+   listadas arriba (relacion productor-consumidor, modelo de rutas,
+   reconciliacion de loggers, pin de version) y por fixtures sinteticos
+   piezometricos (patron ya probado con los geoquimicos de `8f688f1`).
+
+Accion segura siguiente: ninguna mutacion en este repo hasta el proximo
+ruling; el trabajo activo vive en `AR-S2L1X` (ver
+`dev/SoT/PLAN-agent-boundary.md` alli, seccion Handoff 2026-08-13).
