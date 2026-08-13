@@ -299,11 +299,24 @@ en `AR-S2L1X`, y exige resolver antes:
   politica de reintento = un solo push --mirror, si falla se re-observa el
   remoto antes de cualquier reintento; reanudacion = si se interrumpe tras el
   push, reconciliar el repo local con fetch + reset, jamas re-ejecutar
-  filter-repo sobre un espejo ya reescrito. Residual conocido e inevitable
-  sin soporte de GitHub: los objetos LFS permanecen en el servidor hasta
-  purga por soporte o recreacion del repo; los clones viejos conservan la
-  historia. El .version del CLI instalado (73dc2fa) quedara apuntando a un
-  hash inexistente: reinstalar tras la purga.
+  filter-repo sobre un espejo ya reescrito.
+  EFECTO COMPLETADO 2026-08-12: reescritura ejecutada con git-filter-repo
+  (--invert-paths --path project/), 53 commits preservados, 0 paths project/
+  en toda la historia reescrita, arboles de punta identicos salvo project/.
+  Force-push aplicado: dev cd3826e -> dc28f99, main 15ec756 -> b494ce7. Un
+  clon de prueba fresco desde GitHub confirma 0 paths project/ en toda la
+  historia. Repo de trabajo reconciliado; fixtures locales intactos (105 MB,
+  untracked). Respaldo pre-purga y mapa de commits en el scratchpad de la
+  sesion (dbAudit-pre-purge.bundle, commit-map.txt); mapeos clave:
+  73dc2fa -> f9aa2c0 (build del CLI instalado), e7d1524 -> f3b60bd,
+  a7a58dc -> f996348.
+  Residuales que la reescritura no puede tocar: (1) los objetos LFS de los
+  fixtures siguen en el servidor LFS de GitHub hasta purga por soporte o
+  recreacion del repo — accion del usuario si la quiere; (2) clones viejos
+  en otras maquinas conservan la historia previa; (3) el .version del CLI
+  instalado referencia 73dc2fa, que ya no existe — reinstalar con
+  `sudo ./install/install.sh` para restaurar la trazabilidad (el codigo
+  instalado sigue siendo identico; solo la referencia quedo huerfana).
 - ruling semantico: ¿`auditPiezometer()` envuelve el gate de ingreso o la
   revision post-db? Pregunta 5 de `PLAN-ingest-gate-contract.md`, aun
   abierta.
