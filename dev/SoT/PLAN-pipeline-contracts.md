@@ -434,3 +434,23 @@ Pendientes exactos de este repo, todos gateados por decisiones del usuario:
 Accion segura siguiente: ninguna mutacion en este repo hasta el proximo
 ruling; el trabajo activo vive en `AR-S2L1X` (ver
 `dev/SoT/PLAN-agent-boundary.md` alli, seccion Handoff 2026-08-13).
+
+## Migracion Piezometrica — Etapa 1 Completa (2026-08-14)
+
+`f69c085`: `auditPiezometer()` existe, exportada y cableada al slug
+`piezometer`. Codigo migrado verbatim desde `AR-S2L1X` (1490 lineas en
+`R/piezometer{Parse,Build,Audit}.R` + orquestador `R/auditPiezometer.R`);
+manifest en `inst/extdata/`; installer envia `inst/`. Adaptaciones
+declaradas: logger compartido de dbAudit y `SourcePath` relativo a la raiz
+del proyecto. Aceptacion sobre copia de datos reales: runner R y slug CLI
+reproducen el pipeline de aplicacion byte a byte (5 productos identicos, 3
+indices modulo prefijo declarado, log modulo ts y nombre de runner).
+Geochem intacto (goldens test-A + sinteticos, check `Status: OK`).
+
+Etapa 2 pendiente (el switch-over): `AR-S2L1X` pasa a llamar
+`dbAudit::auditPiezometer()` y retira su copia local en el mismo cambio,
+con pin de version en los runners; los runners por etapa y las ramas INC
+siguen locales alla. Pendiente tambien: fixtures piezometricos sinteticos
+para goldens publicos — los escritores de `buildCorruptSource.R` modifican
+workbooks reales del cliente y NO sirven como patron publico; hace falta un
+generador de xlsx desde cero. Reinstalar el CLI cuando la etapa 2 cierre.
