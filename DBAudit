@@ -220,8 +220,8 @@ slug <- ""
 if (length(args) > 0L && !startsWith(args[1L], "-")) {
   slug <- args[1L]
   args <- args[-1L]
-  if (!(slug %in% c("geochem"))) {
-    stop(sprintf("Unknown command: %s (expected: geochem)", slug))
+  if (!(slug %in% c("geochem", "piezometer"))) {
+    stop(sprintf("Unknown command: %s (expected: geochem, piezometer)", slug))
   }
 }
 
@@ -260,6 +260,64 @@ source(file.path(root, "R", "parseLab.R"))
 source(file.path(root, "R", "parseAssay.R"))
 source(file.path(root, "R", "audit.R"))
 source(file.path(root, "R", "dbAudit.R"))
+source(file.path(root, "R", "piezometerParse.R"))
+source(file.path(root, "R", "piezometerBuild.R"))
+source(file.path(root, "R", "piezometerAudit.R"))
+source(file.path(root, "R", "auditPiezometer.R"))
+
+# ----------------------------------------------------------------------
+# Piezometer contract: own argument loop, then the full runner.
+
+if (identical(slug, "piezometer")) {
+  for (pkg in c("readxl", "jsonlite")) {
+    if (!requireNamespace(pkg, quietly = TRUE)) {
+      stop(sprintf("The piezometer contract requires the '%s' package.", pkg))
+    }
+  }
+
+  project.path <- ""
+  id <- "PCG,PCV"
+  manifest <- ""
+
+  k <- 1L
+  while (k <= length(args)) {
+    a <- args[k]
+    if (identical(a, "--project")) {
+      if (k == length(args)) stop("--project requires a value")
+      if (nzchar(project.path)) stop("--project specified more than once")
+      project.path <- args[k + 1L]
+      k <- k + 2L
+      next
+    }
+    if (identical(a, "--id")) {
+      if (k == length(args)) stop("--id requires a value")
+      id <- args[k + 1L]
+      k <- k + 2L
+      next
+    }
+    if (identical(a, "--manifest")) {
+      if (k == length(args)) stop("--manifest requires a value")
+      manifest <- args[k + 1L]
+      k <- k + 2L
+      next
+    }
+    stop(sprintf("Unknown argument: %s", a))
+  }
+
+  if (!nzchar(project.path)) {
+    stop("Missing --project. Try: dbaudit piezometer --project <DATA_ROOT>")
+  }
+
+  manifest.file <- file.path(root, "inst", "extdata", "piezometer-manifest.json")
+  if (nzchar(manifest)) manifest.file <- manifest
+
+  auditPiezometer(
+    project.path = project.path,
+    id = strsplit(id, ",", fixed = TRUE)[[1L]],
+    manifest = manifest.file
+  )
+  quit(save = "no", status = 0)
+}
 
 # Canonical path defaults (single source of truth)
 defaults <- if (exists(".dbauditPathDefaults", mode = "any")) {

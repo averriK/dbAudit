@@ -18,11 +18,12 @@ Depends:
     R (>= 4.1.0)
 Imports:
     data.table,
+    jsonlite,
     lubridate,
+    readxl,
     stringr,
     utils
 Suggests:
-    jsonlite,
     testthat (>= 3.0.0)
 Config/testthat/edition: 3
 NeedsCompilation: no

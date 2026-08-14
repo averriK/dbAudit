@@ -163,9 +163,10 @@ if ! mkdir -p "$LIBEXEC_DIR" 2>/dev/null; then
 fi
 
 info "Copying runtime from $SRC_ROOT ..."
-mkdir -p "$LIBEXEC_DIR/R" "$LIBEXEC_DIR/bin"
+mkdir -p "$LIBEXEC_DIR/R" "$LIBEXEC_DIR/bin" "$LIBEXEC_DIR/inst"
 cp "$SRC_ROOT/DBAudit" "$LIBEXEC_DIR/DBAudit"
 cp -R "$SRC_ROOT/R/." "$LIBEXEC_DIR/R/"
+cp -R "$SRC_ROOT/inst/." "$LIBEXEC_DIR/inst/"
 cp "$SRC_ROOT/bin/dbaudit" "$LIBEXEC_DIR/bin/dbaudit"
 
 chmod +x "$LIBEXEC_DIR/bin/dbaudit" || true

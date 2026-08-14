@@ -1,0 +1,159 @@
+{
+  "PCG": {
+    "headers": {
+      "Project": ["Proyecto"],
+      "Location": ["Ubicación", "Ubicacion"],
+      "HoleID": ["Piezómetro", "Piezometro"],
+      "Depth": ["Profundidad"],
+      "Zone": ["Zona"],
+      "Coordinates": ["Coordenadas"],
+      "ProjectID": ["N° Proyecto", "N Proyecto", "No Proyecto"],
+      "Client": ["Cliente"],
+      "Operator": ["Operador"],
+      "ReviewedBy": ["Revisado por"]
+    },
+    "keys": {
+      "HoleID": {
+        "labels": ["Piezómetro", "Piezometro"]
+      },
+      "SensorID": {
+        "default": "0"
+      }
+    },
+    "tables": {
+      "hydraulic": {
+        "columns": {
+          "index": ["N°", "N"],
+          "date": ["Fecha"],
+          "time": ["Hora"],
+          "comment": ["Comentarios"]
+        },
+        "variables": {
+          "depth": {
+            "labels": ["Prof. agua desde la boca del tubo (m)", "Prof agua desde la boca del tubo (m)"],
+            "units": "m"
+          },
+          "level": {
+            "labels": ["Cota del Nivel de Agua (msnm)"],
+            "units": "m"
+          },
+          "head": {
+            "labels": ["Carga de agua sobre fondo (m)"],
+            "units": "m"
+          },
+          "change": {
+            "labels": ["Variación (m)", "Variacion (m)"],
+            "units": "m"
+          }
+        }
+      }
+    },
+    "excluded": {
+      "geometry": [
+        "Profundidad Piezómetro (m)",
+        "Profundidad Piezometro (m)",
+        "Cota de boca del tubo (msnm)",
+        "Cota del fondo de aforo (msnm)"
+      ],
+      "plot": ["Profundidad (m)"]
+    }
+  },
+  "PCV": {
+    "headers": {
+      "Project": ["PROYECTO", "Proyecto"],
+      "Client": ["CLIENTE", "Cliente"],
+      "Location": ["UBICACIÓN", "Ubicacion", "Ubicación"],
+      "Coordinates": ["COORDENADAS (E, N, Z)", "Coordenadas"],
+      "Model": ["Modelo"],
+      "SerialNo": ["No. Serie", "N° Serie", "No Serie"],
+      "Range": ["Rango"],
+      "Sensor": ["SENSOR", "Sensor"],
+      "Tk": ["Tk"],
+      "CF": ["CF"],
+      "InstallDepth": ["Prof. Instalación", "Prof Instalacion"],
+      "HoleID": ["SONDEO", "Sondeo"],
+      "Inclination": ["Inclinac.", "Inclinacion", "Inclinación"],
+      "SensorElevation": ["Cota del sensor"]
+    },
+    "keys": {
+      "HoleID": {
+        "labels": ["SONDEO", "Sondeo"]
+      },
+      "SensorID": {
+        "source": "sheet"
+      }
+    },
+    "tables": {
+      "hydraulic": {
+        "columns": {
+          "stage": ["Etapa de Instalación", "Etapa de Instalacion"],
+          "date": ["Fecha"]
+        },
+        "variables": {
+          "depth": {
+            "labels": ["Nivel de agua"],
+            "units": "m"
+          },
+          "level": {
+            "labels": ["Elevación Nivel Piezométrico", "Elevacion Nivel Piezometrico"],
+            "units": "m"
+          },
+          "head": {
+            "labels": ["Carga de Agua"],
+            "units": "m"
+          }
+        }
+      },
+      "instrument": {
+        "columns": {
+          "stage": ["Etapa de Instalación", "Etapa de Instalacion"],
+          "date": ["Fecha"]
+        },
+        "variables": {
+          "reading": {
+            "labels": ["R", "R (B)"],
+            "units": null
+          },
+          "frequency": {
+            "labels": ["Frecuencia"],
+            "units": null
+          },
+          "temperature": {
+            "labels": ["T"],
+            "units": null
+          },
+          "pressure": {
+            "labels": ["Presión", "Presion"],
+            "units": null
+          }
+        }
+      }
+    },
+    "excluded": {
+      "calibration": [
+        "Modelo",
+        "No. Serie",
+        "Rango",
+        "Zero Reading",
+        "Tk",
+        "CF"
+      ],
+      "geometry": [
+        "Prof. Instalación",
+        "Prof Instalacion",
+        "Inclinac.",
+        "Cota del sensor"
+      ]
+    }
+  },
+  "INC": {
+    "structure": {
+      "heading": ["Headings"],
+      "blocks": {
+        "Installation": ["Installation v1"],
+        "Survey": ["Survey v2"]
+      },
+      "dataHeader": ["Depth", "A0", "A180", "B0", "B180"]
+    }
+  }
+}
