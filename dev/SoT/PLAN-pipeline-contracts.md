@@ -454,3 +454,23 @@ siguen locales alla. Pendiente tambien: fixtures piezometricos sinteticos
 para goldens publicos — los escritores de `buildCorruptSource.R` modifican
 workbooks reales del cliente y NO sirven como patron publico; hace falta un
 generador de xlsx desde cero. Reinstalar el CLI cuando la etapa 2 cierre.
+
+## Migracion Piezometrica — Etapa 2 Completa (2026-08-14)
+
+Switch-over ejecutado en `AR-S2L1X@5b92208`: los runners de aplicacion
+importan la maquinaria piezometrica y compartida desde el namespace del
+paquete instalado (`.importDbAudit()` en `scripts/setup.R`, con pin por
+sentinela de migracion). Copias locales retiradas: 1597 lineas borradas,
+incluidos `scripts/parser/{utils,parsePCG,parsePCV,buildInventory}.R`.
+`parseINC.R`, las ramas INC y la orquestacion siguen locales. Gates verdes:
+pipeline completo byte-identico (8 productos + log modulo ts), estres
+15/15, baseline de parsers identico, INC intacto. La relacion final
+productor-consumidor quedo: dbAudit es el dueno del codigo piezometrico;
+AR-S2L1X es la aplicacion que lo invoca. El paquete R quedo instalado en la
+libreria de usuario; falta solo la reinstalacion del CLI (sudo, usuario).
+
+Ruling 2026-08-14: los fixtures piezometricos sinteticos para goldens
+publicos se DECLINAN por sobredimensionados. La aceptacion piezometrica es
+la paridad contra datos reales de la aplicacion, ejecutada localmente y
+registrada aqui; el repo publico cubre geoquimica con sus fixtures
+sinteticos y el resto con el harness local.
