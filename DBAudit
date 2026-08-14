@@ -36,7 +36,7 @@ showHelp <- function() {
 
   cat("dbaudit\n\n")
   cat("USAGE:\n")
-  cat("  dbaudit [geochem] --project <DATA_ROOT> [OPTIONS]\n\n")
+  cat("  dbaudit [geochemistry|piezometer] --project <DATA_ROOT> [OPTIONS]\n\n")
   cat("REQUIRED:\n")
   cat("  --project <DATA_ROOT>\n\n")
   cat("OPTIONS:\n")
@@ -220,8 +220,8 @@ slug <- ""
 if (length(args) > 0L && !startsWith(args[1L], "-")) {
   slug <- args[1L]
   args <- args[-1L]
-  if (!(slug %in% c("geochem", "piezometer"))) {
-    stop(sprintf("Unknown command: %s (expected: geochem, piezometer)", slug))
+  if (!(slug %in% c("geochemistry", "piezometer"))) {
+    stop(sprintf("Unknown command: %s (expected: geochemistry, piezometer)", slug))
   }
 }
 

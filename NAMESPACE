@@ -1,5 +1,5 @@
 export(DBAudit)
-export(auditGeochem)
+export(auditGeochemistry)
 export(auditPiezometer)
 import(data.table)
 importFrom(utils,adist)

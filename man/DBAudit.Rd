@@ -1,9 +1,9 @@
 \name{DBAudit}
 \alias{DBAudit}
-\alias{auditGeochem}
+\alias{auditGeochemistry}
 \title{Audit a geochemical certificate project}
 \usage{
-auditGeochem(
+auditGeochemistry(
   project.path,
   lab.dir.name = .dbauditPathDefaults$lab.dir.name,
   assay.dir.name = .dbauditPathDefaults$assay.dir.name,
@@ -38,7 +38,7 @@ DBAudit(
 \description{
 Runs the geochemical pipeline for laboratory certificates, client assay
 data, and audit logs. \code{DBAudit} is the legacy public name and remains
-supported; \code{auditGeochem} is the domain-qualified name.
+supported; \code{auditGeochemistry} is the domain-qualified name.
 }
 \value{
 An invisible list of output paths.
