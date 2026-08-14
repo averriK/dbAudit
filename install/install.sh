@@ -197,12 +197,27 @@ fi
 # Install R package dependencies
 echo ""
 if [[ "$SKIP_PACKAGES" = false ]]; then
-  info "Installing R package dependencies (data.table, stringr, lubridate)..."
-  info "This may take a few minutes..."
+  # Package libraries belong to the invoking user's R environment, not to
+  # root: under sudo, root's Rscript can resolve a different library tree,
+  # misreport installed packages as missing, and silently compile from
+  # source, which looks like a hang. Run every R step as the invoking user.
+  RUN_R="Rscript"
+  if [[ -n "${SUDO_USER:-}" && "$SUDO_USER" != "root" ]]; then
+    RUN_R="sudo -u $SUDO_USER Rscript"
+  fi
 
-  INSTALL_SCRIPT=$(cat <<'REOF'
+  REQUIRED_PKGS='c("data.table", "stringr", "lubridate", "readxl", "jsonlite")'
+  MISSING_PKGS=$($RUN_R -e "required <- $REQUIRED_PKGS; cat(required[!sapply(required, requireNamespace, quietly = TRUE)], sep = \", \")" 2>/dev/null || echo "unknown")
+
+  if [[ -z "$MISSING_PKGS" ]]; then
+    ok "R package dependencies already installed (data.table, stringr, lubridate, readxl, jsonlite)"
+  else
+    info "Installing missing R packages: $MISSING_PKGS"
+    info "This may take a few minutes..."
+
+    INSTALL_SCRIPT=$(cat <<'REOF'
 repos <- "https://cloud.r-project.org"
-required <- c("data.table", "stringr", "lubridate")
+required <- c("data.table", "stringr", "lubridate", "readxl", "jsonlite")
 missing <- required[!sapply(required, requireNamespace, quietly = TRUE)]
 
 if (length(missing) > 0) {
@@ -216,7 +231,7 @@ if (length(missing) > 0) {
     cat("\nTroubleshooting:\n")
     cat("  1. Check internet connectivity\n")
     cat("  2. Verify CRAN mirror is accessible: https://cloud.r-project.org\n")
-    cat("  3. Try manual installation: R -e 'install.packages(c(\"data.table\", \"stringr\", \"lubridate\"))'\n")
+    cat("  3. Try manual installation: R -e 'install.packages(c(\"data.table\", \"stringr\", \"lubridate\", \"readxl\", \"jsonlite\"))'\n")
     cat("  4. Check R library permissions: .libPaths()\n")
     quit(status = 1)
   }
@@ -228,11 +243,12 @@ if (length(missing) > 0) {
 REOF
 )
 
-  if ! echo "$INSTALL_SCRIPT" | Rscript - ; then
-    error "Failed to install R packages. See troubleshooting steps above."
-  fi
+    if ! echo "$INSTALL_SCRIPT" | $RUN_R - ; then
+      error "Failed to install R packages. See troubleshooting steps above."
+    fi
 
-  ok "R packages installed successfully"
+    ok "R packages installed successfully"
+  fi
 else
   warn "Skipping R package installation (--skip-packages flag used)"
   info "Packages will be auto-installed on first dbaudit run"
