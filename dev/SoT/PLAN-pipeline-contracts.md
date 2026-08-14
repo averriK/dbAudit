@@ -514,3 +514,19 @@ maquina Parallels del usuario, con un checklist preparado (instalar,
 `piezometer --project` con proyecto minimo, uninstall limpio). La prueba
 Windows es accion del usuario en su VM; esta sesion prepara los scripts y
 el checklist pero no ejecuta alli.
+
+## Handoff — actualizacion 2026-08-14 (cierre de jornada)
+
+Supersede la accion siguiente del handoff anterior. Estado: los tres
+dominios estan desplegados en el CLI instalado del usuario (`.version` =
+`eb8de1f`, verificado con smokes: geochemistry y piezometer vivos, manifest
+en inst/, cero drift). Migracion piezometrica completa (etapas 1 y 2);
+naming definitivo `geochemistry`/`piezometer`/`inclinometer`; instalador
+mac corregido (pre-chequeo como usuario invocante, lista de 5 paquetes);
+rama Windows: fixes 1-3 implementados, validacion en la VM Parallels del
+usuario AL FINAL con el checklist de la seccion Rama Windows.
+
+Acciones siguientes en orden: (1) validacion Windows cuando el usuario
+disponga la VM; (2) `auditInclinometer()` cuando la fase de calculo INC
+cierre en AR-S2L1X; (3) A2 (`.Rbuildignore ^examples$`) sigue abierto y no
+bloquea nada.
