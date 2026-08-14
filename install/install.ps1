@@ -289,7 +289,7 @@ if (-not $SkipPackages) {
 
     $installScript = @'
 repos <- "https://cloud.r-project.org"
-required <- c("data.table", "stringr", "lubridate")
+required <- c("data.table", "stringr", "lubridate", "readxl", "jsonlite")
 missing <- required[!sapply(required, requireNamespace, quietly = TRUE)]
 
 if (length(missing) > 0) {
