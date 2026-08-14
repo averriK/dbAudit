@@ -120,6 +120,11 @@ dbaudit inclinometer --project X
 Regla de compatibilidad: si el primer argumento empieza con `-`, la invocacion
 es geoquimica legacy. Si no, es un slug. `PE-DBAudit` no se ve afectado.
 
+Ratificado 2026-08-14: se evaluaron y RECHAZARON las alternativas de
+renombre (disciplinas `piezometry`/`inclinometry`, dominios fisicos
+`groundwater`/`deformation`, y simetria completa `auditGeochemistry`). La
+terna `geochem`/`piezometer`/`inclinometer` es definitiva; no reabrir.
+
 Los slugs nombran el dominio, no la operacion. Se descartaron `audit`,
 `ingest` y `gate` porque nombran la operacion y colapsan la distincion entre
 contratos; `pz`, `inc` y `gq` porque son cripticos en terminal, y los IDs
