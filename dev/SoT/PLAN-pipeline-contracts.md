@@ -482,3 +482,35 @@ publicos se DECLINAN por sobredimensionados. La aceptacion piezometrica es
 la paridad contra datos reales de la aplicacion, ejecutada localmente y
 registrada aqui; el repo publico cubre geoquimica con sus fixtures
 sinteticos y el resto con el harness local.
+
+## Rama Windows (agregada 2026-08-14)
+
+Los consumidores del CLI seran linux/mac y windows/gitbash. Los instaladores
+Windows existen desde enero (`install/install.ps1`, `uninstall.ps1`,
+`test-installers.ps1`, `test-verify.ps1`) pero quedaron atras de la
+arquitectura de tres dominios. Inventario concreto de la rama:
+
+1. `install.ps1` no copia `inst/` (verificado 2026-08-14): un usuario
+   Windows instalaria el slug `piezometer` sin su manifest. Espejar el fix
+   ya aplicado a `install.sh`.
+2. Deriva documental ya detectada en el relevamiento: README y
+   `docs/{install,windows}.md` documentan un switch `-SkipPath` que no
+   existe en `install.ps1`, y rutas por defecto distintas a las del script
+   (`%LOCALAPPDATA%\Programs\dbAudit\bin` vs `%LOCALAPPDATA%\Programs` +
+   `_runtime\dbAudit`). Reconciliar docs con el script real.
+3. Dependencias del slug piezometer: `R/setup.R` auto-instala solo
+   data.table/stringr/lubridate; `readxl` y `jsonlite` se exigen al
+   despachar el slug con error claro pero sin auto-instalacion. Decidir si
+   la lista del auto-instalador crece (en Windows ya usa type="binary").
+4. Forwarding de argumentos del slug en `dbaudit.cmd` y el shim de Git
+   Bash: probablemente correcto, debe probarse con token inicial sin guion.
+5. Extender `test-installers.ps1`/`test-verify.ps1` a la superficie nueva
+   (slugs, inst/, version).
+
+Protocolo de prueba, por orden del usuario: las correcciones 1-3 se
+implementan primero desde mac; la validacion en Windows va AL FINAL, en la
+maquina Parallels del usuario, con un checklist preparado (instalar,
+`dbaudit --version`, legacy sobre fixture, `geochemistry --help`,
+`piezometer --project` con proyecto minimo, uninstall limpio). La prueba
+Windows es accion del usuario en su VM; esta sesion prepara los scripts y
+el checklist pero no ejecuta alli.
