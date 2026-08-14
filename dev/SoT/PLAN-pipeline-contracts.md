@@ -331,13 +331,15 @@ en `AR-S2L1X`, y exige resolver antes:
 - Definir el contrato publico para piezometros.
 - Definir ubicacion de ejemplos completos.
 - Definir pruebas de regresion por contrato.
-- Definir si `auditPiezometer()` necesita seleccion de etapa. `DBAudit()` corre
-  parse y audit en una llamada cerrada; `AR-S2L1X` mantiene tres entradas
-  separadas a proposito, por trazabilidad y porque re-parsear es caro.
-- Definir el significado de `--project` para piezometros. En geoquimica es la
-  raiz que contiene `raw/lab`. `AR-S2L1X` toma rutas independientes `raw=`,
-  `db=` y `audit=`, y su harness de estres las pone deliberadamente en
-  sistemas de archivos distintos; una sola raiz no puede expresar eso.
+- RESUELTO 2026-08-14 (ruling del usuario): `auditPiezometer()` es un runner
+  COMPLETO sin seleccion de etapa — una llamada corre parse, gate, db y
+  auditoria, como `DBAudit()`. Un flag de etapa puede agregarse despues de
+  forma aditiva si aparece una necesidad real; no se construye ahora.
+- RESUELTO 2026-08-14 (mismo ruling): `--project` para piezometros es la
+  raiz de datos que contiene `source/`, `raw/`, `db/` y `audit/` con
+  defaults propios del runner, patron identico a geoquimica. Los runners
+  por etapa de `AR-S2L1X` conservan sus rutas independientes para
+  desarrollo y estres; el contrato publico usa raiz unica.
 - Definir defaults de rutas por runner. `.dbauditPathDefaults` es geoquimico
   (`raw/lab`, `raw/assay`, `proc`); el juego piezometrico seria `source`,
   `raw`, `db`, `audit`.
