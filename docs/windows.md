@@ -17,11 +17,11 @@ powershell -NoProfile -ExecutionPolicy Bypass -File .\dbAudit\install\install.ps
 
 The installer:
 
-- Copies the runtime under a per-user directory (default: `%LOCALAPPDATA%\Programs\dbAudit\libexec\dbAudit`)
-- Writes launchers under a per-user bin directory (default: `%LOCALAPPDATA%\Programs\dbAudit\bin`)
+- Copies the runtime under a per-user directory (default: `%LOCALAPPDATA%\Programs\_runtime\dbAudit`)
+- Writes launchers under a per-user bin directory (default: `%LOCALAPPDATA%\Programs`)
   - `dbaudit.cmd` (PowerShell / CMD)
   - `dbaudit` (Git Bash shim)
-- Adds that bin directory to the **User PATH** (unless `-SkipPath`)
+- Adds that bin directory to the **User PATH**
 
 Open a **new terminal** after installing so PATH updates are picked up.
 

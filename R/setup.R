@@ -1,4 +1,4 @@
-.dbauditRequiredPkgs <- c("data.table", "stringr", "lubridate")
+.dbauditRequiredPkgs <- c("data.table", "stringr", "lubridate", "readxl", "jsonlite")
 
 .dbauditMissingPkgs <- function() {
   .dbauditRequiredPkgs[!vapply(.dbauditRequiredPkgs, requireNamespace, logical(1), quietly = TRUE)]

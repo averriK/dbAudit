@@ -155,7 +155,7 @@ showSystemInfo <- function() {
   cat("\n")
 
   # Package status
-  required_pkgs <- c("data.table", "stringr", "lubridate")
+  required_pkgs <- c("data.table", "stringr", "lubridate", "readxl", "jsonlite")
   cat("Required R Packages:\n")
 
   all_ok <- TRUE

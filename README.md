@@ -73,8 +73,8 @@ powershell -NoProfile -ExecutionPolicy Bypass -File .\dbAudit\install\install.ps
 ```
 
 **Installed paths:**
-- `%LOCALAPPDATA%\Programs\dbAudit\bin\`
-- `%LOCALAPPDATA%\Programs\dbAudit\libexec\dbAudit\`
+- `%LOCALAPPDATA%\Programs\`
+- `%LOCALAPPDATA%\Programs\_runtime\dbAudit\`
 
 **Skip package installation:**
 ```powershell
@@ -82,7 +82,7 @@ powershell -NoProfile -ExecutionPolicy Bypass -File .\dbAudit\install\install.ps
 ```
 
 **Notes:**
-- The Windows installer adds its `bin` directory to the **User PATH** (unless you pass `-SkipPath`). Open a **new** terminal after installing.
+- The Windows installer adds its `bin` directory to the **User PATH**. Open a **new** terminal after installing.
 - Windows uses **pre-compiled binary packages only** (cannot compile from source without Rtools).
 - If you have an older R version without binary packages available, upgrade R first.
 

@@ -179,6 +179,7 @@ if ((Test-Path $LibexecDir) -or (Test-Path $existingCmd) -or (Test-Path $existin
 New-Item -ItemType Directory -Force -Path $UserBinDir | Out-Null
 New-Item -ItemType Directory -Force -Path (Join-Path $LibexecDir "bin") | Out-Null
 New-Item -ItemType Directory -Force -Path (Join-Path $LibexecDir "R") | Out-Null
+New-Item -ItemType Directory -Force -Path (Join-Path $LibexecDir "inst") | Out-Null
 
 # Copy runtime
 Info "Copying runtime..."
@@ -189,6 +190,8 @@ $srcR = Join-Path $RepoRoot "R"
 $dstR = Join-Path $LibexecDir "R"
 Copy-Item -Path (Join-Path $srcR "*") -Destination $dstR -Recurse -Force
 
+$srcInst = Join-Path $RepoRoot "inst"
+Copy-Item -Path (Join-Path $srcInst "*") -Destination (Join-Path $LibexecDir "inst") -Recurse -Force
 Copy-Item -LiteralPath $repoBin -Destination (Join-Path $LibexecDir "bin\\dbaudit") -Force
 
 # Validate installed layout

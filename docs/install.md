@@ -37,7 +37,7 @@ git clone git@github.com:averriK/dbAudit.git
 powershell -NoProfile -ExecutionPolicy Bypass -File .\dbAudit\install\install.ps1
 ```
 
-The installer writes launchers under a per-user bin directory and adds it to the **User PATH** (unless `-SkipPath`).
+The installer writes launchers under a per-user bin directory and adds it to the **User PATH**.
 Open a **new** terminal after installing.
 
 Uninstall:
