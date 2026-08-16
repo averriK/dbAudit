@@ -273,11 +273,12 @@
   }), use.names = TRUE)
 }
 
-.gateRecord <- function(data, event, message) {
+.gateRecord <- function(data, cause, disposition, detail) {
   data.table::data.table(
     ts = format(Sys.time(), "%Y-%m-%d %H:%M:%S"),
-    event = event,
-    message = message,
+    cause = cause,
+    disposition = disposition,
+    detail = detail,
     data
   )
 }
@@ -292,8 +293,9 @@
   if (any(COMMA)) {
     Records[[length(Records) + 1L]] <- .gateRecord(
       data = data[COMMA],
-      event = "NUMERIC_COMMA_FIXED",
-      message = sprintf(
+      cause = "VALUE_COMMA_DECIMAL",
+      disposition = "corrected",
+      detail = sprintf(
         "value=%s; repaired=%s; inserted into db",
         Value[COMMA], sub(",", ".", Value[COMMA], fixed = TRUE)
       )
@@ -303,8 +305,9 @@
   if (any(BAD)) {
     Records[[length(Records) + 1L]] <- .gateRecord(
       data = data[BAD],
-      event = "NUMERIC_PARSE_ERROR",
-      message = sprintf("value=%s; rejected", Value[BAD])
+      cause = "VALUE_UNREADABLE",
+      disposition = "rejected",
+      detail = sprintf("value=%s; rejected", Value[BAD])
     )
     data <- data[!BAD]
   }
@@ -327,8 +330,9 @@
 
   Records <- list(.gateRecord(
     data = data[BAD[, .(SourcePath)], on = "SourcePath"],
-    event = "ID_FIXED",
-    message = "HoleID repaired from systematic filename evidence"
+    cause = "FILE_ID_CONFLICT",
+    disposition = "corrected",
+    detail = "HoleID repaired from systematic filename evidence"
   ))
   data[BAD, on = "SourcePath", HoleID := i.FileKey]
   list(data = data, records = Records)
@@ -349,6 +353,44 @@
   invisible(nrow(DT))
 }
 
+# Build-stage repair (taxonomy ruling 2026-08-16): the db stores the
+# RECOMPUTED change (head - lag(head)); the typed value is preserved as
+# evidence in the gate sink (cause CHANGE_INCONSISTENT, corrected).
+.repairPCGChange <- function(tables, audit) {
+  if (is.null(tables$PCG)) return(invisible(tables))
+  DT <- tables$PCG$data
+  COLS <- c("RecordID", "SiteID", "HoleID", "SensorID", "datetime", "head", "change")
+  if (!all(COLS %in% names(DT))) return(invisible(tables))
+  data.table::setorder(DT, SiteID, HoleID, SensorID, datetime, RecordID)
+  DT[, recalc.change := head - data.table::shift(head),
+    by = .(SiteID, HoleID, SensorID)]
+  BAD <- DT[!is.na(change) & !is.na(recalc.change) &
+    abs(change - recalc.change) > 1e-6]
+  if (nrow(BAD) > 0L) {
+    Records <- .gateRecord(
+      data = BAD[, .(ID = "PCG", SiteID, HoleID, SensorID, datetime, RecordID)],
+      cause = "CHANGE_INCONSISTENT",
+      disposition = "corrected",
+      detail = sprintf(
+        "typed=%s; recomputed=%s; recomputed value stored",
+        format(BAD$change), format(round(BAD$recalc.change, 6))
+      )
+    )
+    FILE <- file.path(audit, "PCG.reject.csv")
+    dir.create(path = audit, recursive = TRUE, showWarnings = FALSE)
+    if (file.exists(FILE)) {
+      OLD <- data.table::fread(FILE)
+      Records <- data.table::rbindlist(
+        l = list(OLD, Records), use.names = TRUE, fill = TRUE
+      )
+    }
+    data.table::fwrite(x = Records, file = FILE)
+    DT[BAD, on = "RecordID", change := recalc.change]
+  }
+  DT[, recalc.change := NULL]
+  invisible(tables)
+}
+
 .gatePiezometers <- function(data, raw, audit, id) {
   Candidates <- nrow(data)
   Records <- list()
@@ -364,7 +406,7 @@
 
   Rejected <- sum(vapply(
     X = Records,
-    FUN = function(x) nrow(x[event == "NUMERIC_PARSE_ERROR"]),
+    FUN = function(x) nrow(x[cause == "VALUE_UNREADABLE"]),
     FUN.VALUE = integer(1)
   ))
   if (Candidates != nrow(data) + Rejected) {

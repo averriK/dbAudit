@@ -256,6 +256,7 @@ if (exists(".dbauditLoadRuntime", mode = "function")) {
   .dbauditLoadRuntime()
 }
 source(file.path(root, "R", "helpers.R"))
+source(file.path(root, "R", "eventLog.R"))
 source(file.path(root, "R", "parseLab.R"))
 source(file.path(root, "R", "parseAssay.R"))
 source(file.path(root, "R", "audit.R"))

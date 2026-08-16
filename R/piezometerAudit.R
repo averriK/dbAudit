@@ -77,15 +77,15 @@
   OUT
 }
 
-.checkColumns <- function(log, file, data, cols, event) {
+.checkColumns <- function(log, file, data, cols, event = "") {
   MISS <- setdiff(cols, names(data))
   if (length(MISS) > 0L) {
-    .log(
+    .logEvent(
       log.file = log,
-      level = "ERROR",
-      file = file,
-      event = event,
-      message = sprintf("missing=%s", paste(MISS, collapse = ", "))
+      scope = "file",
+      cause = "SCHEMA_COLUMNS_MISSING",
+      source = file,
+      detail = sprintf("missing=%s", paste(MISS, collapse = ", "))
     )
     return(FALSE)
   }
@@ -93,21 +93,27 @@
 }
 
 .readRejects <- function(audit, id) {
+  # The gate sink holds heterogeneous records (rejections carry source
+  # lineage; corrections may not). Only REJECTED records take part in
+  # the raw/db reconciliation.
   COLS <- c("ID", "SourcePath", "SourceSheet", "SourceRow")
   LIST <- lapply(X = id, FUN = function(ID) {
     FILE <- file.path(audit, sprintf("%s.reject.csv", ID))
     if (!file.exists(FILE)) return(NULL)
-    data.table::fread(file = FILE, select = COLS)
+    DT <- data.table::fread(file = FILE)
+    if ("disposition" %in% names(DT)) DT <- DT[disposition == "rejected"]
+    if (!all(COLS %in% names(DT)) || nrow(DT) == 0L) return(NULL)
+    DT[, ..COLS]
   })
   data.table::rbindlist(l = LIST, use.names = TRUE)
 }
 
 .checkRawDBKeys <- function(log, rawData, dbIndex, rejects = NULL) {
   COLS <- c("ID", "SiteID", "HoleID", "SensorID", "SourcePath", "SourceSheet", "SourceRow")
-  if (!.checkColumns(log = log, file = "data/raw", data = rawData, cols = COLS, event = "RAW_COLUMNS_MISSING")) {
+  if (!.checkColumns(log = log, file = "data/raw", data = rawData, cols = COLS)) {
     return(invisible(FALSE))
   }
-  if (!.checkColumns(log = log, file = "data/db", data = dbIndex, cols = COLS, event = "DB_COLUMNS_MISSING")) {
+  if (!.checkColumns(log = log, file = "data/db", data = dbIndex, cols = COLS)) {
     return(invisible(FALSE))
   }
 
@@ -120,22 +126,22 @@
   }
   AUX <- RAW[!DB, on = COLS]
   if (nrow(AUX) > 0L) {
-    .log(
+    .logEvent(
       log.file = log,
-      level = "ERROR",
-      file = "data/db",
-      event = "DB_KEY_MISSING",
-      message = sprintf("count=%d", nrow(AUX))
+      scope = "file",
+      cause = "RECORD_UNRECONCILED",
+      source = "data/db",
+      detail = sprintf("raw records missing in db; count=%d", nrow(AUX))
     )
   }
   AUX <- DB[!RAW, on = COLS]
   if (nrow(AUX) > 0L) {
-    .log(
+    .logEvent(
       log.file = log,
-      level = "ERROR",
-      file = "data/raw",
-      event = "RAW_KEY_MISSING",
-      message = sprintf("count=%d", nrow(AUX))
+      scope = "file",
+      cause = "RECORD_UNRECONCILED",
+      source = "data/raw",
+      detail = sprintf("db records missing in raw; count=%d", nrow(AUX))
     )
   }
   invisible(TRUE)
@@ -144,17 +150,17 @@
 .checkDuplicateRaw <- function(log, rawData) {
   COLS <- c("ID", "SiteID", "HoleID", "SensorID", "SourcePath", "SourceSheet",
             "SourceRow", "variable")
-  if (!.checkColumns(log = log, file = "data/raw", data = rawData, cols = COLS, event = "RAW_COLUMNS_MISSING")) {
+  if (!.checkColumns(log = log, file = "data/raw", data = rawData, cols = COLS)) {
     return(invisible(FALSE))
   }
   AUX <- rawData[, .N, by = COLS][N > 1L]
   if (nrow(AUX) > 0L) {
-    .log(
+    .logEvent(
       log.file = log,
-      level = "ERROR",
-      file = "data/raw",
-      event = "DUPLICATED_OBSERVATION",
-      message = sprintf("count=%d", nrow(AUX))
+      scope = "file",
+      cause = "OBSERVATION_DUPLICATED",
+      source = "data/raw",
+      detail = sprintf("count=%d", nrow(AUX))
     )
   }
   invisible(TRUE)
@@ -162,7 +168,7 @@
 
 .checkRawUnits <- function(log, rawData) {
   COLS <- c("ID", "variable", "units")
-  if (!.checkColumns(log = log, file = "data/raw", data = rawData, cols = COLS, event = "RAW_COLUMNS_MISSING")) {
+  if (!.checkColumns(log = log, file = "data/raw", data = rawData, cols = COLS)) {
     return(invisible(FALSE))
   }
   AUX <- rawData[, .(
@@ -170,18 +176,15 @@
     units = paste(sort(unique(units)), collapse = ", ")
   ), by = .(ID, variable)][N.units > 1L]
   if (nrow(AUX) > 0L) {
-    for (i in seq_len(nrow(AUX))) {
-      .log(
-        log.file = log,
-        level = "WARNING",
-        file = "data/raw",
-        event = "UNIT_MISMATCH",
-        message = sprintf(
-          "ID=%s; variable=%s; units=%s",
-          AUX$ID[i], AUX$variable[i], AUX$units[i]
-        )
+    .logEvent(
+      log.file = log,
+      scope = "file",
+      cause = "UNITS_MIXED",
+      source = "data/raw",
+      detail = sprintf(
+        "ID=%s; variable=%s; units=%s", AUX$ID, AUX$variable, AUX$units
       )
-    }
+    )
   }
   invisible(TRUE)
 }
@@ -189,7 +192,10 @@
 .checkDBUnits <- function(log, data) {
   COLS <- grep(pattern = "^units[.]", x = names(data), value = TRUE)
   if (length(COLS) == 0L) {
-    .log(log.file = log, level = "ERROR", file = "data/db", event = "UNIT_COLUMNS_MISSING")
+    .logEvent(
+      log.file = log, scope = "file", cause = "SCHEMA_COLUMNS_MISSING",
+      source = "data/db", detail = "no units.* columns present"
+    )
     return(invisible(FALSE))
   }
   AUX <- data.table::rbindlist(
@@ -204,41 +210,48 @@
     use.names = TRUE
   )[N > 0L]
   if (nrow(AUX) > 0L) {
-    for (i in seq_len(nrow(AUX))) {
-      .log(
-        log.file = log,
-        level = "WARNING",
-        file = "data/db",
-        event = "UNIT_MISSING",
-        message = sprintf("column=%s; rows=%d", AUX$column[i], AUX$N[i])
-      )
-    }
+    .logEvent(
+      log.file = log,
+      scope = "file",
+      cause = "UNITS_MISSING",
+      source = "data/db",
+      detail = sprintf("column=%s; rows=%d", AUX$column, AUX$N)
+    )
   }
   invisible(TRUE)
 }
 
-.checkIDMismatch <- function(log, rawIndex, id) {
-  if ("FileKeyOK" %in% names(rawIndex)) {
-    AUX <- rawIndex[!is.na(FileKeyOK) & FileKeyOK == FALSE]
-    if (nrow(AUX) > 0L) {
-      .log(
-        log.file = log,
-        level = "WARNING",
-        file = "data/raw",
-        event = "ID_MISMATCH",
-        message = sprintf("ID=%s; count=%d", id, nrow(AUX))
-      )
-    }
-  }
-  invisible(TRUE)
-}
-
-.checkIDMismatches <- function(log, raw, id) {
+# Residual filename-ID conflicts: the gate repairs HoleID only under
+# systematic evidence and records FILE_ID_CONFLICT (corrected) in the
+# sink. Any FileKeyOK == FALSE source NOT repaired is retained suspect.
+.checkFileIDResidual <- function(log, raw, audit, id) {
   invisible(lapply(X = id, FUN = function(ID) {
-    .checkIDMismatch(
-      log = log,
-      rawIndex = .readRaw(raw = raw, id = ID, name = "index"),
-      id = ID
+    IDX <- .readRaw(raw = raw, id = ID, name = "index")
+    if (is.null(IDX) || !all(c("FileKeyOK", "FileKey", "SourcePath") %in% names(IDX))) {
+      return(NULL)
+    }
+    BAD <- unique(IDX[
+      !is.na(FileKeyOK) & FileKeyOK == FALSE & nzchar(FileKey),
+      .(SourcePath, HoleID, FileKey)
+    ])
+    if (nrow(BAD) == 0L) return(NULL)
+    FILE <- file.path(audit, sprintf("%s.reject.csv", ID))
+    if (file.exists(FILE)) {
+      SINK <- data.table::fread(FILE)
+      if (all(c("cause", "SourcePath") %in% names(SINK))) {
+        Fixed <- unique(SINK[cause == "FILE_ID_CONFLICT", SourcePath])
+        BAD <- BAD[!(SourcePath %in% Fixed)]
+      }
+    }
+    if (nrow(BAD) == 0L) return(NULL)
+    .logEvent(
+      log.file = log,
+      scope = "file",
+      cause = "FILE_ID_CONFLICT",
+      disposition = "retained_suspect",
+      HoleID = BAD$HoleID,
+      source = basename(BAD$SourcePath),
+      detail = sprintf("content=%s; filename=%s; not repaired", BAD$HoleID, BAD$FileKey)
     )
   }))
 }
@@ -248,7 +261,7 @@
   COLS <- c("ID", "SiteID", "HoleID", "SensorID", "SourcePath", "SourceSheet",
             "Field", "RawValue")
   if (!.checkColumns(log = log, file = "data/raw/PCV/header.csv", data = header,
-                     cols = COLS, event = "HEADER_COLUMNS_MISSING")) {
+                     cols = COLS)) {
     return(invisible(FALSE))
   }
   DT <- header[ID == "PCV"]
@@ -262,12 +275,12 @@
   Seen <- unique(DT[Field %in% Fields, c(KEYS, "Field"), with = FALSE])
   AUX <- Expected[!Seen, on = c(KEYS, "Field")]
   if (nrow(AUX) > 0L) {
-    .log(
+    .logEvent(
       log.file = log,
-      level = "WARNING",
-      file = "data/raw/PCV/header.csv",
-      event = "HEADER_FIELD_MISSING",
-      message = sprintf("ID=PCV; count=%d", nrow(AUX))
+      scope = "file",
+      cause = "HEADER_INCOMPLETE",
+      source = "data/raw/PCV/header.csv",
+      detail = sprintf("ID=PCV; missing header fields; count=%d", nrow(AUX))
     )
   }
 
@@ -277,15 +290,13 @@
     by = Field
   ]
   if (nrow(AUX) > 0L) {
-    for (i in seq_len(nrow(AUX))) {
-      .log(
-        log.file = log,
-        level = "WARNING",
-        file = "data/raw/PCV/header.csv",
-        event = "HEADER_VALUE_MISSING",
-        message = sprintf("ID=PCV; field=%s; rows=%d", AUX$Field[i], AUX$N[i])
-      )
-    }
+    .logEvent(
+      log.file = log,
+      scope = "file",
+      cause = "HEADER_INCOMPLETE",
+      source = "data/raw/PCV/header.csv",
+      detail = sprintf("ID=PCV; empty field=%s; rows=%d", AUX$Field, AUX$N)
+    )
   }
   invisible(TRUE)
 }
@@ -297,10 +308,13 @@
   data
 }
 
+# Residual invariant: the build stage stores the recomputed change and
+# logs CHANGE_INCONSISTENT (corrected) per record. After that repair the
+# db must satisfy change == head - lag(head); any residual here means
+# the repair failed upstream and the record is retained as suspect.
 .checkPCGChange <- function(log, data) {
   COLS <- c("RecordID", "SiteID", "HoleID", "SensorID", "datetime", "head", "change")
-  if (!.checkColumns(log = log, file = "data/db/PCG.data.csv", data = data, cols = COLS,
-                     event = "DB_COLUMNS_MISSING")) {
+  if (!.checkColumns(log = log, file = "data/db/PCG.data.csv", data = data, cols = COLS)) {
     return(invisible(FALSE))
   }
   data.table::setorder(data, SiteID, HoleID, SensorID, datetime, RecordID)
@@ -310,18 +324,20 @@
   ), by = .(SiteID, HoleID, SensorID)][!is.na(Diff) & Diff > 1e-6]
   if (nrow(AUX) > 0L) {
     data[AUX, on = "RecordID", `:=`(
-      status = "WARNING",
-      event = "DERIVED_FIELD_MISMATCH"
+      status = "ERROR",
+      event = "CHANGE_INCONSISTENT"
     )]
-    .log(
+    Marked <- data[AUX, on = "RecordID"]
+    .logEvent(
       log.file = log,
-      level = "WARNING",
-      file = "data/db/PCG.data.csv",
-      event = "DERIVED_FIELD_MISMATCH",
-      message = sprintf(
-        "ID=PCG; variable=change; count=%d; tolerance=1e-6",
-        nrow(AUX)
-      )
+      scope = "record",
+      cause = "CHANGE_INCONSISTENT",
+      disposition = "retained_suspect",
+      SiteID = Marked$SiteID,
+      HoleID = Marked$HoleID,
+      datetime = Marked$datetime,
+      source = "data/db/PCG.data.csv",
+      detail = "residual mismatch after build repair; tolerance=1e-6"
     )
   }
   invisible(TRUE)
@@ -338,6 +354,10 @@
     l = lapply(X = data, FUN = function(DT) DT[, ..COLS.data]),
     use.names = TRUE
   )
+  # WELL_DRY declared condition (flag D, catalog inst/events.csv): a dry
+  # Casagrande reading has no level value; the flag replaces the
+  # implicit-NA convention.
+  DATA[, flag := data.table::fifelse(ID == "PCG" & is.na(level), "D", "")]
   INDEX <- index[, ..COLS.index]
   data.table::setorder(DATA, ID, SiteID, HoleID, SensorID, datetime, RecordID)
   data.table::setorder(INDEX, ID, SiteID, HoleID, SensorID, datetime, RecordID)

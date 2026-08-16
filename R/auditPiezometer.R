@@ -82,13 +82,14 @@ auditPiezometer <- function(
   DATA <- .gatePiezometers(data = DATA, raw = raw.dir, audit = audit.dir, id = id)
   DATA <- .cleanRawData(data = DATA)
   Tables <- .buildDBTables(data = DATA, id = id, schema = .dbSchema())
+  .repairPCGChange(tables = Tables, audit = audit.dir)
   .writeDBTables(tables = Tables, db = db.dir)
 
   ## Audit stage
   dir.create(path = audit.dir, recursive = TRUE, showWarnings = FALSE)
   Log <- file.path(audit.dir, "log.csv")
-  .logInit(log.file = Log)
-  .log(log.file = Log, level = "INFO", file = "auditPiezometer", event = "AUDIT_START")
+  .logEventInit(log.file = Log)
+  .logEvent(log.file = Log, scope = "run", cause = "RUN_START", source = "auditPiezometer")
 
   RawData <- .readAllRaw(raw = raw.dir, id = id, name = "data")
   RawHeader <- .readAllHeader(raw = raw.dir, id = id)
@@ -100,10 +101,10 @@ auditPiezometer <- function(
   .checkRawDBKeys(log = Log, rawData = RawData, dbIndex = DBIndex, rejects = Rejects)
   .checkDuplicateRaw(log = Log, rawData = RawData)
   .checkRawUnits(log = Log, rawData = RawData)
+  .checkFileIDResidual(log = Log, raw = raw.dir, audit = audit.dir, id = id)
   invisible(lapply(X = id, FUN = function(ID) {
     .checkDBUnits(log = Log, data = Audit[[ID]])
   }))
-  .checkIDMismatches(log = Log, raw = raw.dir, id = id)
   if ("PCV" %in% id) {
     .checkPCVHeader(log = Log, header = RawHeader)
   }
@@ -113,9 +114,9 @@ auditPiezometer <- function(
 
   PZ <- .pzTables(data = Audit, index = DBIndex)
   .writeAudit(path = audit.dir, id = id, data = Audit, pz = PZ)
-  .log(
-    log.file = Log, level = "INFO", file = "auditPiezometer", event = "AUDIT_DONE",
-    message = sprintf("PZ.data=%d; PZ.index=%d", nrow(PZ$data), nrow(PZ$index))
+  .logEvent(
+    log.file = Log, scope = "run", cause = "RUN_DONE", source = "auditPiezometer",
+    detail = sprintf("PZ.data=%d; PZ.index=%d", nrow(PZ$data), nrow(PZ$index))
   )
 
   invisible(list(
