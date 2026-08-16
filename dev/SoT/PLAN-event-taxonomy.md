@@ -131,8 +131,16 @@ Emision v2 implementada y verificada punta a punta:
   el lector de cobertura INC buscaba la etiqueta vieja
   DuplicateSurveyDropped (falso RECORD_UNRECONCILED); corregido.
 
-Pendiente para cerrar fase 2: (a) el usuario reinstala dbAudit (los
-runners AR usan el namespace instalado, hoy viejo); (b) el usuario
-revisa la muestra del log v2 (aceptacion); (c) ruling de las 4 causas
-"proposed": RECORD_UNRECONCILED, OBSERVATION_DUPLICATED,
-UNITS_MISSING, HEADER_INCOMPLETE.
+ACEPTACION (usuario, 2026-08-16): muestra del log v2 ACEPTADA.
+dbAudit reinstalado (CLI por install.sh; el paquete R se instalo
+aparte con R CMD INSTALL desde el checkout dev — hallazgo: install.sh
+solo despliega /usr/local/libexec y nunca actualiza la libreria R que
+importan los runners AR via .importDbAudit). Pipeline AR completo
+verificado contra el namespace instalado real: mismos conteos que la
+verificacion scratch (log 6 eventos; sink 39 CHANGE_INCONSISTENT
+corrected; flag D 394/2403). FASE 2 CERRADA.
+
+Pendiente (fase 3 y ruling): (a) ruling de las 4 causas "proposed":
+RECORD_UNRECONCILED, OBSERVATION_DUPLICATED, UNITS_MISSING,
+HEADER_INCOMPLETE; (b) deck v5 (seis preguntas del dueno, leyenda
+generada — ya implementada en _slides/aud.dumps.qmd).
