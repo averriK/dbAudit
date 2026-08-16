@@ -1,93 +1,94 @@
-# PLAN — Taxonomía de eventos de dbAudit (rediseño)
+# PLAN — Taxonomía de eventos de dbAudit (v2, fundada en evidencia)
 
-Fecha: 2026-08-16. Estado: PROPUESTA para ruling del usuario. Motiva:
-el vocabulario actual de eventos es acreción histórica sin diseño
-("una completa alucinación heredada del viejo dbAudit" — usuario). Todo
-trabajo de reporting sobre los logs queda DETENIDO hasta aprobar esta
-taxonomía.
+Fecha: 2026-08-16. Estado: PROPUESTA v2 para ruling del usuario.
+Reemplaza la v1 (que era invención sin fuentes — ver historial git).
+Evidencia: `EVIDENCE-qaqc-standards.md` (USGS GWSI/NWIS, EPA NFG, WMO
+168 cap.9, Dunnicliff cap.18/7, MHRA; ledger con acceso declarado).
+Todo trabajo de reporting sigue detenido hasta aprobar esto.
 
-## Diagnóstico del vocabulario actual
+## La lección estructural de la evidencia
 
-1. Estilos mezclados: `SURVEY_REDATED` (UPPER_SNAKE) convive con
-   `DuplicateSurveyDropped` (CamelCase) y `NumDepthsMismatch`.
-2. Semántica inconsistente: unos nombres describen la ACCIÓN del
-   pipeline (`NUMERIC_COMMA_FIXED`), otros la OBSERVACIÓN
-   (`DERIVED_FIELD_MISMATCH`), otros el ESTADO (`SURVEY_REDATED`).
-3. Pares redundantes: `ID_FIXED` (gate) e `ID_MISMATCH` (audit) nombran
-   el mismo hecho en dos etapas — el lector no sabe si son dos
-   problemas o uno.
-4. Severidades que violan la filosofía WARNING=reparado /
-   ERROR=irrecuperable: `DERIVED_FIELD_MISMATCH` y `UNIT_MISMATCH`
-   (WARNING sin reparación).
-5. Granularidad dispar: eventos por corrida, por archivo y por registro
-   sin campo que lo declare.
+Los sistemas maduros de QA/QC de datos NO usan una lista plana de
+"eventos de error": usan DIMENSIONES ORTOGONALES sobre cada registro.
+La v1 de este plan (un código OBJETO_CONDICION que mezclaba hecho,
+acción y severidad) repetía el error del vocabulario viejo con nombres
+nuevos. La v2 separa las dimensiones.
 
-## Principios de la taxonomía nueva
+## El registro de auditoría propuesto (cómo logear)
 
-1. Un código nombra UN hecho observable sobre los datos — nunca la
-   acción del pipeline. La acción es un CAMPO aparte.
-2. Formato único: `OBJETO_CONDICION` en UPPER_SNAKE ASCII
-   (`SURVEY_REDATED` ya cumple y sobrevive).
-3. La severidad no va en el nombre: la lleva el campo `level`, regido
-   por la filosofía (WARNING = ocurrió y se reparó; ERROR =
-   irrecuperable).
-4. Registro de log enriquecido (structured logging): campos
-   `ts, level, event, action, scope, SiteID, HoleID, datetime, source,
-   message` donde `action ∈ {repaired, rejected, reported}` y
-   `scope ∈ {run, file, survey, record}`. Los dumps del deck se
-   construyen por slicing directo, sin reconstrucción.
-5. EL CATÁLOGO ES DATOS: una tabla única en dbAudit
-   (`inst/events.csv`: event, object, condition, meaning.en,
-   meaning.es, level, action, expected.action.en, expected.action.es)
-   es la fuente de verdad. La leyenda del deck se GENERA de esa tabla —
-   ningún texto de leyenda vuelve a escribirse a mano. Un código nuevo
-   requiere fila nueva + ruling.
+Un registro por hecho, con campos ortogonales:
 
-## Catálogo propuesto (mapa viejo → nuevo)
+| Campo | Contenido | Molde en la evidencia |
+|---|---|---|
+| `ts` | timestamp del run | práctica general |
+| `scope` | `run` / `file` / `survey` / `record` | granularidad declarada (v1 sostenida) |
+| `SiteID, HoleID, datetime, source` | identidad completa + archivo de origen | trazabilidad ALCOA / hoja de campo Dunnicliff 18.1.4 |
+| `cause` | QUÉ se observó (catálogo abajo) | Dunnicliff cap.7 (clases de error); EPA Parte B (causa en estructura) |
+| `disposition` | qué quedó del dato: `intact` / `corrected` / `estimated` / `retained_suspect` / `rejected` | EPA (sin calif./estimado/R); WMO §9.5.6, 9.7.2, 10.2.3.4 |
+| `flag` | calificador de UNA LETRA sobre el valor cuando aplica: `D` seco, `E` estimado, `U` incierto, `V` verificado-fuera-de-rango | USGS lev_status/uv_rmk; WMO §9.3.5 |
+| `detail` | valores verificables (tipeado vs recalculado, fechas del grupo, unidades halladas) | EPA narrative; WMO "mostrar la razón del flag" |
 
-| Actual | Propuesto | Level | Action |
+La SEVERIDAD deja de ser un campo primario: WARNING/ERROR se DERIVAN de
+`disposition` (corrected/estimated → clase advertencia; rejected /
+retained_suspect sin resolución → clase error). La filosofía del
+usuario (WARNING = ocurrió y se reparó; ERROR = irrecuperable)
+sobrevive intacta como VISTA, ahora con molde EPA/WMO. Los dos casos
+que la violaban se resuelven solos: cada hecho declara su disposición
+real en vez de heredar un nivel arbitrario.
+
+## Catálogo de causas propuesto (qué logear)
+
+`cause` en UPPER_SNAKE (convención local declarada; ni USGS ni WMO ni
+EPA norman el naming del catálogo — WMO §9.3.2(c) manda adoptar/adaptar
+sistemas existentes y DECLARAR el propio):
+
+| Causa | Clase Dunnicliff | Disposición típica | Hoy (viejo nombre) |
 |---|---|---|---|
-| NUMERIC_COMMA_FIXED | VALUE_COMMA_DECIMAL | WARNING | repaired |
-| NUMERIC_PARSE_ERROR | VALUE_UNREADABLE | ERROR | rejected |
-| ID_FIXED + ID_MISMATCH (fusión) | FILE_ID_CONFLICT | WARNING | repaired |
-| SURVEY_REDATED | SURVEY_REDATED | ERROR | reported |
-| DuplicateSurveyDropped | SURVEY_DUPLICATED | WARNING | repaired |
-| NumDepthsMismatch | DEPTH_COUNT_CONFLICT | (ruling) | reported |
-| DERIVED_FIELD_MISMATCH | CHANGE_INCONSISTENT | (ruling: ¿reparar y WARNING, o ERROR?) | (ruling) |
-| UNIT_MISMATCH | UNITS_MIXED | (ruling: ¿ERROR?) | reported |
-| RAW/DB_COLUMNS_MISSING | SCHEMA_COLUMNS_MISSING | ERROR | reported |
-| AUDIT_START / AUDIT_DONE | RUN_START / RUN_DONE | INFO | reported |
+| `VALUE_COMMA_DECIMAL` | gruesa (tipeo) | corrected | NUMERIC_COMMA_FIXED |
+| `VALUE_UNREADABLE` | gruesa (tipeo) | rejected | NUMERIC_PARSE_ERROR |
+| `FILE_ID_CONFLICT` | gruesa (archivo) | corrected | ID_FIXED + ID_MISMATCH (fusión) |
+| `SURVEY_REDATED` | gruesa (archivo/fecha) | retained_suspect | SURVEY_REDATED |
+| `SURVEY_DUPLICATED` | gruesa (archivo) | corrected (dedup) | DuplicateSurveyDropped |
+| `CHANGE_INCONSISTENT` | gruesa (cálculo manual) | (ruling: ¿corrected recalculando, o retained_suspect?) | DERIVED_FIELD_MISMATCH |
+| `UNITS_MIXED` | sistemática | retained_suspect | UNIT_MISMATCH |
+| `DEPTH_COUNT_CONFLICT` | de conformancia | retained_suspect | NumDepthsMismatch |
+| `SCHEMA_COLUMNS_MISSING` | de conformancia | rejected (scope file) | RAW/DB_COLUMNS_MISSING |
+| `WELL_DRY` | condición (no error) | intact + flag `D` | (implícito hoy: level NA) |
+| `RUN_START` / `RUN_DONE` | — | — (scope run) | AUDIT_START/DONE |
+
+Nota WELL_DRY: siguiendo a USGS (§3.14, status D sin valor), el pozo
+seco pasa de convención implícita (NA) a condición declarada con flag —
+no es un error, es un estado del sitio en la medición.
+
+## El catálogo es datos (sostenido de v1)
+
+`inst/events.csv`: `cause, class, disposition.default, flag,
+meaning.en, meaning.es, expected.action.en, expected.action.es`.
+Fuente única; la leyenda del deck se GENERA de esta tabla; las columnas
+EN/ES son el ledger de traducción pedido por el usuario. Código nuevo =
+fila nueva + ruling.
+
+## Estado de revisión (nivel III, futuro)
+
+Molde USGS S/R/Q (in-review / aprobado / rechazado) por registro: es la
+casilla natural donde los gates predictivos (espacial/temporal) y la
+revisión del experto escribirán su veredicto. NO se implementa ahora;
+se reserva el campo.
 
 ## Migración
 
-- dbAudit emite SOLO el vocabulario nuevo; sin período de transición:
-  los productos son regenerables y el switch es un solo release.
-- La tabla de equivalencia de arriba queda en este plan como registro
-  histórico; los goldens y el harness de estrés se actualizan en el
-  mismo cambio.
-- Consumidores a actualizar en el mismo cambio: runners de AR-S2L1X,
-  loaders del deck (`scripts/setup/audit*`), RATIONALE (menciona
-  SURVEY_REDATED — sobrevive).
+Sin transición: dbAudit emite el esquema nuevo en un release; goldens,
+harness de estrés, runners de AR-S2L1X y loaders del deck se actualizan
+en el mismo cambio. La tabla vieja→nueva de arriba queda como registro.
 
 ## Rulings pedidos
 
-1. Formato y principio 1-5: ¿aprobados?
-2. Los nombres propuestos del catálogo (columna "Propuesto") — el
-   usuario puede reescribir cualquiera.
-3. Los tres (ruling) abiertos: CHANGE_INCONSISTENT (¿reparar el campo
-   derivado y WARNING, o ERROR sin reparar?), UNITS_MIXED (¿ERROR?),
-   DEPTH_COUNT_CONFLICT (¿WARNING o ERROR?).
-4. ¿La tabla `inst/events.csv` con textos EN y ES es el ledger de
-   traducción que pediste, o el ledger va aparte?
-
-## Reencuadre (usuario, 2026-08-16)
-
-Lo que dbAudit hace es QA/QC DE DATOS de monitoreo — no logging de
-sistemas IT. La tradicion relevante para la taxonomia de eventos es la
-de los programas de QA/QC de datos (calificadores/flags de datos, no
-severidades de syslog). De la investigacion en vuelo: MHRA/ALCOA+
-(integridad de datos) y pointblank/Great Expectations (validacion de
-datos) siguen siendo pertinentes; RFC 5424 / NIST 800-92 / OWASP se
-reciben pero se pesan como referencia marginal. PROHIBIDO importar
-marcos sin evidencia de que aplican: los candidatos QA/QC se proponen
-al usuario ANTES de leerlos.
+1. ¿Registro ortogonal (cause/disposition/flag) aprobado?
+2. ¿Vocabulario de disposición (intact/corrected/estimated/
+   retained_suspect/rejected) aprobado?
+3. Nombres del catálogo de causas — reescribí los que quieras.
+4. `CHANGE_INCONSISTENT`: ¿corrected recalculando el campo derivado
+   (molde EPA: la corrección es del productor), o retained_suspect sin
+   tocar?
+5. ¿`WELL_DRY` como condición declarada con flag D?
+6. ¿events.csv con EN/ES como ledger de traducción?
