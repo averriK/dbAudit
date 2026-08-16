@@ -293,7 +293,7 @@
   if (any(COMMA)) {
     Records[[length(Records) + 1L]] <- .gateRecord(
       data = data[COMMA],
-      cause = "VALUE_COMMA_DECIMAL",
+      cause = "COMMA",
       disposition = "corrected",
       detail = sprintf(
         "value=%s; repaired=%s; inserted into db",
@@ -305,7 +305,7 @@
   if (any(BAD)) {
     Records[[length(Records) + 1L]] <- .gateRecord(
       data = data[BAD],
-      cause = "VALUE_UNREADABLE",
+      cause = "UNREADABLE",
       disposition = "rejected",
       detail = sprintf("value=%s; rejected", Value[BAD])
     )
@@ -330,7 +330,7 @@
 
   Records <- list(.gateRecord(
     data = data[BAD[, .(SourcePath)], on = "SourcePath"],
-    cause = "FILE_ID_CONFLICT",
+    cause = "MISLABELED",
     disposition = "corrected",
     detail = "HoleID repaired from systematic filename evidence"
   ))
@@ -355,7 +355,7 @@
 
 # Build-stage repair (taxonomy ruling 2026-08-16): the db stores the
 # RECOMPUTED change (head - lag(head)); the typed value is preserved as
-# evidence in the gate sink (cause CHANGE_INCONSISTENT, corrected).
+# evidence in the gate sink (cause MISCOMPUTED, corrected).
 .repairPCGChange <- function(tables, audit) {
   if (is.null(tables$PCG)) return(invisible(tables))
   DT <- tables$PCG$data
@@ -369,7 +369,7 @@
   if (nrow(BAD) > 0L) {
     Records <- .gateRecord(
       data = BAD[, .(ID = "PCG", SiteID, HoleID, SensorID, datetime, RecordID)],
-      cause = "CHANGE_INCONSISTENT",
+      cause = "MISCOMPUTED",
       disposition = "corrected",
       detail = sprintf(
         "typed=%s; recomputed=%s; recomputed value stored",
@@ -406,7 +406,7 @@
 
   Rejected <- sum(vapply(
     X = Records,
-    FUN = function(x) nrow(x[cause == "VALUE_UNREADABLE"]),
+    FUN = function(x) nrow(x[cause == "UNREADABLE"]),
     FUN.VALUE = integer(1)
   ))
   if (Candidates != nrow(data) + Rejected) {

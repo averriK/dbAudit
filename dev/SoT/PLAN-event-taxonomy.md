@@ -144,3 +144,41 @@ Pendiente (fase 3 y ruling): (a) ruling de las 4 causas "proposed":
 RECORD_UNRECONCILED, OBSERVATION_DUPLICATED, UNITS_MISSING,
 HEADER_INCOMPLETE; (b) deck v5 (seis preguntas del dueno, leyenda
 generada — ya implementada en _slides/aud.dumps.qmd).
+
+## RULING: codigos de UNA palabra (usuario, 2026-08-16) — APLICADO
+
+El usuario rechazo los codigos compuestos OBJETO_CONDICION: el objeto
+ya vive en `scope` (el registro es ortogonal), meterlo en el codigo
+duplicaba informacion. Esquema aprobado: TODO el vocabulario del log
+es de una palabra.
+
+- Codigos: COMMA, UNREADABLE, MISLABELED, REDATED, DUPLICATED,
+  MISCOMPUTED, MIXED, UNITLESS, MISCOUNTED, MALFORMED, INCOMPLETE,
+  MISSING, DRY, START, DONE.
+- Disposiciones: intact, corrected, estimated, suspect (antes
+  retained_suspect), rejected.
+- La clave del catalogo es el par (cause, scope): DUPLICATED en
+  survey = archivos identicos consolidados (corrected); en record =
+  dos lecturas mismo instrumento y fecha (suspect). events.csv gano
+  la columna `scope` (lista separada por ";"); .logEvent valida el
+  par. Los 4 codigos antes "proposed" quedaron aprobados con el
+  esquema (MISSING, DUPLICATED record, UNITLESS, INCOMPLETE).
+- Ademas: sin jerga en los textos del catalogo (orden del usuario:
+  nada de "metadatos", "capa de procesamiento", "linaje").
+
+Mapa v2 dos-palabras -> v2.1 una-palabra: VALUE_COMMA_DECIMAL->COMMA;
+VALUE_UNREADABLE->UNREADABLE; FILE_ID_CONFLICT->MISLABELED;
+SURVEY_REDATED->REDATED; SURVEY_DUPLICATED->DUPLICATED(survey);
+OBSERVATION_DUPLICATED->DUPLICATED(record, scope normalizado);
+CHANGE_INCONSISTENT->MISCOMPUTED; UNITS_MIXED->MIXED;
+UNITS_MISSING->UNITLESS; DEPTH_COUNT_CONFLICT->MISCOUNTED;
+SCHEMA_COLUMNS_MISSING->MALFORMED; HEADER_INCOMPLETE->INCOMPLETE;
+RECORD_UNRECONCILED->MISSING; WELL_DRY->DRY; RUN_START/DONE->
+START/DONE.
+
+Verificacion: tests dbAudit 13 PASS; pipeline AR completo contra el
+namespace instalado — log 6 eventos (START, MIXED, MISLABELED x2,
+REDATED, DONE), sink 39 MISCOMPUTED corrected, flag D 394/2403,
+index DUPLICATED 2. Pendiente del usuario: rerun de
+install/install.sh (el CLI en /usr/local/libexec quedo con el
+catalogo viejo; requiere sudo).

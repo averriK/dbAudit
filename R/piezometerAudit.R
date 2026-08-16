@@ -83,7 +83,7 @@
     .logEvent(
       log.file = log,
       scope = "file",
-      cause = "SCHEMA_COLUMNS_MISSING",
+      cause = "MALFORMED",
       source = file,
       detail = sprintf("missing=%s", paste(MISS, collapse = ", "))
     )
@@ -129,7 +129,7 @@
     .logEvent(
       log.file = log,
       scope = "file",
-      cause = "RECORD_UNRECONCILED",
+      cause = "MISSING",
       source = "data/db",
       detail = sprintf("raw records missing in db; count=%d", nrow(AUX))
     )
@@ -139,7 +139,7 @@
     .logEvent(
       log.file = log,
       scope = "file",
-      cause = "RECORD_UNRECONCILED",
+      cause = "MISSING",
       source = "data/raw",
       detail = sprintf("db records missing in raw; count=%d", nrow(AUX))
     )
@@ -157,8 +157,8 @@
   if (nrow(AUX) > 0L) {
     .logEvent(
       log.file = log,
-      scope = "file",
-      cause = "OBSERVATION_DUPLICATED",
+      scope = "record",
+      cause = "DUPLICATED",
       source = "data/raw",
       detail = sprintf("count=%d", nrow(AUX))
     )
@@ -179,7 +179,7 @@
     .logEvent(
       log.file = log,
       scope = "file",
-      cause = "UNITS_MIXED",
+      cause = "MIXED",
       source = "data/raw",
       detail = sprintf(
         "ID=%s; variable=%s; units=%s", AUX$ID, AUX$variable, AUX$units
@@ -193,7 +193,7 @@
   COLS <- grep(pattern = "^units[.]", x = names(data), value = TRUE)
   if (length(COLS) == 0L) {
     .logEvent(
-      log.file = log, scope = "file", cause = "SCHEMA_COLUMNS_MISSING",
+      log.file = log, scope = "file", cause = "MALFORMED",
       source = "data/db", detail = "no units.* columns present"
     )
     return(invisible(FALSE))
@@ -213,7 +213,7 @@
     .logEvent(
       log.file = log,
       scope = "file",
-      cause = "UNITS_MISSING",
+      cause = "UNITLESS",
       source = "data/db",
       detail = sprintf("column=%s; rows=%d", AUX$column, AUX$N)
     )
@@ -222,7 +222,7 @@
 }
 
 # Residual filename-ID conflicts: the gate repairs HoleID only under
-# systematic evidence and records FILE_ID_CONFLICT (corrected) in the
+# systematic evidence and records MISLABELED (corrected) in the
 # sink. Any FileKeyOK == FALSE source NOT repaired is retained suspect.
 .checkFileIDResidual <- function(log, raw, audit, id) {
   invisible(lapply(X = id, FUN = function(ID) {
@@ -239,7 +239,7 @@
     if (file.exists(FILE)) {
       SINK <- data.table::fread(FILE)
       if (all(c("cause", "SourcePath") %in% names(SINK))) {
-        Fixed <- unique(SINK[cause == "FILE_ID_CONFLICT", SourcePath])
+        Fixed <- unique(SINK[cause == "MISLABELED", SourcePath])
         BAD <- BAD[!(SourcePath %in% Fixed)]
       }
     }
@@ -247,8 +247,8 @@
     .logEvent(
       log.file = log,
       scope = "file",
-      cause = "FILE_ID_CONFLICT",
-      disposition = "retained_suspect",
+      cause = "MISLABELED",
+      disposition = "suspect",
       HoleID = BAD$HoleID,
       source = basename(BAD$SourcePath),
       detail = sprintf("content=%s; filename=%s; not repaired", BAD$HoleID, BAD$FileKey)
@@ -278,7 +278,7 @@
     .logEvent(
       log.file = log,
       scope = "file",
-      cause = "HEADER_INCOMPLETE",
+      cause = "INCOMPLETE",
       source = "data/raw/PCV/header.csv",
       detail = sprintf("ID=PCV; missing header fields; count=%d", nrow(AUX))
     )
@@ -293,7 +293,7 @@
     .logEvent(
       log.file = log,
       scope = "file",
-      cause = "HEADER_INCOMPLETE",
+      cause = "INCOMPLETE",
       source = "data/raw/PCV/header.csv",
       detail = sprintf("ID=PCV; empty field=%s; rows=%d", AUX$Field, AUX$N)
     )
@@ -309,7 +309,7 @@
 }
 
 # Residual invariant: the build stage stores the recomputed change and
-# logs CHANGE_INCONSISTENT (corrected) per record. After that repair the
+# logs MISCOMPUTED (corrected) per record. After that repair the
 # db must satisfy change == head - lag(head); any residual here means
 # the repair failed upstream and the record is retained as suspect.
 .checkPCGChange <- function(log, data) {
@@ -325,14 +325,14 @@
   if (nrow(AUX) > 0L) {
     data[AUX, on = "RecordID", `:=`(
       status = "ERROR",
-      event = "CHANGE_INCONSISTENT"
+      event = "MISCOMPUTED"
     )]
     Marked <- data[AUX, on = "RecordID"]
     .logEvent(
       log.file = log,
       scope = "record",
-      cause = "CHANGE_INCONSISTENT",
-      disposition = "retained_suspect",
+      cause = "MISCOMPUTED",
+      disposition = "suspect",
       SiteID = Marked$SiteID,
       HoleID = Marked$HoleID,
       datetime = Marked$datetime,
@@ -354,7 +354,7 @@
     l = lapply(X = data, FUN = function(DT) DT[, ..COLS.data]),
     use.names = TRUE
   )
-  # WELL_DRY declared condition (flag D, catalog inst/events.csv): a dry
+  # DRY declared condition (flag D, catalog inst/events.csv): a dry
   # Casagrande reading has no level value; the flag replaces the
   # implicit-NA convention.
   DATA[, flag := data.table::fifelse(ID == "PCG" & is.na(level), "D", "")]

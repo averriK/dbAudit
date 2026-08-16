@@ -23,7 +23,7 @@
   }
   Catalog <- fread(FILE)
   Required <- c(
-    "cause", "class", "disposition.default", "flag", "approved",
+    "cause", "scope", "class", "disposition.default", "flag", "approved",
     "meaning.en", "meaning.es", "expected.action.en", "expected.action.es"
   )
   if (!all(Required %in% names(Catalog))) {
@@ -34,7 +34,7 @@
 }
 
 .eventDispositions <- c(
-  "intact", "corrected", "estimated", "retained_suspect", "rejected"
+  "intact", "corrected", "estimated", "suspect", "rejected"
 )
 
 .eventScopes <- c("run", "file", "survey", "record")
@@ -43,7 +43,7 @@
   data.table::fcase(
     disposition == "intact", "INFO",
     disposition %in% c("corrected", "estimated"), "WARNING",
-    disposition %in% c("retained_suspect", "rejected"), "ERROR",
+    disposition %in% c("suspect", "rejected"), "ERROR",
     default = NA_character_
   )
 }
@@ -68,21 +68,33 @@
                       flag = NULL, SiteID = "", HoleID = "",
                       datetime = "", source = "", detail = "") {
   Catalog <- .eventsCatalog()
+  if (!scope %in% .eventScopes) {
+    stop(sprintf("invalid scope: %s", scope), call. = FALSE)
+  }
+  # Catalog key is the pair (cause, scope): the same single-word cause
+  # can mean different facts at different scopes (e.g. DUPLICATED).
   # R-DATA-TABLE.md: inside i a bare name resolves to the column first,
   # so the lookup variable must carry a non-column name.
   CauseKey <- cause
-  Row <- Catalog[cause == CauseKey]
-  if (nrow(Row) != 1L) {
-    stop(sprintf("unknown event cause: %s (not in events.csv)", cause),
+  Rows <- Catalog[cause == CauseKey]
+  Hit <- which(vapply(
+    strsplit(Rows$scope, ";", fixed = TRUE),
+    FUN = function(x) scope %in% x,
+    FUN.VALUE = logical(1L)
+  ))
+  if (length(Hit) != 1L) {
+    stop(
+      sprintf(
+        "unknown event: cause %s at scope %s (not in events.csv)",
+        cause, scope
+      ),
       call. = FALSE
     )
   }
+  Row <- Rows[Hit]
   if (is.null(disposition)) disposition <- Row$disposition.default
   if (!disposition %in% .eventDispositions) {
     stop(sprintf("invalid disposition: %s", disposition), call. = FALSE)
-  }
-  if (!scope %in% .eventScopes) {
-    stop(sprintf("invalid scope: %s", scope), call. = FALSE)
   }
   if (is.null(flag)) flag <- Row$flag
   # Vector arguments of equal length emit one record per element;
