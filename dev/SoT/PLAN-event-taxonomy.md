@@ -92,3 +92,22 @@ en el mismo cambio. La tabla vieja→nueva de arriba queda como registro.
    tocar?
 5. ¿`WELL_DRY` como condición declarada con flag D?
 6. ¿events.csv con EN/ES como ledger de traducción?
+
+## RULINGS RESUELTOS (usuario, 2026-08-16) — Fase 1 CERRADA
+
+1. Esquema ortogonal (cause / disposition / flag): APROBADO.
+2. CHANGE_INCONSISTENT: la base guarda el valor RECALCULADO (aritmetica
+   de las cotas); el tipeado queda en el log como evidencia.
+   Disposicion: corrected. (Se alinea con la filosofia: reparado.)
+3. WELL_DRY: estado explicito con flag D (molde USGS: sin valor de
+   nivel cuando el estado es seco). No es error ni faltante.
+4. inst/events.csv con columnas EN/ES = el ledger de traduccion.
+   Los logs emiten EN hoy; ES sale leyendo la otra columna.
+
+Con esto queda definida la FASE 2 (emision dbAudit): crear
+inst/events.csv; nuevo esquema de registro (ts, scope, SiteID, HoleID,
+datetime, source, cause, disposition, flag, detail); renombrar la
+emision al catalogo nuevo; reparar change recalculando en el build;
+WELL_DRY con flag D; actualizar goldens + harness de estres + runners
+de AR-S2L1X + loaders del deck en el mismo cambio. FASE 3 (deck v5 =
+las seis preguntas del dueno, leyenda generada del catalogo) despues.
