@@ -79,3 +79,15 @@ taxonomía.
    DEPTH_COUNT_CONFLICT (¿WARNING o ERROR?).
 4. ¿La tabla `inst/events.csv` con textos EN y ES es el ledger de
    traducción que pediste, o el ledger va aparte?
+
+## Reencuadre (usuario, 2026-08-16)
+
+Lo que dbAudit hace es QA/QC DE DATOS de monitoreo — no logging de
+sistemas IT. La tradicion relevante para la taxonomia de eventos es la
+de los programas de QA/QC de datos (calificadores/flags de datos, no
+severidades de syslog). De la investigacion en vuelo: MHRA/ALCOA+
+(integridad de datos) y pointblank/Great Expectations (validacion de
+datos) siguen siendo pertinentes; RFC 5424 / NIST 800-92 / OWASP se
+reciben pero se pesan como referencia marginal. PROHIBIDO importar
+marcos sin evidencia de que aplican: los candidatos QA/QC se proponen
+al usuario ANTES de leerlos.
