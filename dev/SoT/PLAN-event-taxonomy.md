@@ -111,3 +111,28 @@ emision al catalogo nuevo; reparar change recalculando en el build;
 WELL_DRY con flag D; actualizar goldens + harness de estres + runners
 de AR-S2L1X + loaders del deck en el mismo cambio. FASE 3 (deck v5 =
 las seis preguntas del dueno, leyenda generada del catalogo) despues.
+
+## FASE 2 EJECUTADA (2026-08-16) — pendiente de aceptacion
+
+Emision v2 implementada y verificada punta a punta:
+
+- dbAudit: inst/events.csv (16 causas, 12 approved + 4 proposed),
+  eventLog.R, gates y checks reescritos, .repairPCGChange,
+  .checkFileIDResidual, WELL_DRY flag D. Tests: fixtures 4 PASS,
+  goldens 5 PASS, test-dbaudit 4 PASS; R CMD check exit 0.
+- AR-S2L1X: runners (runAudit.R, runData.R), loaders del deck
+  (setup/audit.R, setup/auditDumps.R), harness (stressAudit.R) y
+  leyenda GENERADA del catalogo (_slides/aud.dumps.qmd) en el mismo
+  cambio. Pipeline completo corrido contra dbAudit v2 en libreria
+  scratch: mapa viejo->nuevo cierra exacto (ID_MISMATCH 2 ->
+  FILE_ID_CONFLICT 2; UNIT_MISMATCH 1 -> UNITS_MIXED 1;
+  SURVEY_REDATED 1; 39 DERIVED -> sink CHANGE_INCONSISTENT corrected;
+  flag D en 394/2403 registros PZ). Bug cazado por el propio esquema:
+  el lector de cobertura INC buscaba la etiqueta vieja
+  DuplicateSurveyDropped (falso RECORD_UNRECONCILED); corregido.
+
+Pendiente para cerrar fase 2: (a) el usuario reinstala dbAudit (los
+runners AR usan el namespace instalado, hoy viejo); (b) el usuario
+revisa la muestra del log v2 (aceptacion); (c) ruling de las 4 causas
+"proposed": RECORD_UNRECONCILED, OBSERVATION_DUPLICATED,
+UNITS_MISSING, HEADER_INCOMPLETE.
