@@ -273,11 +273,11 @@
   }), use.names = TRUE)
 }
 
-.gateRecord <- function(data, cause, disposition, detail) {
+.gateRecord <- function(data, event, level, detail) {
   data.table::data.table(
     ts = format(Sys.time(), "%Y-%m-%d %H:%M:%S"),
-    cause = cause,
-    disposition = disposition,
+    event = event,
+    level = level,
     detail = detail,
     data
   )
@@ -293,8 +293,8 @@
   if (any(COMMA)) {
     Records[[length(Records) + 1L]] <- .gateRecord(
       data = data[COMMA],
-      cause = "COMMA",
-      disposition = "corrected",
+      event = "COMMA",
+      level = "WARNING",
       detail = sprintf(
         "value=%s; repaired=%s; inserted into db",
         Value[COMMA], sub(",", ".", Value[COMMA], fixed = TRUE)
@@ -305,8 +305,8 @@
   if (any(BAD)) {
     Records[[length(Records) + 1L]] <- .gateRecord(
       data = data[BAD],
-      cause = "UNREADABLE",
-      disposition = "rejected",
+      event = "UNREADABLE",
+      level = "ERROR",
       detail = sprintf("value=%s; rejected", Value[BAD])
     )
     data <- data[!BAD]
@@ -330,8 +330,8 @@
 
   Records <- list(.gateRecord(
     data = data[BAD[, .(SourcePath)], on = "SourcePath"],
-    cause = "MISLABELED",
-    disposition = "corrected",
+    event = "MISLABELED",
+    level = "WARNING",
     detail = "HoleID repaired from systematic filename evidence"
   ))
   data[BAD, on = "SourcePath", HoleID := i.FileKey]
@@ -369,8 +369,8 @@
   if (nrow(BAD) > 0L) {
     Records <- .gateRecord(
       data = BAD[, .(ID = "PCG", SiteID, HoleID, SensorID, datetime, RecordID)],
-      cause = "MISCOMPUTED",
-      disposition = "corrected",
+      event = "MISCOMPUTED",
+      level = "WARNING",
       detail = sprintf(
         "typed=%s; recomputed=%s; recomputed value stored",
         format(BAD$change), format(round(BAD$recalc.change, 6))
@@ -406,7 +406,7 @@
 
   Rejected <- sum(vapply(
     X = Records,
-    FUN = function(x) nrow(x[cause == "UNREADABLE"]),
+    FUN = function(x) nrow(x[event == "UNREADABLE"]),
     FUN.VALUE = integer(1)
   ))
   if (Candidates != nrow(data) + Rejected) {

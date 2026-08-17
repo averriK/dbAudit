@@ -1,16 +1,22 @@
 # ----------------------------------------------------------------------
-# eventLog.R — structured QA/QC event log, schema v2.
-# Contract: dev/SoT/PLAN-event-taxonomy.md (approved 2026-08-16).
+# eventLog.R — structured QA/QC event log, schema v3 (the mineralogy
+# model). Contract: dev/SoT/PLAN-event-taxonomy.md (ruling 2026-08-17).
 # Scope: monitoring domains (PCG, PCV, INC). The geochemistry pipeline
-# keeps the v1 logger (.log in helpers.R) until its own catalog ruling.
+# keeps its own logger (.log in helpers.R).
 #
-# One record per observed fact, orthogonal fields:
-#   ts, scope, SiteID, HoleID, datetime, source, cause, disposition,
-#   flag, detail
-# Severity is NOT stored: readers derive it from disposition via
-# .eventLevel(). Every emission is validated against the catalog
-# (inst/events.csv) — an unknown cause stops the run: messages outside
-# the ruled vocabulary cannot exist.
+# One record per observed fact:
+#   ts, scope, SiteID, HoleID, datetime, source, level, event, detail
+# level is STORED and primary, exactly as in the geochemistry audit:
+#   INFO    = process marks and site conditions; nothing wrong with
+#             the data (START, DONE, DRY).
+#   WARNING = a data problem occurred and the pipeline RESOLVED it;
+#             the database is consistent; the source practice still
+#             needs correction.
+#   ERROR   = a data problem occurred and could NOT be resolved;
+#             human action required. level == "ERROR" is the work
+#             list filter.
+# Every emission is validated against the catalog (inst/events.csv,
+# key = event x scope): an unknown event stops the run.
 
 .eventsCatalogCache <- new.env(parent = emptyenv())
 
@@ -23,7 +29,7 @@
   }
   Catalog <- fread(FILE)
   Required <- c(
-    "cause", "scope", "class", "disposition.default", "flag", "approved",
+    "event", "scope", "class", "level", "flag", "approved",
     "meaning.en", "meaning.es", "expected.action.en", "expected.action.es"
   )
   if (!all(Required %in% names(Catalog))) {
@@ -33,20 +39,9 @@
   Catalog
 }
 
-.eventDispositions <- c(
-  "intact", "corrected", "estimated", "suspect", "rejected"
-)
+.eventLevels <- c("INFO", "WARNING", "ERROR")
 
 .eventScopes <- c("run", "file", "survey", "record")
-
-.eventLevel <- function(disposition) {
-  data.table::fcase(
-    disposition == "intact", "INFO",
-    disposition %in% c("corrected", "estimated"), "WARNING",
-    disposition %in% c("suspect", "rejected"), "ERROR",
-    default = NA_character_
-  )
-}
 
 .logEventInit <- function(log.file) {
   if (!dir.exists(dirname(log.file))) {
@@ -57,26 +52,25 @@
     data.table(
       ts = character(), scope = character(), SiteID = character(),
       HoleID = character(), datetime = character(), source = character(),
-      cause = character(), disposition = character(), flag = character(),
-      detail = character()
+      level = character(), event = character(), detail = character()
     ),
     log.file
   )
 }
 
-.logEvent <- function(log.file, scope, cause, disposition = NULL,
-                      flag = NULL, SiteID = "", HoleID = "",
-                      datetime = "", source = "", detail = "") {
+.logEvent <- function(log.file, scope, event, level = NULL,
+                      SiteID = "", HoleID = "", datetime = "",
+                      source = "", detail = "") {
   Catalog <- .eventsCatalog()
   if (!scope %in% .eventScopes) {
     stop(sprintf("invalid scope: %s", scope), call. = FALSE)
   }
-  # Catalog key is the pair (cause, scope): the same single-word cause
+  # Catalog key is the pair (event, scope): the same single-word event
   # can mean different facts at different scopes (e.g. DUPLICATED).
   # R-DATA-TABLE.md: inside i a bare name resolves to the column first,
   # so the lookup variable must carry a non-column name.
-  CauseKey <- cause
-  Rows <- Catalog[cause == CauseKey]
+  EventKey <- event
+  Rows <- Catalog[event == EventKey]
   Hit <- which(vapply(
     strsplit(Rows$scope, ";", fixed = TRUE),
     FUN = function(x) scope %in% x,
@@ -85,18 +79,17 @@
   if (length(Hit) != 1L) {
     stop(
       sprintf(
-        "unknown event: cause %s at scope %s (not in events.csv)",
-        cause, scope
+        "unknown event: %s at scope %s (not in events.csv)",
+        event, scope
       ),
       call. = FALSE
     )
   }
   Row <- Rows[Hit]
-  if (is.null(disposition)) disposition <- Row$disposition.default
-  if (!disposition %in% .eventDispositions) {
-    stop(sprintf("invalid disposition: %s", disposition), call. = FALSE)
+  if (is.null(level)) level <- Row$level
+  if (!level %in% .eventLevels) {
+    stop(sprintf("invalid level: %s", level), call. = FALSE)
   }
-  if (is.null(flag)) flag <- Row$flag
   # Vector arguments of equal length emit one record per element;
   # length-1 arguments recycle (data.table enforces the rest).
   fwrite(
@@ -107,9 +100,8 @@
       HoleID = .asChar(HoleID),
       datetime = .asChar(datetime),
       source = .asChar(source),
-      cause = cause,
-      disposition = disposition,
-      flag = flag,
+      level = level,
+      event = event,
       detail = .asChar(detail)
     ),
     log.file,

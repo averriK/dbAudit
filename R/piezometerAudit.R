@@ -83,7 +83,7 @@
     .logEvent(
       log.file = log,
       scope = "file",
-      cause = "MALFORMED",
+      event = "MALFORMED",
       source = file,
       detail = sprintf("missing=%s", paste(MISS, collapse = ", "))
     )
@@ -101,7 +101,7 @@
     FILE <- file.path(audit, sprintf("%s.reject.csv", ID))
     if (!file.exists(FILE)) return(NULL)
     DT <- data.table::fread(file = FILE)
-    if ("disposition" %in% names(DT)) DT <- DT[disposition == "rejected"]
+    if (all(c("level", "event") %in% names(DT))) DT <- DT[event == "UNREADABLE"]
     if (!all(COLS %in% names(DT)) || nrow(DT) == 0L) return(NULL)
     DT[, ..COLS]
   })
@@ -129,7 +129,7 @@
     .logEvent(
       log.file = log,
       scope = "file",
-      cause = "MISSING",
+      event = "MISSING",
       source = "data/db",
       detail = sprintf("raw records missing in db; count=%d", nrow(AUX))
     )
@@ -139,7 +139,7 @@
     .logEvent(
       log.file = log,
       scope = "file",
-      cause = "MISSING",
+      event = "MISSING",
       source = "data/raw",
       detail = sprintf("db records missing in raw; count=%d", nrow(AUX))
     )
@@ -158,7 +158,7 @@
     .logEvent(
       log.file = log,
       scope = "record",
-      cause = "DUPLICATED",
+      event = "DUPLICATED",
       source = "data/raw",
       detail = sprintf("count=%d", nrow(AUX))
     )
@@ -179,7 +179,7 @@
     .logEvent(
       log.file = log,
       scope = "file",
-      cause = "MIXED",
+      event = "MIXED",
       source = "data/raw",
       detail = sprintf(
         "ID=%s; variable=%s; units=%s", AUX$ID, AUX$variable, AUX$units
@@ -193,7 +193,7 @@
   COLS <- grep(pattern = "^units[.]", x = names(data), value = TRUE)
   if (length(COLS) == 0L) {
     .logEvent(
-      log.file = log, scope = "file", cause = "MALFORMED",
+      log.file = log, scope = "file", event = "MALFORMED",
       source = "data/db", detail = "no units.* columns present"
     )
     return(invisible(FALSE))
@@ -213,7 +213,7 @@
     .logEvent(
       log.file = log,
       scope = "file",
-      cause = "UNITLESS",
+      event = "UNITLESS",
       source = "data/db",
       detail = sprintf("column=%s; rows=%d", AUX$column, AUX$N)
     )
@@ -238,8 +238,8 @@
     FILE <- file.path(audit, sprintf("%s.reject.csv", ID))
     if (file.exists(FILE)) {
       SINK <- data.table::fread(FILE)
-      if (all(c("cause", "SourcePath") %in% names(SINK))) {
-        Fixed <- unique(SINK[cause == "MISLABELED", SourcePath])
+      if (all(c("event", "SourcePath") %in% names(SINK))) {
+        Fixed <- unique(SINK[event == "MISLABELED", SourcePath])
         BAD <- BAD[!(SourcePath %in% Fixed)]
       }
     }
@@ -247,8 +247,8 @@
     .logEvent(
       log.file = log,
       scope = "file",
-      cause = "MISLABELED",
-      disposition = "suspect",
+      event = "MISLABELED",
+      level = "ERROR",
       HoleID = BAD$HoleID,
       source = basename(BAD$SourcePath),
       detail = sprintf("content=%s; filename=%s; not repaired", BAD$HoleID, BAD$FileKey)
@@ -278,7 +278,7 @@
     .logEvent(
       log.file = log,
       scope = "file",
-      cause = "INCOMPLETE",
+      event = "INCOMPLETE",
       source = "data/raw/PCV/header.csv",
       detail = sprintf("ID=PCV; missing header fields; count=%d", nrow(AUX))
     )
@@ -293,7 +293,7 @@
     .logEvent(
       log.file = log,
       scope = "file",
-      cause = "INCOMPLETE",
+      event = "INCOMPLETE",
       source = "data/raw/PCV/header.csv",
       detail = sprintf("ID=PCV; empty field=%s; rows=%d", AUX$Field, AUX$N)
     )
@@ -331,8 +331,8 @@
     .logEvent(
       log.file = log,
       scope = "record",
-      cause = "MISCOMPUTED",
-      disposition = "suspect",
+      event = "MISCOMPUTED",
+      level = "ERROR",
       SiteID = Marked$SiteID,
       HoleID = Marked$HoleID,
       datetime = Marked$datetime,

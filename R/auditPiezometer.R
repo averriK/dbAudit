@@ -89,7 +89,7 @@ auditPiezometer <- function(
   dir.create(path = audit.dir, recursive = TRUE, showWarnings = FALSE)
   Log <- file.path(audit.dir, "log.csv")
   .logEventInit(log.file = Log)
-  .logEvent(log.file = Log, scope = "run", cause = "START", source = "auditPiezometer")
+  .logEvent(log.file = Log, scope = "run", event = "START", source = "auditPiezometer")
 
   RawData <- .readAllRaw(raw = raw.dir, id = id, name = "data")
   RawHeader <- .readAllHeader(raw = raw.dir, id = id)
@@ -115,7 +115,7 @@ auditPiezometer <- function(
   PZ <- .pzTables(data = Audit, index = DBIndex)
   .writeAudit(path = audit.dir, id = id, data = Audit, pz = PZ)
   .logEvent(
-    log.file = Log, scope = "run", cause = "DONE", source = "auditPiezometer",
+    log.file = Log, scope = "run", event = "DONE", source = "auditPiezometer",
     detail = sprintf("PZ.data=%d; PZ.index=%d", nrow(PZ$data), nrow(PZ$index))
   )
 

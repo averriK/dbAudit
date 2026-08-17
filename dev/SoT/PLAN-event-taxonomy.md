@@ -182,3 +182,41 @@ REDATED, DONE), sink 39 MISCOMPUTED corrected, flag D 394/2403,
 index DUPLICATED 2. Pendiente del usuario: rerun de
 install/install.sh (el CLI en /usr/local/libexec quedo con el
 catalogo viejo; requiere sudo).
+
+## RULING v3 (usuario, 2026-08-17): volver al modelo de mineralogia
+
+El esquema v2 (disposition de 5 valores, severidad derivada invisible)
+fue RECHAZADO: "un hibrido que no se entiende; no se sabe si son
+errores o fueron corregidos". La referencia es el pipeline de
+mineralogia (parseAssay/parseLab/helpers): level ALMACENADO + codigo
+del problema + filtro de una linea por ERROR.
+
+Definiciones fijadas (ruling 4):
+- INFO    = marcas de proceso y condiciones del sitio; nada esta mal
+            en los datos (START, DONE, DRY). DRY no es un problema de
+            datos (ruling 3): flag D en el producto, INFO si se marca.
+- WARNING = ocurrio un problema y el pipeline lo RESOLVIO; la base
+            quedo consistente; falta corregir la practica en origen.
+- ERROR   = ocurrio y NO pudo resolverse; requiere accion humana.
+            level == "ERROR" es la lista de trabajo.
+
+Esquema v3 del log: ts, scope, SiteID, HoleID, datetime, source,
+level, event, detail. La columna se llama `event` (como mineralogia).
+Un solo codigo por problema; el level dice si quedo resuelto
+(MISLABELED WARNING = reparado / ERROR = sin reparar). disposition y
+flag SALEN del log; la disposicion sobrevive solo como prosa del
+catalogo; el catalogo events.csv conserva ledger EN/ES + impacto +
+accion, con clave (event, scope) y columna `level` (default).
+
+IMPLEMENTADO en dbAudit (este commit): events.csv v3, eventLog.R
+(level almacenado, sin derivacion), emitters y sink (columnas
+event/level), .readRejects filtra event=="UNREADABLE". Tests 13/13
+PASS; smoke verificado (defaults, override, stop fuera de catalogo).
+
+PENDIENTE (un solo cambio cuando cierre el agente de plots que hoy
+edita el deck): reinstalar el paquete R; migrar AR — runAudit.R,
+runData.R (labels quedan iguales), loaders del deck (leer level/event,
+borrar la derivacion), leyenda (columna Nivel en vez de Disposicion),
+stressAudit.R, y corrida completa con comparacion de conteos. Hasta
+esa migracion NO reinstalar: el namespace instalado v2 mantiene
+coherentes a los runners y al deck actuales.
