@@ -248,3 +248,28 @@ graves NO tienen evento: instrumentos sin lectura en campaña,
 baseline INC cruzando el cambio de sonda (18/24 pozos), recrecimientos
 de boca sin cota por epoca, checksums INC sin umbral. MISLABELED (40)
 es real pero cosmetico (INM-1 vs INM-01) — impacto a ruling.
+
+## RULINGS de cierre de la alucinacion de logs (usuario, 2026-08-17)
+
+1. MISCOMPUTED: MUERE. Retirar .repairPCGChange, .checkPCGChange y la
+   fila del catalogo; si algun dia renace, nace de la definicion del
+   cliente verificada en planilla (convencion pozo-seco probada).
+2. MIXED: pasa a INFO en el catalogo (constancia de unidades
+   declaradas heterogeneas; no es problema).
+3. MISLABELED: verificado 2026-08-17 — los 45 casos son VARIANTES DE
+   FORMATO del mismo instrumento (INM-01=INM-1, INM-02=INM-2,
+   "PZ-IN 1"=PZ-IN-01; carpeta y filename coinciden). Se REPARA con
+   evidencia sistematica -> WARNING (normalizacion declarada); ERROR
+   queda reservado para contenido que declare OTRO instrumento.
+4. Los 4 graves sin evento (rezagados, sonda/baseline, recrecimientos,
+   checksum): DIFERIDOS — el dueño no rulea aun; no crear eventos.
+
+EJECUCION (primera accion de la proxima sesion, un solo cambio):
+dbAudit: matar MISCOMPUTED (codigo+catalogo), MIXED->INFO,
+MISLABELED reparable por normalizacion (variante de formato ->
+WARNING; distinto instrumento -> ERROR), goldens/tests; AR: migrar
+runners a la firma v3 (event=/level=, imports sin .eventDispositions/
+.eventLevel), reinstalar paquete R, regenerar la base (RESTAURA los
+34 valores de Variacion del cliente hoy corruptos), quitar el puente
+del deck (auditMinimal lee el catalogo instalado), re-render del deck
+unificado y MUESTRA del log para la aceptacion del dueño.
