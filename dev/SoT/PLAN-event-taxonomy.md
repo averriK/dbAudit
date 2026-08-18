@@ -220,3 +220,31 @@ borrar la derivacion), leyenda (columna Nivel en vez de Disposicion),
 stressAudit.R, y corrida completa con comparacion de conteos. Hasta
 esa migracion NO reinstalar: el namespace instalado v2 mantiene
 coherentes a los runners y al deck actuales.
+
+## VEREDICTO (2026-08-17): MISCOMPUTED y MIXED son ALUCINACIONES
+
+Verificado en fuente por el maestro tras el reclamo del usuario:
+
+1. MISCOMPUTED: el invariante change == head - lag(head) NO es la
+   definicion del cliente. Prueba exacta (IAM-1, planilla fila 47):
+   lectura previa = POZO SECO (sin nivel); el cliente computa
+   Variacion = 0.61 = recuperacion desde el fondo seco ("Ascenso");
+   nuestro recompute salta el seco y da 0.00. El "repair" SOBRESCRIBIO
+   el valor correcto del cliente en la base (34 registros corruptos en
+   data/db actual). ACCION PENDIENTE (primera de la proxima sesion):
+   retirar .repairPCGChange + .checkPCGChange + MISCOMPUTED del
+   catalogo (o redefinir SOLO tras entender todas las convenciones de
+   la Variacion del cliente — ruling del dueño), regenerar la base
+   sin el repair, actualizar goldens.
+2. MIXED: 0 de 13 instrumentos PCV mezcla unidades DENTRO del
+   instrumento (verificado); cada sensor declara su unidad
+   consistentemente. La heterogeneidad entre instrumentos es diseño
+   declarado, no defecto. ACCION: MIXED muere como ERROR (ruling del
+   dueño si queda como INFO o desaparece).
+
+Conteo de la auditoria del sistema de eventos pedida por el usuario:
+41 hechos logueados son falsos (34 MISCOMPUTED + 7 MIXED); 4 clases
+graves NO tienen evento: instrumentos sin lectura en campaña,
+baseline INC cruzando el cambio de sonda (18/24 pozos), recrecimientos
+de boca sin cota por epoca, checksums INC sin umbral. MISLABELED (40)
+es real pero cosmetico (INM-1 vs INM-01) — impacto a ruling.
