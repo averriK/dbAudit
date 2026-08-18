@@ -1,0 +1,27 @@
+file,row_or_date,event,level,correctable,correct_value,note
+source/INC/Vega/VI-1,"",MISLABELED,WARNING,yes,VI-1,validated by AR runner
+source/INC/Vega/VI-1/VEGA_VI-1_Inclinometer_20240623.csv,2024-06-23,REDATED,ERROR,no,"",validated by AR runner
+source/INC/Vega/VI-1/VEGA_VI-1_Inclinometer_20250313.csv,2025-03-13,MISCOUNTED,ERROR,no,38,validated by AR runner
+source/INC/Vega/VI-2/VEGA_VI-2_Inclinometer_20240314 - copia.csv,2024-03-14,DUPLICATED,WARNING,yes,"",validated by AR runner
+source/INC/Vega/VI-2/VEGA_VI-2_Inclinometer_20240918.csv,2024-09-18,MISLABELED,ERROR,no,"",validated by AR runner
+source/INC/Vega/VI-2/VEGA_VI-2_Inclinometer_20250616.csv,2025-06-16,INCOMPLETE,ERROR,no,"",validated by AR runner
+source/PCG/Vega/VP-1_Depósito_de_Relaves_Vega.xlsx,2023-05-14,COMMA,WARNING,yes,3594.53,fires in gate sink audit/PCG.reject.csv; value repaired into db
+source/PCG/Vega/VP-1_Depósito_de_Relaves_Vega.xlsx,2023-09-19,UNREADABLE,ERROR,no,"",fires in gate sink audit/PCG.reject.csv; no reading enters db
+source/PCG/Vega/VP-1_Depósito_de_Relaves_Vega.xlsx,2024-02-13,COMMA,WARNING,yes,3593.98,fires in gate sink audit/PCG.reject.csv; value repaired into db
+source/PCG/Vega/VP-1_Depósito_de_Relaves_Vega.xlsx,2024-09-18,UNREADABLE,ERROR,no,"",fires in gate sink audit/PCG.reject.csv; level gap in db (typed 3594.88)
+source/PCG/Vega/VP-1_Depósito_de_Relaves_Vega.xlsx,2025-03-13,COMMA,WARNING,yes,3594.22,fires in gate sink audit/PCG.reject.csv; value repaired into db
+source/PCG/Vega/VP-1_Depósito_de_Relaves_Vega.xlsx,2025-08-16,NONE,"","","",anti-ghost: level repeats the previous month exactly (real piezometer persistence); must not fire
+source/PCG/Vega/VP-2_Depósito_de_Relaves_Vega.xlsx,2023-12-14,DUPLICATED,ERROR,no,"","not detected today: the raw duplicate key uses SourceRow, not the reading date; documented gap"
+source/PCG/Vega/VP-2_Depósito_de_Relaves_Vega.xlsx,2024-07-17,NONE,"","","",anti-ghost: legitimate collar raise +2.00 m with the declared collar column updated; MISCLOSURE must not fire
+source/PCG/Vega/VP-3_Depósito_de_Relaves_Vega.xlsx,2023-07-19,DRY,INFO,no,"",no log emission today; flag D in audit/PZ.data.csv is the record
+source/PCG/Vega/VP-3_Depósito_de_Relaves_Vega.xlsx,2023-08-16,DRY,INFO,no,"",no log emission today; flag D in audit/PZ.data.csv is the record
+source/PCG/Vega/VP-3_Depósito_de_Relaves_Vega.xlsx,2023-09-19,DRY,INFO,no,"",no log emission today; flag D in audit/PZ.data.csv is the record
+source/PCG/Vega/VP-3_Depósito_de_Relaves_Vega.xlsx,2023-10-14,DRY,INFO,no,"",no log emission today; flag D in audit/PZ.data.csv is the record
+source/PCG/Vega/VP-3_Depósito_de_Relaves_Vega.xlsx,2023-11-12,NONE,"","","","anti-ghost: client-style Variación after a dry well (recovery from the dry bottom, the case that killed MISCOMPUTED); must not fire"
+source/PCG/Vega/VP-3_Depósito_de_Relaves_Vega.xlsx,sheet VP-3 (2),MALFORMED,ERROR,no,"",not detected today: a source sheet without a date column is skipped silently and its readings never enter the db; documented gap
+source/PCV/Vega/Piezómetro CV-VP-4.xlsx,"",MIXED,INFO,no,"",fires in log.csv: pressure declared in kPa on channel A and MPa on channel B
+source/PCV/Vega/Piezómetro CV-VP-4.xlsx,"",NONE,"","","",anti-ghost: units differ per channel but each channel declares its unit consistently (the case that degraded MIXED to INFO); nothing beyond MIXED INFO may fire
+source/PCV/Vega/Piezómetro CV-VP-4.xlsx,"",UNITLESS,ERROR,no,"",fires in log.csv: no unit declared for the R column in either channel sheet
+source/PCV/Vega/Piezómetro CV-VP-4.xlsx,2023-08-16,MISCLOSURE,ERROR,no,6.76,check suspended; fires after row-local redesign
+source/PCV/Vega/Piezómetro CV-VP-4.xlsx,2024-08-12,MISCLOSURE,ERROR,no,6.75,check suspended; fires after row-local redesign
+source/backup/PCG/Vega/VP-2_Depósito_de_Relaves_Vega.xlsx,2026-01-14,MISSING,ERROR,no,"","not detected today: no source-to-raw census exists, a file outside the walked roots never reaches raw; documented gap"

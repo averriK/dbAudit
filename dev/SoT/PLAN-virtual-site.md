@@ -89,3 +89,36 @@ cuatro gates. La primera aparición deja de ser en datos del cliente.
 en dev/ + test en tests/testthat). 3. Mini-deck: sí (AR apunta el
 data root al fixture). 4. Matriz de corrupción: aprobada como está
 (15 inyecciones + 4 anti-fantasma). Implementación autorizada.
+
+## CONSTRUIDO Y VERIFICADO (2026-08-18) — 4 gates PASS, 68/68 tests
+
+dev/generateVega.R (determinista, seed 20260818, formatos reales
+replicados, cero valores del cliente — verificado por spot-check);
+inst/fixtures/Vega/ (80 archivos, 15 inyecciones + 4 anti-fantasma);
+truth.csv (26 filas, generada de los mismos valores que las
+planillas); tests/testthat/test-vega.R (55 aserciones, corrida real
+en tempdir). Gates: (a) sensibilidad PASS; (b) especificidad PASS —
+cero fantasmas, log exacto START/MIXED/UNITLESS/DONE + sink 3 COMMA
+2 UNREADABLE; (c) correcciones exactas contra truth; (d) todo lo
+incorregible visible en productos.
+
+BRECHAS DE DETECCION DOCUMENTADAS (el hallazgo importante — la
+inyeccion existe y espera el fix; el test las fija como no-emision
+deliberada):
+1. DUPLICATED record no puede disparar: .checkDuplicateRaw clava por
+   (file, sheet, SourceRow), no por fecha — dos filas de una misma
+   hoja jamas son duplicadas para el.
+2. MISSING no puede disparar: no hay censo source->raw; un archivo
+   fuera de las raices caminadas nunca llega a conciliarse.
+3. MALFORMED de hoja fuente no dispara: la hoja sin fecha falla
+   IsDataSheet y se SALTA EN SILENCIO (conecta con el grave-sin-log
+   "instrumento sin lectura").
+4. flag D colateral: la regla marca D todo NA de nivel, incluida la
+   fila UNREADABLE (4 secos + 1 colateral, fijado en test como
+   refinamiento futuro).
+Lado INC (MISLABELED/REDATED/DUPLICATED survey/MISCOUNTED/
+INCOMPLETE): corrupciones presentes en el fixture, validacion vive en
+el runner AR — anotado en truth, jamas fingido. MISCLOSURE: inyectado,
+truth nota el check suspendido; espera el rediseño fila-local.
+
+PENDIENTE: mini-deck de Vega (lado AR, data root al fixture).
