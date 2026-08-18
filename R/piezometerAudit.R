@@ -307,42 +307,6 @@
   }))
   data
 }
-
-# Residual invariant: the build stage stores the recomputed change and
-# logs MISCOMPUTED (corrected) per record. After that repair the
-# db must satisfy change == head - lag(head); any residual here means
-# the repair failed upstream and the record is retained as suspect.
-.checkPCGChange <- function(log, data) {
-  COLS <- c("RecordID", "SiteID", "HoleID", "SensorID", "datetime", "head", "change")
-  if (!.checkColumns(log = log, file = "data/db/PCG.data.csv", data = data, cols = COLS)) {
-    return(invisible(FALSE))
-  }
-  data.table::setorder(data, SiteID, HoleID, SensorID, datetime, RecordID)
-  AUX <- data[, .(
-    RecordID = RecordID,
-    Diff = abs(change - (head - data.table::shift(head)))
-  ), by = .(SiteID, HoleID, SensorID)][!is.na(Diff) & Diff > 1e-6]
-  if (nrow(AUX) > 0L) {
-    data[AUX, on = "RecordID", `:=`(
-      status = "ERROR",
-      event = "MISCOMPUTED"
-    )]
-    Marked <- data[AUX, on = "RecordID"]
-    .logEvent(
-      log.file = log,
-      scope = "record",
-      event = "MISCOMPUTED",
-      level = "ERROR",
-      SiteID = Marked$SiteID,
-      HoleID = Marked$HoleID,
-      datetime = Marked$datetime,
-      source = "data/db/PCG.data.csv",
-      detail = "residual mismatch after build repair; tolerance=1e-6"
-    )
-  }
-  invisible(TRUE)
-}
-
 .pzTables <- function(data, index) {
   COLS.data <- c("ID", "RecordID", "SiteID", "HoleID", "SensorID", "datetime",
                  "status", "event", "depth", "units.depth", "level", "units.level",

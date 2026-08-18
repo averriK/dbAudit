@@ -352,45 +352,6 @@
   }
   invisible(nrow(DT))
 }
-
-# Build-stage repair (taxonomy ruling 2026-08-16): the db stores the
-# RECOMPUTED change (head - lag(head)); the typed value is preserved as
-# evidence in the gate sink (cause MISCOMPUTED, corrected).
-.repairPCGChange <- function(tables, audit) {
-  if (is.null(tables$PCG)) return(invisible(tables))
-  DT <- tables$PCG$data
-  COLS <- c("RecordID", "SiteID", "HoleID", "SensorID", "datetime", "head", "change")
-  if (!all(COLS %in% names(DT))) return(invisible(tables))
-  data.table::setorder(DT, SiteID, HoleID, SensorID, datetime, RecordID)
-  DT[, recalc.change := head - data.table::shift(head),
-    by = .(SiteID, HoleID, SensorID)]
-  BAD <- DT[!is.na(change) & !is.na(recalc.change) &
-    abs(change - recalc.change) > 1e-6]
-  if (nrow(BAD) > 0L) {
-    Records <- .gateRecord(
-      data = BAD[, .(ID = "PCG", SiteID, HoleID, SensorID, datetime, RecordID)],
-      event = "MISCOMPUTED",
-      level = "WARNING",
-      detail = sprintf(
-        "typed=%s; recomputed=%s; recomputed value stored",
-        format(BAD$change), format(round(BAD$recalc.change, 6))
-      )
-    )
-    FILE <- file.path(audit, "PCG.reject.csv")
-    dir.create(path = audit, recursive = TRUE, showWarnings = FALSE)
-    if (file.exists(FILE)) {
-      OLD <- data.table::fread(FILE)
-      Records <- data.table::rbindlist(
-        l = list(OLD, Records), use.names = TRUE, fill = TRUE
-      )
-    }
-    data.table::fwrite(x = Records, file = FILE)
-    DT[BAD, on = "RecordID", change := recalc.change]
-  }
-  DT[, recalc.change := NULL]
-  invisible(tables)
-}
-
 .gatePiezometers <- function(data, raw, audit, id) {
   Candidates <- nrow(data)
   Records <- list()

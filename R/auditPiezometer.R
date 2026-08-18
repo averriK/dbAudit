@@ -82,7 +82,6 @@ auditPiezometer <- function(
   DATA <- .gatePiezometers(data = DATA, raw = raw.dir, audit = audit.dir, id = id)
   DATA <- .cleanRawData(data = DATA)
   Tables <- .buildDBTables(data = DATA, id = id, schema = .dbSchema())
-  .repairPCGChange(tables = Tables, audit = audit.dir)
   .writeDBTables(tables = Tables, db = db.dir)
 
   ## Audit stage
@@ -109,7 +108,6 @@ auditPiezometer <- function(
     .checkPCVHeader(log = Log, header = RawHeader)
   }
   if ("PCG" %in% id) {
-    .checkPCGChange(log = Log, data = Audit$PCG)
   }
 
   PZ <- .pzTables(data = Audit, index = DBIndex)
