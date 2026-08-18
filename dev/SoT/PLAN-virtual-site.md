@@ -82,3 +82,10 @@ cuatro gates. La primera aparición deja de ser en datos del cliente.
 2. ¿Vive en dbAudit como fixture del motor (recomendado) o en AR?
 3. ¿Mini-deck para verlo: sí/no?
 4. ¿La matriz de corrupción de arriba está completa o agregás casos?
+
+## RULINGS RESUELTOS (usuario, 2026-08-18: "ok. tu recomendación")
+
+1. SiteID: Vega. 2. Vive en dbAudit (inst/fixtures/Vega + generador
+en dev/ + test en tests/testthat). 3. Mini-deck: sí (AR apunta el
+data root al fixture). 4. Matriz de corrupción: aprobada como está
+(15 inyecciones + 4 anti-fantasma). Implementación autorizada.
