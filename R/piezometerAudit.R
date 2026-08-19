@@ -183,17 +183,25 @@
 }
 
 .checkDuplicateRaw <- function(log, rawData) {
-  # DUPLICATED record (ERROR, catalog): two readings for the same
-  # instrument and DATE. The key is the reading identity, never the
-  # source position — a re-entered reading typically carries another
-  # time of day, so the time column is not part of the identity
-  # (PLAN-virtual-site.md detection gap 1, closed 2026-08-18).
+  # DUPLICATED record (ERROR, catalog): two readings the client's own
+  # columns cannot distinguish. The key is THE CLIENT'S OWN ROW
+  # IDENTITY: instrument (ID, SiteID, HoleID, SensorID) plus date PLUS
+  # time PLUS stage, each wherever the source sheet provides it; a
+  # column absent from a domain leaves the identity to the columns that
+  # exist. The source position (SourceRow) is never part of the
+  # identity — a re-entered identical row always carries another
+  # SourceRow. Ruling 2026-08-18: the previous date-only key over-fired
+  # on legitimate practice (intra-day development series with distinct
+  # horas; Zero Reading vs Field Read distinguished by stage).
+  # (PLAN-virtual-site.md detection gap 1, closed 2026-08-18; rekeyed
+  # to the client identity 2026-08-18.)
   COLS <- c("ID", "SiteID", "HoleID", "SensorID", "date",
             "SourceRow", "variable")
   if (!.checkColumns(log = log, file = "data/raw", data = rawData, cols = COLS)) {
     return(invisible(FALSE))
   }
-  KEY <- c("ID", "SiteID", "HoleID", "SensorID", "date")
+  KEY <- c("ID", "SiteID", "HoleID", "SensorID", "date",
+           intersect(c("time", "stage"), names(rawData)))
   AUX <- rawData[, .N, by = c(KEY, "variable")][N > 1L]
   if (nrow(AUX) > 0L) {
     AUX <- rawData[unique(AUX[, ..KEY]), on = KEY][, .(

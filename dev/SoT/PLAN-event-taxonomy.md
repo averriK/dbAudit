@@ -290,3 +290,18 @@ accion pasa a "determinar el mecanismo y decidir la fecha real". El
 arbitro definitivo es el registro de equipos (el MISSING censado):
 cruzar sonda/datalogger por campaña contra los grupos 2022 —
 pendiente del ruling de ingesta del dueño.
+
+## DUPLICATED record estrechado a la identidad del cliente (2026-08-18)
+
+Verificado independiente PASS: clave = fecha + hora + stage cuando la
+planilla los declara (SourceRow jamas). Real: 26 -> 5 emisiones.
+Sobreviven: Cancha7 CR7_PZ-1..4 (18/04/2024, re-ingreso identico con
+misma hora; la Variacion recomputada 0="Constante" es la firma del
+re-ingreso) y ZonaB INC-01-A (17/11/2024: 13 Field Reads del mismo
+dia SIN hora declarada — la planilla no los distingue; candidato a
+convencion del dueño para series de comisionado). Silenciados 21: 14
+por hora (incl. AmandaI 27/09/2021 — el seco de las 09:20 y el nivel
+de las 17:28 son distinguibles y fisicamente compatibles) y 7 por
+stage (Zero Reading vs Field Read). Vega ajustado: la inyeccion
+modela el re-ingreso identico exacto; suite verde; regeneracion
+determinista verificada. Catalogo actualizado a la identidad nueva.

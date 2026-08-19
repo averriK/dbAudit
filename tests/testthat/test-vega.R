@@ -14,9 +14,13 @@
 ## detection gaps documented on 2026-08-18 (DUPLICATED record keyed on
 ## SourceRow, no source-to-raw census, silent skip of a declared sheet,
 ## flag D collateral) were closed the same day: their expectations below
-## are deliberate flips from non-emission to emission. Still expected NOT
-## to fire: MISCLOSURE (check suspended until the row-local redesign) and
-## DRY (flag D in PZ.data.csv is the record, no log emission).
+## are deliberate flips from non-emission to emission. Same day, second
+## ruling: DUPLICATED record was rekeyed to the client's row identity
+## (date + hora + stage wherever the sheet provides them) and the VP-2
+## injection regenerated as an identical re-entry (same hora), so the
+## emission expectations hold unchanged. Still expected NOT to fire:
+## MISCLOSURE (check suspended until the row-local redesign) and DRY
+## (flag D in PZ.data.csv is the record, no log emission).
 
 .vegaRoot <- function() {
   PATH <- system.file("fixtures", "Vega", package = "dbAudit")
@@ -103,8 +107,11 @@ test_that("gate a: every injection detectable today fires with its level", {
                grepl("column=units.reading", detail, fixed = TRUE)]),
     1L
   )
-  ## DUPLICATED record fires in log.csv keyed on the reading identity
-  ## (deliberate flip 2026-08-18: formerly documented gap 1).
+  ## DUPLICATED record fires in log.csv keyed on the client's row
+  ## identity — date + hora + stage wherever the sheet provides them
+  ## (ruling 2026-08-18; the injection is an identical re-entry with
+  ## the same hora, so it stays indistinguishable by the client's own
+  ## columns). Deliberate flip 2026-08-18: formerly documented gap 1.
   AUX <- Log[event == "DUPLICATED" & level == "ERROR" & scope == "record"]
   expect_identical(nrow(AUX), 1L)
   expect_identical(AUX$HoleID, "VP-2")

@@ -239,30 +239,22 @@ VP1[21L, Level := sub(pattern = ".", replacement = "..", x = Level, fixed = TRUE
 )
 
 ## ---------------------------------------------------------------------
-## VP-2: DUPLICATED record (same date, two distinct rows), anti-ghost 2
-## (legitimate collar raise +2.00 m with the collar column updated), and
-## the MISSING backup file the parser never walks.
+## VP-2: DUPLICATED record (identical re-entry: the same reading typed
+## twice — same date, same hora, same values; only the sheet row
+## differs, modeling the real client error per the 2026-08-18 ruling),
+## anti-ghost 2 (legitimate collar raise +2.00 m with the collar column
+## updated), and the MISSING backup file the parser never walks.
 Hora <- round(runif(36, 0.35, 0.55) * 1440) / 1440
 Collar <- rep(3598.35, 36)
 Collar[19:36] <- 3600.35
 Elev <- 3576.95 + 0.55 * sin(2 * pi * (seq_len(36) - 3) / 12) + rnorm(36, 0, 0.07)
 VP2 <- .pcgSeries(collar = Collar, bottom = 3575.95, elev = Elev, hora = Hora)
 FILE.vp2 <- "source/PCG/Vega/VP-2_Depósito_de_Relaves_Vega.xlsx"
-DUP <- copy(VP2[12L])
-DUP[, `:=`(
-  Hora = .fm(as.numeric(Hora) + round(0.0417 * 1440) / 1440, digits = 5L),
-  WaterDepth = .fm(as.numeric(WaterDepth) - 0.03),
-  Level = .fm(as.numeric(Level) + 0.03),
-  Head = .fm(as.numeric(Head) + 0.03),
-  Change = .fm(0.03),
-  Comment = "Ascenso",
-  Plot = .fm(-(as.numeric(WaterDepth) - 0.03))
-)]
-VP2 <- rbindlist(l = list(VP2[1:12], DUP, VP2[13:36]), use.names = TRUE)
+VP2 <- rbindlist(l = list(VP2[1:12], VP2[12L], VP2[13:36]), use.names = TRUE)
 .truth(
   file = FILE.vp2, row_or_date = as.character(Dates[12]), event = "DUPLICATED",
   level = "ERROR", correctable = "no", correct_value = "",
-  note = "fires in log.csv: DUPLICATED record keyed on the reading identity (gap closed 2026-08-18); both rows stay visible in db"
+  note = "fires in log.csv: DUPLICATED record keyed on the client's row identity (date+hora+stage, ruling 2026-08-18); identical re-entry, same hora; both rows stay visible in db"
 )
 .truth(
   file = FILE.vp2, row_or_date = as.character(Dates[19]), event = "NONE",

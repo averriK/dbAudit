@@ -11,7 +11,7 @@ source/PCG/Vega/VP-1_Depósito_de_Relaves_Vega.xlsx,2024-02-13,COMMA,WARNING,yes
 source/PCG/Vega/VP-1_Depósito_de_Relaves_Vega.xlsx,2024-09-18,UNREADABLE,ERROR,no,"",fires in gate sink audit/PCG.reject.csv; level gap in db (typed 3594.88)
 source/PCG/Vega/VP-1_Depósito_de_Relaves_Vega.xlsx,2025-03-13,COMMA,WARNING,yes,3594.22,fires in gate sink audit/PCG.reject.csv; value repaired into db
 source/PCG/Vega/VP-1_Depósito_de_Relaves_Vega.xlsx,2025-08-16,NONE,"","","",anti-ghost: level repeats the previous month exactly (real piezometer persistence); must not fire
-source/PCG/Vega/VP-2_Depósito_de_Relaves_Vega.xlsx,2023-12-14,DUPLICATED,ERROR,no,"","fires in log.csv: DUPLICATED record keyed on the reading identity (gap closed 2026-08-18); both rows stay visible in db"
+source/PCG/Vega/VP-2_Depósito_de_Relaves_Vega.xlsx,2023-12-14,DUPLICATED,ERROR,no,"","fires in log.csv: DUPLICATED record keyed on the client's row identity (date+hora+stage, ruling 2026-08-18); identical re-entry, same hora; both rows stay visible in db"
 source/PCG/Vega/VP-2_Depósito_de_Relaves_Vega.xlsx,2024-07-17,NONE,"","","",anti-ghost: legitimate collar raise +2.00 m with the declared collar column updated; MISCLOSURE must not fire
 source/PCG/Vega/VP-3_Depósito_de_Relaves_Vega.xlsx,2023-07-19,DRY,INFO,no,"",no log emission today; flag D in audit/PZ.data.csv is the record
 source/PCG/Vega/VP-3_Depósito_de_Relaves_Vega.xlsx,2023-08-16,DRY,INFO,no,"",no log emission today; flag D in audit/PZ.data.csv is the record
@@ -24,4 +24,4 @@ source/PCV/Vega/Piezómetro CV-VP-4.xlsx,"",NONE,"","","",anti-ghost: units diff
 source/PCV/Vega/Piezómetro CV-VP-4.xlsx,"",UNITLESS,ERROR,no,"",fires in log.csv: no unit declared for the R column in either channel sheet
 source/PCV/Vega/Piezómetro CV-VP-4.xlsx,2023-08-16,MISCLOSURE,ERROR,no,6.76,check suspended; fires after row-local redesign
 source/PCV/Vega/Piezómetro CV-VP-4.xlsx,2024-08-12,MISCLOSURE,ERROR,no,6.75,check suspended; fires after row-local redesign
-source/backup/PCG/Vega/VP-2_Depósito_de_Relaves_Vega.xlsx,2026-01-14,MISSING,ERROR,no,"","fires in log.csv: source-to-raw census (gap closed 2026-08-18); the file outside the walked roots never reaches raw and its readings never load"
+source/backup/PCG/Vega/VP-2_Depósito_de_Relaves_Vega.xlsx,2026-01-14,MISSING,ERROR,no,"",fires in log.csv: source-to-raw census (gap closed 2026-08-18); the file outside the walked roots never reaches raw and its readings never load
