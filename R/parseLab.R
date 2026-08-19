@@ -10,7 +10,7 @@ parseLabDataA <- function(
 ) {
 
   if (!dir.exists(dirname(data.file))) dir.create(dirname(data.file), recursive = TRUE, showWarnings = FALSE)
-  if (!dir.exists(path)) stop(sprintf("path %s not found. Stop"), path)
+  if (!dir.exists(path)) stop(sprintf("path %s not found. Stop", path))
 
   INDEX <- data.table()
   DATA <- data.table()
@@ -75,7 +75,7 @@ parseLabData <- function(
   format <- match.arg(format)
 
   if (!dir.exists(dirname(data.file))) dir.create(dirname(data.file), recursive = TRUE, showWarnings = FALSE)
-  if (!dir.exists(path)) stop(sprintf("path %s not found. Stop"), path)
+  if (!dir.exists(path)) stop(sprintf("path %s not found. Stop", path))
 
   INDEX <- data.table()
   DATA <- data.table()

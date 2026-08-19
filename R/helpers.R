@@ -106,6 +106,12 @@
   NA_character_
 }
 
+# Escape regex metacharacters so an inferred literal (e.g., an LCS prefix)
+# can be anchored inside a pattern without changing its meaning
+.escapeRegex <- function(x) {
+  gsub("([][{}()*+?.^$|\\\\])", "\\\\\\1", x)
+}
+
 # Clean identifier strings like jobID and despatchID by removing ':' and ',' tokens and trimming spaces
 .cleanId <- function(x) {
   if (is.null(x) || length(x) == 0L) return(NA_character_)

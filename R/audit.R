@@ -46,10 +46,10 @@ auditStructure <- function(log.file, data.client, data.lab, fix = FALSE, file.id
 
       if (isTRUE(fix)) {
         if (length(prefix) == 1 && nzchar(prefix)) {
-          DATA.client[!(jobID %in% jobID.lab) & sampleID %in% sampleID.lab, jobID := sub(paste0("^", prefix), "", jobID)]
+          DATA.client[!(jobID %in% jobID.lab) & sampleID %in% sampleID.lab, jobID := sub(paste0("^", .escapeRegex(prefix)), "", jobID)]
         }
         if (length(suffix) == 1 && nzchar(suffix)) {
-          DATA.client[!(jobID %in% jobID.lab) & sampleID %in% sampleID.lab, jobID := sub(paste0(suffix, "$"), "", jobID)]
+          DATA.client[!(jobID %in% jobID.lab) & sampleID %in% sampleID.lab, jobID := sub(paste0(.escapeRegex(suffix), "$"), "", jobID)]
         }
       }
     }
@@ -97,10 +97,10 @@ auditStructure <- function(log.file, data.client, data.lab, fix = FALSE, file.id
     suffix <- unique(DT$suffix)
     if (isTRUE(fix)) {
       if (length(prefix) == 1 && nzchar(prefix)) {
-        DATA.client[(jobID %in% jobID.lab) & !(sampleID %in% sampleID.lab), sampleID := sub(paste0("^", prefix), "", sampleID)]
+        DATA.client[(jobID %in% jobID.lab) & !(sampleID %in% sampleID.lab), sampleID := sub(paste0("^", .escapeRegex(prefix)), "", sampleID)]
       }
       if (length(suffix) == 1 && nzchar(suffix)) {
-        DATA.client[(jobID %in% jobID.lab) & !(sampleID %in% sampleID.lab), sampleID := sub(paste0(suffix, "$"), "", sampleID)]
+        DATA.client[(jobID %in% jobID.lab) & !(sampleID %in% sampleID.lab), sampleID := sub(paste0(.escapeRegex(suffix), "$"), "", sampleID)]
       }
     }
     DT <- DATA.client[(jobID %in% jobID.lab) & !(sampleID %in% sampleID.lab)]
