@@ -262,7 +262,7 @@ VP2 <- rbindlist(l = list(VP2[1:12], DUP, VP2[13:36]), use.names = TRUE)
 .truth(
   file = FILE.vp2, row_or_date = as.character(Dates[12]), event = "DUPLICATED",
   level = "ERROR", correctable = "no", correct_value = "",
-  note = "not detected today: the raw duplicate key uses SourceRow, not the reading date; documented gap"
+  note = "fires in log.csv: DUPLICATED record keyed on the reading identity (gap closed 2026-08-18); both rows stay visible in db"
 )
 .truth(
   file = FILE.vp2, row_or_date = as.character(Dates[19]), event = "NONE",
@@ -297,7 +297,7 @@ FILE.backup <- "source/backup/PCG/Vega/VP-2_Depósito_de_Relaves_Vega.xlsx"
 .truth(
   file = FILE.backup, row_or_date = as.character(DATE), event = "MISSING",
   level = "ERROR", correctable = "no", correct_value = "",
-  note = "not detected today: no source-to-raw census exists, a file outside the walked roots never reaches raw; documented gap"
+  note = "fires in log.csv: source-to-raw census (gap closed 2026-08-18); the file outside the walked roots never reaches raw and its readings never load"
 )
 .writeSheets(
   path = file.path(Root, FILE.backup),
@@ -336,7 +336,7 @@ for (i in 7:10) {
 .truth(
   file = FILE.vp3, row_or_date = "sheet VP-3 (2)", event = "MALFORMED",
   level = "ERROR", correctable = "no", correct_value = "",
-  note = "not detected today: a source sheet without a date column is skipped silently and its readings never enter the db; documented gap"
+  note = "fires in log.csv: the sheet declares the monitoring marker but fails the data-sheet gate (gap closed 2026-08-18); its readings never enter the db"
 )
 .writeSheets(
   path = file.path(Root, FILE.vp3),

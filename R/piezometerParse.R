@@ -133,6 +133,15 @@ matchGridFields <- function(cells, aliases) {
   trimws(x)
 }
 
+# The client's monitoring sheets DECLARE themselves with the title
+# marker "MONITOREO DE PIEZ..." (PCG "...PIEZÓMETROS", PCV
+# "...PIEZÓMETRO DE CUERDA VIBRANTE"). The marker is the declared
+# identity the MALFORMED audit keys on — never a guess from content
+# (PLAN-virtual-site.md detection gap 3, closed 2026-08-18).
+.hasSheetMarker <- function(cells) {
+  any(startsWith(x = normalizeLabel(x = cells), prefix = "monitoreo de piez"))
+}
+
 .emptyPiezometerTable <- function() {
   data.table::data.table(
     ID = character(),
@@ -337,7 +346,8 @@ parsePCG <- function(path, manifest) {
         SourceSheet = sheet,
         HeaderMatches = data.table::uniqueN(HeaderMatches$Field),
         DataMatches = data.table::uniqueN(DataMatches$Field),
-        IsDataSheet = IsDataSheet
+        IsDataSheet = IsDataSheet,
+        HasMarker = .hasSheetMarker(cells = Cells)
       ),
       headers = Header,
       hydraulic = Hydraulic
@@ -525,7 +535,8 @@ parsePCV <- function(path, manifest) {
         HeaderMatches = data.table::uniqueN(HeaderMatches$Field),
         HydraulicMatches = data.table::uniqueN(HydraulicMatches$Field),
         InstrumentMatches = data.table::uniqueN(InstrumentMatches$Field),
-        IsDataSheet = nrow(Hydraulic) > 0L || nrow(Instrument) > 0L
+        IsDataSheet = nrow(Hydraulic) > 0L || nrow(Instrument) > 0L,
+        HasMarker = .hasSheetMarker(cells = Cells)
       ),
       headers = Header,
       hydraulic = Hydraulic,

@@ -108,6 +108,32 @@
   data.table::rbindlist(l = LIST, use.names = TRUE)
 }
 
+.checkSourceCensus <- function(log, source, walked, pattern = "[.]xlsx$") {
+  # MISSING (ERROR, catalog): source-to-raw census. The parse layer
+  # walks its id-rooted subtrees only; a data file anywhere else under
+  # the source root never reached raw and nobody reconciled it
+  # (PLAN-virtual-site.md detection gap 2, closed 2026-08-18). Both
+  # sides compare as normalized absolute paths.
+  FILES <- listSourceFiles(path = source, pattern = pattern)
+  FILES <- normalizePath(path.expand(FILES), mustWork = FALSE)
+  Walked <- normalizePath(
+    path.expand(unique(.asChar(walked))),
+    mustWork = FALSE
+  )
+  MISS <- setdiff(FILES, Walked)
+  if (length(MISS) > 0L) {
+    Prefix <- paste0(normalizePath(path.expand(source), mustWork = TRUE), "/")
+    .logEvent(
+      log.file = log,
+      scope = "file",
+      event = "MISSING",
+      source = sub(pattern = Prefix, replacement = "", x = MISS, fixed = TRUE),
+      detail = "data file under the source root never parsed"
+    )
+  }
+  invisible(TRUE)
+}
+
 .checkRawDBKeys <- function(log, rawData, dbIndex, rejects = NULL) {
   COLS <- c("ID", "SiteID", "HoleID", "SensorID", "SourcePath", "SourceSheet", "SourceRow")
   if (!.checkColumns(log = log, file = "data/raw", data = rawData, cols = COLS)) {
@@ -147,23 +173,78 @@
   invisible(TRUE)
 }
 
+# Excel serial date rendered as a log date label; a non-numeric date
+# passes through untouched so the emission never hides the raw
+# evidence.
+.asDateLabel <- function(date) {
+  Day <- suppressWarnings(as.numeric(.asChar(date)))
+  OUT <- format(as.Date(Day, origin = "1899-12-30"), format = "%Y-%m-%d")
+  data.table::fifelse(is.na(Day), .asChar(date), OUT)
+}
+
 .checkDuplicateRaw <- function(log, rawData) {
-  COLS <- c("ID", "SiteID", "HoleID", "SensorID", "SourcePath", "SourceSheet",
+  # DUPLICATED record (ERROR, catalog): two readings for the same
+  # instrument and DATE. The key is the reading identity, never the
+  # source position — a re-entered reading typically carries another
+  # time of day, so the time column is not part of the identity
+  # (PLAN-virtual-site.md detection gap 1, closed 2026-08-18).
+  COLS <- c("ID", "SiteID", "HoleID", "SensorID", "date",
             "SourceRow", "variable")
   if (!.checkColumns(log = log, file = "data/raw", data = rawData, cols = COLS)) {
     return(invisible(FALSE))
   }
-  AUX <- rawData[, .N, by = COLS][N > 1L]
+  KEY <- c("ID", "SiteID", "HoleID", "SensorID", "date")
+  AUX <- rawData[, .N, by = c(KEY, "variable")][N > 1L]
   if (nrow(AUX) > 0L) {
+    AUX <- rawData[unique(AUX[, ..KEY]), on = KEY][, .(
+      rows = data.table::uniqueN(SourceRow),
+      SourceRow = paste(sort(unique(SourceRow)), collapse = "/"),
+      variables = paste(sort(unique(variable)), collapse = ", ")
+    ), by = KEY]
     .logEvent(
       log.file = log,
       scope = "record",
       event = "DUPLICATED",
+      SiteID = AUX$SiteID,
+      HoleID = AUX$HoleID,
+      datetime = .asDateLabel(date = AUX$date),
       source = "data/raw",
-      detail = sprintf("count=%d", nrow(AUX))
+      detail = sprintf(
+        "ID=%s; SensorID=%s; rows=%d; SourceRow=%s; variables=%s",
+        AUX$ID, AUX$SensorID, AUX$rows, AUX$SourceRow, AUX$variables
+      )
     )
   }
   invisible(TRUE)
+}
+
+.checkSourceSheets <- function(log, raw, id) {
+  # MALFORMED (ERROR, catalog): a sheet that DECLARES the client
+  # monitoring header marker (see .hasSheetMarker) but fails the
+  # data-sheet gate was previously skipped in silence with zero
+  # readings (PLAN-virtual-site.md detection gap 3, closed 2026-08-18).
+  # A raw index written before the HasMarker column existed cannot
+  # observe the marker: the check skips it until a re-parse.
+  invisible(lapply(X = id, FUN = function(ID) {
+    IDX <- .readRaw(raw = raw, id = ID, name = "index")
+    COLS <- c("SiteID", "HoleID", "SourcePath", "SourceSheet",
+              "IsDataSheet", "HasMarker")
+    if (!all(COLS %in% names(IDX))) return(NULL)
+    BAD <- IDX[HasMarker == TRUE & IsDataSheet == FALSE]
+    if (nrow(BAD) == 0L) return(NULL)
+    .logEvent(
+      log.file = log,
+      scope = "file",
+      event = "MALFORMED",
+      SiteID = BAD$SiteID,
+      HoleID = BAD$HoleID,
+      source = sprintf("%s [%s]", basename(BAD$SourcePath), BAD$SourceSheet),
+      detail = sprintf(
+        "ID=%s; declared monitoring sheet fails the data-sheet gate; readings skipped",
+        BAD$ID
+      )
+    )
+  }))
 }
 
 .checkRawUnits <- function(log, rawData) {
@@ -307,7 +388,7 @@
   }))
   data
 }
-.pzTables <- function(data, index) {
+.pzTables <- function(data, index, rejects = NULL) {
   COLS.data <- c("ID", "RecordID", "SiteID", "HoleID", "SensorID", "datetime",
                  "status", "event", "depth", "units.depth", "level", "units.level",
                  "head", "units.head")
@@ -323,6 +404,19 @@
   # implicit-NA convention.
   DATA[, flag := data.table::fifelse(ID == "PCG" & is.na(level), "D", "")]
   INDEX <- index[, ..COLS.index]
+  # Flag D marks the dry condition only: a record whose level was
+  # rejected at the gate (UNREADABLE in the sink) is a data gap, not a
+  # dry well (PLAN-virtual-site.md detection gap 4, closed 2026-08-18).
+  if (!is.null(rejects) && nrow(rejects) > 0L) {
+    TRACE <- c("ID", "SourcePath", "SourceSheet", "SourceRow")
+    Gated <- INDEX[
+      unique(rejects[, ..TRACE]),
+      on = TRACE,
+      nomatch = NULL,
+      .(ID, RecordID)
+    ]
+    DATA[Gated, on = c("ID", "RecordID"), flag := ""]
+  }
   data.table::setorder(DATA, ID, SiteID, HoleID, SensorID, datetime, RecordID)
   data.table::setorder(INDEX, ID, SiteID, HoleID, SensorID, datetime, RecordID)
   list(data = DATA, index = INDEX)

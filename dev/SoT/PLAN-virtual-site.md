@@ -122,3 +122,15 @@ el runner AR — anotado en truth, jamas fingido. MISCLOSURE: inyectado,
 truth nota el check suspendido; espera el rediseño fila-local.
 
 PENDIENTE: mini-deck de Vega (lado AR, data root al fixture).
+
+## BRECHAS DEL MOTOR CERRADAS (2026-08-18) — verificado independiente
+
+Las 4 brechas del motor quedaron cerradas y volteadas a conciencia en
+test-vega (suite 76/76): DUPLICATED record re-clavado por identidad
+de lectura (ID, sitio, pozo, canal, FECHA — hora excluida por
+catalogo); censo fuente->raw (.checkSourceCensus) emitiendo MISSING;
+.hasSheetMarker + .checkSourceSheets emitiendo MALFORMED por marcador
+declarado del cliente; flag D limpiado de colaterales UNREADABLE via
+rejects. Vega: log completo 11 eventos mapeados 1:1 a truth, cero
+fantasmas, anti-fantasmas mudos. MISCLOSURE y DRY siguen como
+no-emision deliberada (esperan el rediseño fila-local / son flag).

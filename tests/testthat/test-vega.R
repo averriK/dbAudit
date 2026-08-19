@@ -10,11 +10,13 @@
 ##
 ## Honesty scope. auditPiezometer() covers PCG + PCV; the INC injections
 ## ship in the fixture for the AR runner (truth note "validated by AR
-## runner") and only their EXISTENCE is asserted here. Injections the
-## current pipeline cannot detect keep their corruption in the fixture and
-## are expected NOT to fire (truth notes "not detected today", "check
-## suspended", "no log emission today"); those expectations are documented
-## gaps, not passes.
+## runner") and only their EXISTENCE is asserted here. The four engine
+## detection gaps documented on 2026-08-18 (DUPLICATED record keyed on
+## SourceRow, no source-to-raw census, silent skip of a declared sheet,
+## flag D collateral) were closed the same day: their expectations below
+## are deliberate flips from non-emission to emission. Still expected NOT
+## to fire: MISCLOSURE (check suspended until the row-local redesign) and
+## DRY (flag D in PZ.data.csv is the record, no log emission).
 
 .vegaRoot <- function() {
   PATH <- system.file("fixtures", "Vega", package = "dbAudit")
@@ -101,18 +103,51 @@ test_that("gate a: every injection detectable today fires with its level", {
                grepl("column=units.reading", detail, fixed = TRUE)]),
     1L
   )
+  ## DUPLICATED record fires in log.csv keyed on the reading identity
+  ## (deliberate flip 2026-08-18: formerly documented gap 1).
+  AUX <- Log[event == "DUPLICATED" & level == "ERROR" & scope == "record"]
+  expect_identical(nrow(AUX), 1L)
+  expect_identical(AUX$HoleID, "VP-2")
+  expect_identical(
+    as.character(AUX$datetime),
+    Truth[event == "DUPLICATED" & grepl("VP-2", file), row_or_date]
+  )
+  expect_match(AUX$detail, "rows=2", fixed = TRUE)
+  ## MISSING fires from the source-to-raw census (deliberate flip
+  ## 2026-08-18: formerly documented gap 2).
+  AUX <- Log[event == "MISSING" & level == "ERROR"]
+  expect_identical(nrow(AUX), 1L)
+  expect_identical(
+    AUX$source,
+    sub("^source/", "", Truth[event == "MISSING", file])
+  )
+  ## MALFORMED fires for the sheet that declares the monitoring marker
+  ## but fails the data-sheet gate (deliberate flip 2026-08-18:
+  ## formerly documented gap 3).
+  AUX <- Log[event == "MALFORMED" & level == "ERROR"]
+  expect_identical(nrow(AUX), 1L)
+  expect_identical(
+    AUX$source,
+    sprintf(
+      "%s [VP-3 (2)]",
+      basename(Truth[event == "MALFORMED", file])
+    )
+  )
 })
 
 test_that("gate b: nothing else fires (zero ghosts, gaps stay silent)", {
-  ## The complete expected log: the run marks plus the two file-scope
-  ## findings. Everything else in the matrix either lives in the gate
-  ## sink, is INC-side, is suspended, or is a documented detection gap.
+  ## The complete expected log after the 2026-08-18 gap closures: run
+  ## marks, the two original file-scope findings, and the three flipped
+  ## emissions (DUPLICATED record, MALFORMED sheet, MISSING census).
+  ## Everything else in the matrix either lives in the gate sink, is
+  ## INC-side, or is suspended.
   expect_identical(
     as.data.frame(Log[, .N, keyby = .(level, event)]),
     data.frame(
-      level = c("ERROR", "INFO", "INFO", "INFO"),
-      event = c("UNITLESS", "DONE", "MIXED", "START"),
-      N = c(1L, 1L, 1L, 1L)
+      level = c("ERROR", "ERROR", "ERROR", "ERROR", "INFO", "INFO", "INFO"),
+      event = c("DUPLICATED", "MALFORMED", "MISSING", "UNITLESS",
+                "DONE", "MIXED", "START"),
+      N = c(1L, 1L, 1L, 1L, 1L, 1L, 1L)
     )
   )
   ## The complete expected gate sink: 3 COMMA + 2 UNREADABLE, PCG only.
@@ -129,16 +164,13 @@ test_that("gate b: nothing else fires (zero ghosts, gaps stay silent)", {
   ## re-record of this suite, never an accident:
   ## - MISCLOSURE is SUSPENDED (inferred implementation retired; fires
   ##   only after the row-local redesign);
-  ## - DUPLICATED record: the raw duplicate key uses SourceRow, not the
-  ##   reading date;
-  ## - MISSING: no source-to-raw census exists;
-  ## - MALFORMED: a source sheet without a date column is skipped
-  ##   silently;
   ## - DRY: flag D in PZ.data.csv, no log event;
   ## - MISLABELED/REDATED/MISCOUNTED/INCOMPLETE (INC side): AR runner.
+  ## DUPLICATED record, MISSING and MALFORMED left this list on
+  ## 2026-08-18 (deliberate flips; asserted as emissions in gate a).
   expect_identical(
     nrow(Log[event %in% c(
-      "MISCLOSURE", "DUPLICATED", "MISSING", "MALFORMED", "DRY",
+      "MISCLOSURE", "DRY",
       "MISLABELED", "REDATED", "MISCOUNTED", "INCOMPLETE"
     )]),
     0L
@@ -217,13 +249,12 @@ test_that("gate d: dry readings carry flag D in PZ.data", {
   expect_setequal(.vegaDate(AUX$datetime), DATES)
   expect_identical(nrow(AUX), 4L)
   expect_true(all(is.na(AUX$level)))
-  ## Documented imprecision of the current flag rule: flag D marks every
-  ## PCG record without a level value, so the UNREADABLE typo campaign of
-  ## VP-1 (level rejected, depth kept) is also flagged. 4 dry + 1
-  ## collateral. Separating the dry condition from a rejection gap is a
-  ## future refinement; changing this count must be deliberate.
-  expect_identical(nrow(PZ[flag == "D"]), 5L)
-  expect_identical(unique(PZ[flag == "D" & HoleID != "VP-3", HoleID]), "VP-1")
+  ## Deliberate flip 2026-08-18 (formerly documented gap 4): flag D now
+  ## marks the dry condition only. The UNREADABLE typo campaign of VP-1
+  ## (level rejected at the gate, depth kept) is a data gap, not a dry
+  ## well, and carries no flag. 4 dry, 0 collateral.
+  expect_identical(nrow(PZ[flag == "D"]), 4L)
+  expect_identical(unique(PZ[flag == "D", HoleID]), "VP-3")
 })
 
 test_that("gate d: the malformed sheet exists and contributes nothing", {

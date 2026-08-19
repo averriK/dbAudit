@@ -56,6 +56,12 @@ auditPiezometer <- function(
   ## Parse stage. SourcePath cells are recorded relative to the project
   ## root so the products stay portable across machines.
   Parsed <- .parseAll(source = source.dir, manifest = Manifest, id = id)
+  ## The parse layer knows exactly which files it walked; the census
+  ## needs those paths in their absolute pre-rewrite form.
+  Walked <- unique(unlist(lapply(
+    X = Parsed,
+    FUN = function(tables) tables$inspection$SourcePath
+  )))
   Prefix <- paste0(project.path, "/")
   Parsed <- lapply(X = Parsed, FUN = function(tables) {
     lapply(X = tables, FUN = function(DT) {
@@ -97,6 +103,8 @@ auditPiezometer <- function(
   Rejects <- .readRejects(audit = audit.dir, id = id)
   Audit <- .initAudit(data = DBData)
 
+  .checkSourceCensus(log = Log, source = source.dir, walked = Walked)
+  .checkSourceSheets(log = Log, raw = raw.dir, id = id)
   .checkRawDBKeys(log = Log, rawData = RawData, dbIndex = DBIndex, rejects = Rejects)
   .checkDuplicateRaw(log = Log, rawData = RawData)
   .checkRawUnits(log = Log, rawData = RawData)
@@ -110,7 +118,7 @@ auditPiezometer <- function(
   if ("PCG" %in% id) {
   }
 
-  PZ <- .pzTables(data = Audit, index = DBIndex)
+  PZ <- .pzTables(data = Audit, index = DBIndex, rejects = Rejects)
   .writeAudit(path = audit.dir, id = id, data = Audit, pz = PZ)
   .logEvent(
     log.file = Log, scope = "run", event = "DONE", source = "auditPiezometer",
