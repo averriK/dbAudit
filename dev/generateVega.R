@@ -186,7 +186,7 @@ Truth <- list()
   )
 }
 
-NOTE.arn <- "validated by AR runner"
+NOTE.arn <- "validated engine-side by auditInclinometer()"
 
 ## ---------------------------------------------------------------------
 ## VP-1: COMMA x3, UNREADABLE x2, anti-ghost 3 (exact level repeat).

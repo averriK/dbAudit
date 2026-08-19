@@ -8,9 +8,10 @@
 ##   (c) every correction leaves the correct value in the database;
 ##   (d) every uncorrectable injection stays visible in the products.
 ##
-## Honesty scope. auditPiezometer() covers PCG + PCV; the INC injections
-## ship in the fixture for the AR runner (truth note "validated by AR
-## runner") and only their EXISTENCE is asserted here. The four engine
+## Honesty scope. auditPiezometer() covers PCG + PCV; auditInclinometer()
+## covers INC engine-side since the 2026-08-19 consolidation (deliberate
+## flip: the INC injections were formerly annotated "validated by AR
+## runner" and only their existence was asserted). The four engine
 ## detection gaps documented on 2026-08-18 (DUPLICATED record keyed on
 ## SourceRow, no source-to-raw census, silent skip of a declared sheet,
 ## flag D collateral) were closed the same day: their expectations below
@@ -53,6 +54,15 @@ DBPCG <- data.table::fread(file = file.path(Out$db.dir, "PCG.data.csv"))
 DBPCV <- data.table::fread(file = file.path(Out$db.dir, "PCV.data.csv"))
 PZ <- data.table::fread(file = file.path(Out$audit.dir, "PZ.data.csv"))
 PZIndex <- data.table::fread(file = file.path(Out$audit.dir, "PZ.index.csv"))
+
+## The INC engine run shares the project copy. It re-initializes
+## audit/log.csv, so it runs only after every piezometer product above is
+## already in memory.
+OutINC <- auditInclinometer(project.path = Path)
+LogINC <- data.table::fread(file = OutINC$log.file)
+DBINC <- data.table::fread(file = file.path(OutINC$db.dir, "INC.data.csv"))
+INCIndex <- data.table::fread(file = file.path(OutINC$db.dir, "INC.index.csv"))
+AuditINC <- data.table::fread(file = file.path(OutINC$audit.dir, "INC.audit.csv"))
 
 test_that("the truth manifest carries the approved matrix", {
   ## 15 approved injection events + 4 anti-ghost controls (event = NONE).
@@ -172,7 +182,8 @@ test_that("gate b: nothing else fires (zero ghosts, gaps stay silent)", {
   ## - MISCLOSURE is SUSPENDED (inferred implementation retired; fires
   ##   only after the row-local redesign);
   ## - DRY: flag D in PZ.data.csv, no log event;
-  ## - MISLABELED/REDATED/MISCOUNTED/INCOMPLETE (INC side): AR runner.
+  ## - MISLABELED/REDATED/MISCOUNTED/INCOMPLETE (INC side): they fire in
+  ##   the auditInclinometer() log, never in the piezometer log.
   ## DUPLICATED record, MISSING and MALFORMED left this list on
   ## 2026-08-18 (deliberate flips; asserted as emissions in gate a).
   expect_identical(
@@ -276,11 +287,11 @@ test_that("gate d: the malformed sheet exists and contributes nothing", {
   expect_false("VP-3 (2)" %in% PZIndex$SourceSheet)
 })
 
-test_that("the INC injections ship in the fixture for the AR runner", {
-  ## auditPiezometer() does not cover INC: nothing here is engine
-  ## validation. These asserts prove the corruption EXISTS so the AR
-  ## runner has its known truth (truth note "validated by AR runner").
-  ARN <- Truth[note == "validated by AR runner"]
+test_that("the INC injections ship in the fixture with their known truth", {
+  ## Fixture-side evidence: the corruption EXISTS in the source files the
+  ## engine gates below fire on (deliberate flip 2026-08-19: formerly
+  ## "validated by AR runner", now engine-side).
+  ARN <- Truth[note == "validated engine-side by auditInclinometer()"]
   expect_identical(nrow(ARN), 6L)
 
   .field <- function(file, line, i) {
@@ -322,4 +333,104 @@ test_that("the INC injections ship in the fixture for the AR runner", {
   expect_identical(length(readLines(file.path(Root, FILE))) - 5L, 38L)
   ## INCOMPLETE: the Installation header lost the tube depth.
   expect_identical(.field(ARN[event == "INCOMPLETE", file], 2, 7), "")
+})
+
+test_that("INC gate a: every inclinometer injection fires with its level", {
+  ## MISLABELED WARNING: all 37 VI-1 surveys declare the format variant
+  ## VI-01; the identity check normalizes it.
+  AUX <- LogINC[event == "MISLABELED" & level == "WARNING"]
+  expect_identical(nrow(AUX), 1L)
+  expect_match(AUX$detail, "field=Installation; count=37", fixed = TRUE)
+  ## MISLABELED ERROR: one VI-2 survey declares VI-9, an instrument that
+  ## does not exist on the site.
+  AUX <- LogINC[event == "MISLABELED" & level == "ERROR"]
+  expect_identical(nrow(AUX), 1L)
+  expect_match(AUX$detail, "count=1; different instrument declared", fixed = TRUE)
+  ## REDATED: one VI-1 survey republished identical readings under a
+  ## different date — one signature group of two surveys.
+  AUX <- LogINC[event == "REDATED" & level == "ERROR"]
+  expect_identical(nrow(AUX), 1L)
+  expect_match(AUX$detail, "groups=1; surveys=2", fixed = TRUE)
+  ## DUPLICATED survey: the byte-identical "copia" pair is consolidated
+  ## at build and the log records the dropped path. Which of the two
+  ## basenames is dropped depends on the locale collation of sort(), so
+  ## the assertion pins the pair, not the member.
+  AUX <- LogINC[event == "DUPLICATED" & level == "WARNING" & scope == "survey"]
+  expect_identical(nrow(AUX), 1L)
+  expect_identical(AUX$HoleID, "VI-2")
+  expect_match(AUX$detail, "dropped=VEGA_VI-2_Inclinometer_20240314.*[.]csv")
+  ## MISCOUNTED: the header declares 40 depths, the profile brings 38.
+  AUX <- LogINC[event == "MISCOUNTED" & level == "ERROR"]
+  expect_identical(nrow(AUX), 1L)
+  expect_match(AUX$detail, "declared=40; observed=38", fixed = TRUE)
+  ## INCOMPLETE: the Installation header lost the tube depth.
+  AUX <- LogINC[event == "INCOMPLETE" & level == "ERROR"]
+  expect_identical(nrow(AUX), 1L)
+  expect_match(AUX$detail, "empty field=Depth Bottom; rows=1", fixed = TRUE)
+})
+
+test_that("INC gate b: nothing else fires in the inclinometer log", {
+  ## The complete expected log: run marks plus the six INC emissions.
+  ## In particular the source-to-raw census stays silent (every INC csv
+  ## is walked), coverage finds no raw/db descuadre, DisplayUnits are
+  ## stable per hole (no MIXED), and no duplicated depth survives the
+  ## build (no DUPLICATED record).
+  expect_identical(
+    as.data.frame(LogINC[, .N, keyby = .(level, event)]),
+    data.frame(
+      level = c("ERROR", "ERROR", "ERROR", "ERROR",
+                "INFO", "INFO", "WARNING", "WARNING"),
+      event = c("INCOMPLETE", "MISCOUNTED", "MISLABELED", "REDATED",
+                "DONE", "START", "DUPLICATED", "MISLABELED"),
+      N = c(1L, 1L, 1L, 1L, 1L, 1L, 1L, 1L)
+    )
+  )
+})
+
+test_that("INC gate c: the database keeps the corrected identities", {
+  ## The folder/filename identity wins over the mislabeled content: only
+  ## the real instruments reach the database.
+  expect_setequal(unique(DBINC$HoleID), c("VI-1", "VI-2"))
+  ## The consolidated duplicate enters once: no two surveys share one
+  ## (HoleID, datetime) pair.
+  SURVEYS <- unique(DBINC[, .(HoleID, datetime, SurveyID)])
+  expect_identical(anyDuplicated(SURVEYS[, .(HoleID, datetime)]), 0L)
+  ## The BuildCheck block records the dropped member of the copia pair
+  ## against the kept survey (locale collation decides which basename).
+  DUP <- INCIndex[RawBlock == "BuildCheck" & RawLabel == "DUPLICATED"]
+  expect_identical(nrow(DUP), 1L)
+  expect_match(DUP$RawValue, "VEGA_VI-2_Inclinometer_20240314.*[.]csv$")
+})
+
+test_that("INC gate d: every uncorrectable injection stays visible", {
+  ## REDATED: both surveys sit in the database with identical readings.
+  DATES <- c("20240616", "20240623")
+  SURVEYS <- lapply(X = DATES, FUN = function(d) {
+    AUX <- DBINC[HoleID == "VI-1" & grepl(d, SurveyID)][order(depth)]
+    expect_identical(nrow(AUX), 38L)
+    AUX[, .(depth, A0, A180, B0, B180)]
+  })
+  expect_identical(SURVEYS[[1L]], SURVEYS[[2L]])
+  ## Their audit rows carry the REDATED error.
+  AUX <- AuditINC[HoleID == "VI-1" & grepl("20240616|20240623", SurveyID)]
+  expect_identical(nrow(AUX), 76L)
+  expect_true(all(AUX$status == "ERROR" & AUX$event == "REDATED"))
+  ## MISCOUNTED: the short profile is in the database as observed.
+  expect_identical(
+    nrow(DBINC[HoleID == "VI-1" & grepl("20250313", SurveyID)]), 38L
+  )
+  ## INCOMPLETE: the empty Depth Bottom is visible in the index. Both
+  ## holes surveyed that campaign day: the filter must pin the hole.
+  AUX <- INCIndex[
+    HoleID == "VI-2" & grepl("20250616", SurveyID) & RawLabel == "Depth Bottom"
+  ]
+  expect_identical(nrow(AUX), 1L)
+  expect_true(is.na(AUX$RawValue) | !nzchar(trimws(as.character(AUX$RawValue))))
+  ## MISLABELED ERROR: the declared VI-9 stays visible in the index and
+  ## its survey is flagged in the audit table.
+  BAD <- INCIndex[RawLabel == "Installation" & RawValue == "VI-9"]
+  expect_identical(nrow(BAD), 1L)
+  AUX <- AuditINC[SurveyID %in% BAD$SurveyID]
+  expect_true(nrow(AUX) > 0L)
+  expect_true(all(AUX$status == "WARNING" & AUX$event == "MISLABELED"))
 })

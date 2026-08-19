@@ -680,6 +680,9 @@ parsePCV <- function(path, manifest) {
   if ("PCV" %in% id) {
     OUT$PCV <- parsePCV(path = file.path(source, "PCV"), manifest = manifest)
   }
+  if ("INC" %in% id) {
+    OUT$INC <- parseINC(path = file.path(source, "INC"), manifest = manifest)
+  }
   OUT
 }
 
