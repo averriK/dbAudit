@@ -273,3 +273,20 @@ runners a la firma v3 (event=/level=, imports sin .eventDispositions/
 34 valores de Variacion del cliente hoy corruptos), quitar el puente
 del deck (auditMinimal lee el catalogo instalado), re-render del deck
 unificado y MUESTRA del log para la aceptacion del dueño.
+
+## REDATED: mecanismo, no acusacion (2026-08-18)
+
+Reclamo del usuario: "¿98 lecturas alteradas para engañar a SRK? algo
+esta mal". Analisis discriminante (INC.index + firmas): 94/98 grupos
+con header COMPLETO identico salvo fecha (sonda, pasadas, operador,
+constante); 51/112 repeticiones caen en la campaña inmediata
+siguiente; 49/98 grupos concentrados en 2022 (post cambio de sondas
+2021). Veredicto: el HECHO (contenido identico bajo fechas distintas,
+24% de las campañas) esta probado a nivel de archivo; la NARRATIVA de
+re-fechado deliberado queda retirada — la evidencia apunta a
+re-exportacion sistematica del equipo/flujo (era 2022) mas copias
+manuales a distancia (p.ej. 2019->2026). Catalogo corregido: la
+accion pasa a "determinar el mecanismo y decidir la fecha real". El
+arbitro definitivo es el registro de equipos (el MISSING censado):
+cruzar sonda/datalogger por campaña contra los grupos 2022 —
+pendiente del ruling de ingesta del dueño.
