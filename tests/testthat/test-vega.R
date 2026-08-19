@@ -22,6 +22,14 @@
 ## emission expectations hold unchanged. Still expected NOT to fire:
 ## MISCLOSURE (check suspended until the row-local redesign) and DRY
 ## (flag D in PZ.data.csv is the record, no log emission).
+##
+## 2026-08-19 census-vs-repairs flip: the VP-5 injection (workbook content
+## declares VP-50, filename key VP-5) exercises the systematic filename
+## repair. Before the fix the census compared raw (typed key) against db
+## (repaired key) and emitted two mirrored false MISSING; the census now
+## reconciles the raw side under the repaired key (.readRepairs), so the
+## exact log table below — MISSING = 1, the backup file only — is the
+## anti-ghost assertion of that fix.
 
 .vegaRoot <- function() {
   PATH <- system.file("fixtures", "Vega", package = "dbAudit")
@@ -150,6 +158,20 @@ test_that("gate a: every injection detectable today fires with its level", {
       basename(Truth[event == "MALFORMED", file])
     )
   )
+  ## MISLABELED (PCG) fires in the gate sink: the VP-5 workbook content
+  ## declares VP-50 and the filename key repairs it (injection
+  ## 2026-08-19, census-vs-repairs fix).
+  AUX <- Sink[event == "MISLABELED" & level == "WARNING"]
+  expect_true(nrow(AUX) > 0L)
+  expect_true(all(grepl("VP-5_", AUX$SourcePath)))
+  expect_true(all(
+    AUX$detail == "HoleID repaired from systematic filename evidence"
+  ))
+  expect_identical(unique(AUX$HoleID), "VP-50")
+  ## Full lineage on record: the sink rows trace sheet and data rows
+  ## (grid rows 11..46 hold the 36 campaigns).
+  expect_identical(unique(AUX$SourceSheet), "VP-50")
+  expect_identical(data.table::uniqueN(AUX$SourceRow), 36L)
 })
 
 test_that("gate b: nothing else fires (zero ghosts, gaps stay silent)", {
@@ -167,13 +189,16 @@ test_that("gate b: nothing else fires (zero ghosts, gaps stay silent)", {
       N = c(1L, 1L, 1L, 1L, 1L, 1L, 1L)
     )
   )
-  ## The complete expected gate sink: 3 COMMA + 2 UNREADABLE, PCG only.
+  ## The complete expected gate sink: 3 COMMA + 2 UNREADABLE + the VP-5
+  ## repair — 36 records x 4 hydraulic variables minus the first record's
+  ## empty Variación cell ("Primera lectura" emits no change row), PCG
+  ## only.
   expect_identical(
     as.data.frame(Sink[, .N, keyby = .(level, event)]),
     data.frame(
-      level = c("ERROR", "WARNING"),
-      event = c("UNREADABLE", "COMMA"),
-      N = c(2L, 3L)
+      level = c("ERROR", "WARNING", "WARNING"),
+      event = c("UNREADABLE", "COMMA", "MISLABELED"),
+      N = c(2L, 3L, 143L)
     )
   )
   expect_false(file.exists(file.path(Out$audit.dir, "PCV.reject.csv")))
@@ -203,6 +228,14 @@ test_that("gate c: corrected values equal the truth in the database", {
     expect_identical(nrow(AUX), 1L)
     expect_identical(AUX$level, as.numeric(Truth$correct_value[i]))
   }
+  ## The repaired identity: every VP-5 record enters the database under
+  ## the filename key, none under the typed VP-50.
+  expect_identical(
+    nrow(DBPCG[HoleID == Truth[event == "MISLABELED" & grepl("VP-5_", file),
+                               correct_value]]),
+    36L
+  )
+  expect_identical(nrow(DBPCG[HoleID == "VP-50"]), 0L)
 })
 
 test_that("gate d: unreadable readings leave a visible gap", {
@@ -273,6 +306,20 @@ test_that("gate d: dry readings carry flag D in PZ.data", {
   ## well, and carries no flag. 4 dry, 0 collateral.
   expect_identical(nrow(PZ[flag == "D"]), 4L)
   expect_identical(unique(PZ[flag == "D", HoleID]), "VP-3")
+})
+
+test_that("gate d: the mislabeled workbook keeps its typed identity in raw", {
+  ## The raw evidence is untouched by the repair: the parsed tables live
+  ## under the typed VP-50 with the filename conflict on record.
+  IDX <- data.table::fread(
+    file = file.path(Out$raw.dir, "PCG", "Vega", "VP-50", "0", "index.csv")
+  )
+  expect_true(all(IDX$FileKeyOK == FALSE))
+  expect_identical(unique(IDX$FileKey), "VP-5")
+  ## And the residual check stays quiet: the repair is recorded in the
+  ## sink, so no MISLABELED ERROR may fire for this source (gate b
+  ## already pins the log, this documents why).
+  expect_identical(nrow(Log[event == "MISLABELED"]), 0L)
 })
 
 test_that("gate d: the malformed sheet exists and contributes nothing", {

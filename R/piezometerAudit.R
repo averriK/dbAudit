@@ -108,6 +108,35 @@
   data.table::rbindlist(l = LIST, use.names = TRUE)
 }
 
+.readRepairs <- function(raw, audit, id) {
+  # Systematic filename repairs applied by the gate: the db carries the
+  # repaired HoleID (the filename key) while data/raw keeps the raw
+  # evidence under the typed one. The census must compare the raw side
+  # under the repaired key — rekeying, not discounting, so a repaired
+  # record lost on the way to db still surfaces as MISSING (ruling
+  # 2026-08-19 closing the false-MISSING interaction found by the
+  # idFixFilename stress case).
+  LIST <- lapply(X = id, FUN = function(ID) {
+    IDX <- .readRaw(raw = raw, id = ID, name = "index")
+    if (!all(c("FileKeyOK", "FileKey", "SourcePath") %in% names(IDX))) {
+      return(NULL)
+    }
+    BAD <- unique(IDX[
+      !is.na(FileKeyOK) & FileKeyOK == FALSE & nzchar(FileKey),
+      .(SourcePath, FileKey)
+    ])
+    if (nrow(BAD) == 0L) return(NULL)
+    FILE <- file.path(audit, sprintf("%s.reject.csv", ID))
+    if (!file.exists(FILE)) return(NULL)
+    SINK <- data.table::fread(file = FILE)
+    if (!all(c("event", "SourcePath") %in% names(SINK))) return(NULL)
+    BAD <- BAD[SourcePath %in% unique(SINK[event == "MISLABELED", SourcePath])]
+    if (nrow(BAD) == 0L) return(NULL)
+    BAD[, .(ID = ID, SourcePath, FileKey)]
+  })
+  data.table::rbindlist(l = LIST, use.names = TRUE)
+}
+
 .checkSourceCensus <- function(log, source, walked, pattern = "[.]xlsx$") {
   # MISSING (ERROR, catalog): source-to-raw census. The parse layer
   # walks its id-rooted subtrees only; a data file anywhere else under
@@ -134,7 +163,7 @@
   invisible(TRUE)
 }
 
-.checkRawDBKeys <- function(log, rawData, dbIndex, rejects = NULL) {
+.checkRawDBKeys <- function(log, rawData, dbIndex, rejects = NULL, repairs = NULL) {
   COLS <- c("ID", "SiteID", "HoleID", "SensorID", "SourcePath", "SourceSheet", "SourceRow")
   if (!.checkColumns(log = log, file = "data/raw", data = rawData, cols = COLS)) {
     return(invisible(FALSE))
@@ -149,6 +178,10 @@
     TRACE <- c("ID", "SourcePath", "SourceSheet", "SourceRow")
     RAW <- RAW[!unique(rejects), on = TRACE]
     DB <- DB[!unique(rejects), on = TRACE]
+  }
+  if (!is.null(repairs) && nrow(repairs) > 0L) {
+    # Compare the raw side under the repaired key (see .readRepairs).
+    RAW[repairs, on = c("ID", "SourcePath"), HoleID := i.FileKey]
   }
   AUX <- RAW[!DB, on = COLS]
   if (nrow(AUX) > 0L) {

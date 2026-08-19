@@ -19,6 +19,7 @@ source/PCG/Vega/VP-3_Depósito_de_Relaves_Vega.xlsx,2023-09-19,DRY,INFO,no,"",no
 source/PCG/Vega/VP-3_Depósito_de_Relaves_Vega.xlsx,2023-10-14,DRY,INFO,no,"",no log emission today; flag D in audit/PZ.data.csv is the record
 source/PCG/Vega/VP-3_Depósito_de_Relaves_Vega.xlsx,2023-11-12,NONE,"","","","anti-ghost: client-style Variación after a dry well (recovery from the dry bottom, the case that killed MISCOMPUTED); must not fire"
 source/PCG/Vega/VP-3_Depósito_de_Relaves_Vega.xlsx,sheet VP-3 (2),MALFORMED,ERROR,no,"",fires in log.csv: the sheet declares the monitoring marker but fails the data-sheet gate (gap closed 2026-08-18); its readings never enter the db
+source/PCG/Vega/VP-5_Depósito_de_Relaves_Vega.xlsx,"",MISLABELED,WARNING,yes,VP-5,"fires in gate sink audit/PCG.reject.csv: content declares VP-50, the filename key repairs HoleID to VP-5; the census reconciles raw<->db under the repaired key and no MISSING may fire"
 source/PCV/Vega/Piezómetro CV-VP-4.xlsx,"",MIXED,INFO,no,"",fires in log.csv: pressure declared in kPa on channel A and MPa on channel B
 source/PCV/Vega/Piezómetro CV-VP-4.xlsx,"",NONE,"","","",anti-ghost: units differ per channel but each channel declares its unit consistently (the case that degraded MIXED to INFO); nothing beyond MIXED INFO may fire
 source/PCV/Vega/Piezómetro CV-VP-4.xlsx,"",UNITLESS,ERROR,no,"",fires in log.csv: no unit declared for the R column in either channel sheet

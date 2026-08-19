@@ -134,3 +134,29 @@ declarado del cliente; flag D limpiado de colaterales UNREADABLE via
 rejects. Vega: log completo 11 eventos mapeados 1:1 a truth, cero
 fantasmas, anti-fantasmas mudos. MISCLOSURE y DRY siguen como
 no-emision deliberada (esperan el rediseño fila-local / son flag).
+
+## CENSO vs REPARACIONES (2026-08-19) — brecha cerrada con ruling
+
+Hallazgo (harness de estres AR, caso idFixFilename; confirmado por
+repro independiente con verdad conocida): cuando .gatePCGKeys repara
+HoleID por evidencia sistematica de archivo (sink MISLABELED WARNING),
+.checkRawDBKeys comparaba el raw en disco (clave tipeada) contra el db
+(clave reparada) y emitia dos MISSING ERROR falsos espejados — el sink
+solo descontaba UNREADABLE. Latente en produccion (0 reparaciones PCG
+vigentes); disparaba con la primera reparacion real.
+
+Ruling del dueño (2026-08-19, entre dos alternativas presentadas):
+RE-CLAVAR el lado raw con la clave reparada, NO descontar por linaje.
+Razon: el descuento saca los registros reparados del censo y crea un
+punto ciego (una reparacion que pierde un registro pasaria invisible);
+el rekey conserva el invariante fuerte — todo registro raw aterriza en
+db (tal cual o reparado) o esta rechazado UNREADABLE.
+
+Implementacion: .readRepairs (raw index FileKeyOK==FALSE con FileKey
+∩ sink MISLABELED, por SourcePath) + rekey en .checkRawDBKeys tras el
+descuento de rejects. .readRejects queda intacto (alimenta ademas la
+limpieza de flag D en .pzTables — separar consumidores fue deliberado).
+Inyeccion Vega: VP-5 (contenido declara VP-50, filename VP-5 → gate
+repara; anti-fantasma: MISSING del log se queda en 1, solo el backup).
+Bloque del generador al final del stream RNG: los valores previos del
+fixture quedaron byte-identicos (truth.csv solo gano la fila VP-5).

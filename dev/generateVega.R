@@ -663,6 +663,37 @@ writeLines(text = LINES, con = FILE)
 )
 
 ## ---------------------------------------------------------------------
+## VP-5: MISLABELED filename repair (PCG). The workbook content declares
+## VP-50 while the file is VP-5_...xlsx: the gate repairs HoleID from the
+## systematic filename evidence (sink MISLABELED WARNING), the db carries
+## VP-5 and data/raw keeps the typed VP-50. Anti-ghost of the census fix
+## (ruling 2026-08-19): the repaired records must reconcile raw<->db
+## under the repaired key — no MISSING may fire. This block draws AFTER
+## every other series so the shared RNG stream of the older instruments
+## stays byte-identical.
+Hora <- round(runif(36, 0.35, 0.55) * 1440) / 1440
+Elev <- 3601.30 + 0.38 * sin(2 * pi * (seq_len(36) - 3) / 12) + rnorm(36, 0, 0.05)
+VP5 <- .pcgSeries(
+  collar = rep(3618.75, 36), bottom = 3600.42, elev = Elev, hora = Hora
+)
+FILE.vp5 <- "source/PCG/Vega/VP-5_Depósito_de_Relaves_Vega.xlsx"
+.truth(
+  file = FILE.vp5, row_or_date = "", event = "MISLABELED",
+  level = "WARNING", correctable = "yes", correct_value = "VP-5",
+  note = "fires in gate sink audit/PCG.reject.csv: content declares VP-50, the filename key repairs HoleID to VP-5; the census reconciles raw<->db under the repaired key and no MISSING may fire"
+)
+.writeSheets(
+  path = file.path(Root, FILE.vp5),
+  sheets = list(
+    "VP-50" = .pcgGrid(
+      holeID = "VP-50", tube = "18.33",
+      coords = c("E: 512611.204", "N: 8127390.887", "Z: 3618.750"),
+      DT = VP5
+    )
+  )
+)
+
+## ---------------------------------------------------------------------
 ## Truth manifest.
 TRUTH <- rbindlist(l = Truth, use.names = TRUE)
 setorder(TRUTH, file, row_or_date, event)

@@ -101,11 +101,15 @@ auditPiezometer <- function(
   DBData <- .readDBList(db = db.dir, id = id, name = "data")
   DBIndex <- .readAllDB(db = db.dir, id = id, name = "index")
   Rejects <- .readRejects(audit = audit.dir, id = id)
+  Repairs <- .readRepairs(raw = raw.dir, audit = audit.dir, id = id)
   Audit <- .initAudit(data = DBData)
 
   .checkSourceCensus(log = Log, source = source.dir, walked = Walked)
   .checkSourceSheets(log = Log, raw = raw.dir, id = id)
-  .checkRawDBKeys(log = Log, rawData = RawData, dbIndex = DBIndex, rejects = Rejects)
+  .checkRawDBKeys(
+    log = Log, rawData = RawData, dbIndex = DBIndex,
+    rejects = Rejects, repairs = Repairs
+  )
   .checkDuplicateRaw(log = Log, rawData = RawData)
   .checkRawUnits(log = Log, rawData = RawData)
   .checkFileIDResidual(log = Log, raw = raw.dir, audit = audit.dir, id = id)
