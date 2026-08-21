@@ -3,7 +3,7 @@
 # dbaudit Uninstaller for Windows
 #
 # Usage (PowerShell):
-#   git clone git@github.com:averriK/dbAudit.git
+#   git clone https://github.com/averriK/dbAudit.git
 #   powershell -NoProfile -ExecutionPolicy Bypass -File .\dbAudit\install\uninstall.ps1
 #
 # Notes:

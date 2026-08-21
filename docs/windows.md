@@ -10,9 +10,31 @@ dbaudit installs via **PowerShell** and runs via `Rscript` at runtime. It requir
 
 ## Install
 
+Administrator rights are **not** required: the runtime, the launchers, and
+the PATH entry are all per-user.
+
+With git:
+
 ```powershell
-git clone git@github.com:averriK/dbAudit.git
+git clone https://github.com/averriK/dbAudit.git
 powershell -NoProfile -ExecutionPolicy Bypass -File .\dbAudit\install\install.ps1
+```
+
+Without git, download the ZIP from the repository page
+(`Code` -> `Download ZIP`), extract it, and run the installer from the
+extracted folder:
+
+```powershell
+powershell -NoProfile -ExecutionPolicy Bypass -File .\dbAudit-main\install\install.ps1
+```
+
+An extracted ZIP carries no `.git`, so the installed manifest records the
+build as `unknown`; everything else installs identically.
+
+To update an existing clone, pull the published branch first:
+
+```powershell
+cd dbAudit; git checkout main; git pull
 ```
 
 Options:

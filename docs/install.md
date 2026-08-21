@@ -21,7 +21,7 @@ The installers deploy the **CLI** (`dbaudit`). They do not install the R package
 Installer: `install/install.sh` (system-wide `/usr/local`).
 
 ```bash
-git clone git@github.com:averriK/dbAudit.git
+git clone https://github.com/averriK/dbAudit.git
 sudo bash dbAudit/install/install.sh
 ```
 
@@ -49,7 +49,7 @@ OS details: [macOS / Linux]({{ "/docs/macos/" | relative_url }})
 Installer: `install/install.ps1` (PowerShell, per-user; no administrator rights required).
 
 ```powershell
-git clone git@github.com:averriK/dbAudit.git
+git clone https://github.com/averriK/dbAudit.git
 powershell -NoProfile -ExecutionPolicy Bypass -File .\dbAudit\install\install.ps1
 ```
 

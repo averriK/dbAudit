@@ -52,7 +52,7 @@ R pipeline for parsing laboratory geochemical certificates into normalized long-
 #### macOS / Linux (system-wide `/usr/local`)
 
 ```bash
-git clone git@github.com:averriK/dbAudit.git
+git clone https://github.com/averriK/dbAudit.git
 sudo bash dbAudit/install/install.sh
 ```
 
@@ -68,7 +68,7 @@ sudo bash dbAudit/install/install.sh --skip-packages
 #### Windows (PowerShell)
 
 ```powershell
-git clone git@github.com:averriK/dbAudit.git
+git clone https://github.com/averriK/dbAudit.git
 powershell -NoProfile -ExecutionPolicy Bypass -File .\dbAudit\install\install.ps1
 ```
 

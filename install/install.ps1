@@ -3,7 +3,7 @@
 # dbaudit Installer for Windows (repo-based)
 #
 # Usage (PowerShell):
-#   git clone git@github.com:averriK/dbAudit.git
+#   git clone https://github.com/averriK/dbAudit.git
 #   powershell -NoProfile -ExecutionPolicy Bypass -File .\dbAudit\install\install.ps1
 #
 # Options:
