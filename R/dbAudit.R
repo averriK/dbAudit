@@ -124,8 +124,12 @@ auditGeochemistry <- function(
   index.file <- file.path(proc.dir, "index.csv")
   output.file <- file.path(proc.dir, "client.csv")
 
-  # Initialize log file at run start
-  if (!file.exists(log.file)) .logInit(log.file)
+  # Initialize the log at every run start: appending to a previous
+  # run's log mixes campaigns (observed: a user log and a rerun fused
+  # into one file, double-counting every event class). The monitoring
+  # runners already reinitialize; the geochemistry runner now matches.
+  unlink(log.file)
+  .logInit(log.file)
 
   # ----------------------------------------------------------------------
   # Parse Stage
