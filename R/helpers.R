@@ -43,40 +43,46 @@
   suppressWarnings(as.numeric(y))
 }
 
-# Internal helper: tolerant date parsing to ISO (YYYY-MM-DD)
+# Internal helper: tolerant date parsing to ISO (YYYY-MM-DD).
+# Locale-independent by construction: every month-name token (English,
+# Spanish, Portuguese; abbreviated and full) is normalized to its NUMBER
+# before parsing, and only numeric formats are attempted. %b/%B and
+# lubridate month-name orders depend on the system locale and are the
+# documented failure mode (a Spanish-locale host cannot parse "Apr").
 .as.Date <- function(x) {
   if (is.null(x) || length(x) == 0L) return(NA_character_)
   v <- trimws(gsub("[[:cntrl:]]", "", as.character(x)))
   if (!nzchar(v)) return(NA_character_)
 
-  # Normalize common non-English month abbreviations to English to avoid locale dependence
-  # Spanish and Portuguese abbreviations (case-insensitive)
   map <- c(
-    "ENE" = "JAN", "FEB" = "FEB", "MAR" = "MAR", "ABR" = "APR", "MAY" = "MAY", "JUN" = "JUN",
-    "JUL" = "JUL", "AGO" = "AUG", "SEP" = "SEP", "SET" = "SEP", "OCT" = "OCT", "NOV" = "NOV", "DIC" = "DEC",
-    "JAN" = "JAN", "FEV" = "FEB", "ABR" = "APR", "MAI" = "MAY", "DEZ" = "DEC"
+    "JAN" = "01", "ENE" = "01", "JANUARY" = "01", "ENERO" = "01", "JANEIRO" = "01",
+    "FEB" = "02", "FEV" = "02", "FEBRUARY" = "02", "FEBRERO" = "02", "FEVEREIRO" = "02",
+    "MAR" = "03", "MARCH" = "03", "MARZO" = "03", "MARÇO" = "03", "MARCO" = "03",
+    "APR" = "04", "ABR" = "04", "APRIL" = "04", "ABRIL" = "04",
+    "MAY" = "05", "MAI" = "05", "MAYO" = "05", "MAIO" = "05",
+    "JUN" = "06", "JUNE" = "06", "JUNIO" = "06", "JUNHO" = "06",
+    "JUL" = "07", "JULY" = "07", "JULIO" = "07", "JULHO" = "07",
+    "AUG" = "08", "AGO" = "08", "AUGUST" = "08", "AGOSTO" = "08",
+    "SEP" = "09", "SET" = "09", "SEPTEMBER" = "09", "SEPTIEMBRE" = "09",
+    "SETIEMBRE" = "09", "SETEMBRO" = "09",
+    "OCT" = "10", "OUT" = "10", "OCTOBER" = "10", "OCTUBRE" = "10", "OUTUBRO" = "10",
+    "NOV" = "11", "NOVEMBER" = "11", "NOVIEMBRE" = "11", "NOVEMBRO" = "11",
+    "DEC" = "12", "DIC" = "12", "DEZ" = "12", "DECEMBER" = "12",
+    "DICIEMBRE" = "12", "DEZEMBRO" = "12"
   )
-  # Replace standalone month tokens regardless of separator
   v.up <- toupper(v)
-  # Patterns like -ENE-, /ENE/, spaceENEspace, start/end boundaries
-  for (k in unique(names(map))) {
+  for (k in names(map)) {
     pat <- paste0("(?<=^|[ .,/\\-])", k, "(?=$|[ .,/\\-])")
     v.up <- stringr::str_replace_all(v.up, stringr::regex(pat, ignore_case = FALSE), map[[k]])
   }
   v.norm <- v.up
 
-  # Try lubridate if available for robust multi-format parsing (after normalization)
   if (requireNamespace("lubridate", quietly = TRUE)) {
     orders <- c(
-      # numeric year-month-day variants
       "Y-m-d", "Y/m/d", "Ymd",
       "d/m/Y", "m/d/Y", "dmY", "mdY",
       "d-m-Y", "m-d-Y",
-      "d.m.Y",
-      # month names (abbrev and full), 4-digit and 2-digit year
-      "d-b-Y", "d-B-Y", "d-b-y", "d-B-y",
-      "b-d-Y", "B-d-Y", "b-d-y", "B-d-y",
-      "d*b*Y" # very tolerant: e.g., 6 May 24
+      "d.m.Y", "d m Y", "dmy", "d-m-y", "d/m/y", "d m y"
     )
     dt <- suppressWarnings(lubridate::parse_date_time(v.norm, orders = orders, tz = "UTC", quiet = TRUE))
     if (!all(is.na(dt))) {
@@ -85,22 +91,17 @@
     }
   }
 
-  # Fallback to base R with a set of common formats
   fmts <- c(
     "%Y-%m-%d", "%Y/%m/%d",
     "%d/%m/%Y", "%m/%d/%Y",
     "%d-%m-%Y", "%m-%d-%Y",
-    "%d.%m.%Y",
-    # month names
-    "%d-%b-%Y", "%d-%B-%Y", "%d-%b-%y", "%d-%B-%y",
-    "%b-%d-%Y", "%B-%d-%Y", "%b-%d-%y", "%B-%d-%y",
-    "%d %b %Y", "%d %B %Y", "%d %b %y", "%d %B %y"
+    "%d.%m.%Y", "%d %m %Y",
+    "%d-%m-%y", "%d/%m/%y", "%d %m %y"
   )
   for (f in fmts) {
     dt <- suppressWarnings(as.Date(v.norm, format = f))
     if (!is.na(dt)) return(format(dt, "%Y-%m-%d"))
   }
-  # last resort: let as.Date try ISO-ish strings
   dt <- suppressWarnings(as.Date(v.norm))
   if (!is.na(dt)) return(format(dt, "%Y-%m-%d"))
   NA_character_

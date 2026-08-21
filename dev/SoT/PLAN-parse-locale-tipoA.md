@@ -1,6 +1,13 @@
 # PLAN — Parseo de fechas independiente del locale y sub-variante Tipo A
 
-Fecha: 2026-08-21. Estado: PROPUESTA para ruling del dueño.
+Fecha: 2026-08-21. Estado: APROBADO ("prepara el fix") e IMPLEMENTADO
+el mismo día. Validación ejecutada: suite completa en verde con goldens
+byte-idénticos; 23 aserciones nuevas (test-parse-dates.R con locale
+español forzado, test-parse-labA-variant.R con fixture sintético de la
+sub-variante); re-corrida del proyecto del reporte: PARSE_ERROR 3→0
+local, 405/405 PARSE_OK — pendiente la confirmación 79→0 del dueño en
+Windows tras reinstalar. WRONG_JOBID (161) queda como hallazgo de
+datos, fuera de este plan.
 Origen: reporte de usuarios de un proyecto geoquímico privado nuevo
 (~40 certificados no ingresados); diagnóstico completo con
 reproducción en el repo privado del proyecto (`dev/bugfix/

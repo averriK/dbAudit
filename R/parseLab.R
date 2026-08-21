@@ -188,18 +188,29 @@ parseLabData <- function(
 
       DROP <- .drop(FILE)
 
-      # -----------------------------------------------------------------------
-      # Recover HEADER block metadata (fixed layout, always first 6 rows)
-      SELECT <- c(1L, 2L) + DROP
-      AUX <- fread(
+      # -----------------------------------------------------------------
+      # One grid read; logical-row anchors. The header block is NOT a
+      # fixed six rows: a lab sub-variant inserts CLIENT/PROJECT/
+      # CERTIFICATE COMMENTS rows, and the comment value may span raw
+      # lines inside quotes, so raw-line skip arithmetic breaks. The
+      # INDEX block is anchored at the SAMPLE row instead: metadata is
+      # everything above the method row, data everything below MAX
+      # DETECTION.
+      GRID <- fread(
         FILE,
-        nrows = 6L,
         header = FALSE,
         colClasses = "character",
-        select = SELECT, fill = TRUE
+        fill = TRUE
       )
 
-      KEYS <- tolower(trimws(sub(":*$", "", sub("^\\ufeff", "", AUX[[1]]))))
+      K0 <- tolower(trimws(sub("\\s*:\\s*$", "", sub("^\\ufeff", "", GRID[[1L + DROP]]))))
+      srow <- match("sample", K0)
+      if (is.na(srow) || srow < 3L || srow + 4L > nrow(GRID)) {
+        stop("INDEX block not found: no SAMPLE row in the first column")
+      }
+
+      AUX <- GRID[seq_len(srow - 2L), c(1L, 2L) + DROP, with = FALSE]
+      KEYS <- K0[seq_len(srow - 2L)]
       VALS <- trimws(gsub("[[:cntrl:]]", "", AUX[[2]]))
       fileID <- basename(FILE)
       jobID <- .cleanId(VALS[match("labjobno", KEYS)])
@@ -212,18 +223,16 @@ parseLabData <- function(
       .log(log.file, "INFO", FILE, "FILE_START", sprintf("begin; jobID=%s", jobID))
 
       # -----------------------------------------------------------------------
-      # Read INDEX block (fixed layout, always starts at line 7, 5 rows). Remove column 2 (Analysis order)
+      # INDEX block: the five rows ending at MAX DETECTION, anchored on
+      # the SAMPLE row. The method row is unlabeled in the standard
+      # layout and labeled METHOD in the sub-variant. Remove column 2
+      # (Analysis order).
 
-      AUX <- fread(
-        FILE,
-        skip = 6L,
-        nrows = 5L,
-        header = FALSE,
-        drop = if (DROP == 0L) 2L else c(1L, 3L),
-        fill = TRUE
-      ) |> transpose()
+      KEEP <- setdiff(seq_len(ncol(GRID)), if (DROP == 0L) 2L else c(1L, 3L))
+      AUX <- GRID[(srow - 1L):(srow + 3L), KEEP, with = FALSE] |> transpose()
 
       HDR <- AUX[1, ] |> as.character() |> trimws() |> tolower()
+      if (identical(HDR[1L], "method")) HDR[1L] <- ""
       OLD <- c("", "sample", "description", "min detection", "max detection")
       m <- match(HDR, OLD)
 
@@ -263,14 +272,8 @@ parseLabData <- function(
         stop(sprintf("Duplicate VID: %s", paste(unique(VID[duplicated(VID)]), collapse = ", ")))
       }
 
-      AUX <- fread(
-        FILE,
-        skip = 11L,
-        header = FALSE,
-        drop = if (DROP == 0L) 2L else c(1L, 3L),
-        colClasses = "character",
-        fill = TRUE
-      )
+      AUX <- GRID[(srow + 4L):nrow(GRID), KEEP, with = FALSE]
+      setnames(AUX, paste0("V", seq_len(ncol(AUX))))
 
       AUX <- .reconcileColumns(AUX, VID, FILE, log.file = log.file, jobID = jobID)
 
