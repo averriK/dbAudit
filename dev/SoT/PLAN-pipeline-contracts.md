@@ -51,7 +51,7 @@ Activo. Primera etapa de paquete R completada en `dev`:
 Correccion de arquitectura:
 
 - `AR-S2L1X` es el repo de aplicacion para piezometros e inclinometros.
-- `PE-DBAudit` es el repo de aplicacion del contrato geoquimico viejo.
+- `el repo privado del proyecto geoquimico` es el repo de aplicacion del contrato geoquimico viejo.
 - `dbAudit/project/test-A` y `dbAudit/project/test-B` pueden quedar como
   fixtures internos o smoke tests, pero no deben confundirse con el repo de
   aplicacion geoquimico.
@@ -70,12 +70,12 @@ Correccion de arquitectura:
     alcance y se audita contra el respaldo.
 - Se creo una primera version de `examples/scripts/geochem` que reproduce
   `DBAudit()` desde R sin pasar por CLI usando fixtures internos. Debe ajustarse
-  conceptualmente para que el repo de aplicacion geoquimico sea `PE-DBAudit`.
-- Se agrego `examples/scripts/geochem/runGeochem.PE-DBAudit.json` como config
+  conceptualmente para que el repo de aplicacion geoquimico sea `el repo privado del proyecto geoquimico`.
+- Se agrego `examples/scripts/geochem/runGeochem.project.json` como config
   de aplicacion geoquimica:
-  - `~/github/projects/PE-DBAudit/project/BV`
-  - `~/github/projects/PE-DBAudit/project/QV`
-- Se observo `PE-DBAudit` de forma acotada:
+  - `<proyecto-privado>/BV`
+  - `<proyecto-privado>/QV`
+- Se observo `el repo privado del proyecto geoquimico` de forma acotada:
   - `BV`: `raw/lab` con 11645 CSV, `raw/assay` con 2 CSV, `proc` sin CSV;
   - `QV`: `raw/lab` con 2552 CSV, `raw/assay` con 1 CSV, `proc` con 3 CSV.
 - Contrato piezometrico observado en `AR-S2L1X`:
@@ -100,7 +100,7 @@ auditInclinometer(project.path = ...)
 ```
 
 `DBAudit()` se mantiene exportada como alias fino de `auditGeochem()`. La
-llaman el CLI instalado y `PE-DBAudit`; retirarla seria un cambio rompiente.
+llaman el CLI instalado y `el repo privado del proyecto geoquimico`; retirarla seria un cambio rompiente.
 
 El verbo `audit` es consistente con la familia ya existente en `R/audit.R`
 (`auditStructure()`, `auditValues()`). El rechazo registrado mas abajo es a un
@@ -118,7 +118,7 @@ dbaudit inclinometer --project X
 ```
 
 Regla de compatibilidad: si el primer argumento empieza con `-`, la invocacion
-es geoquimica legacy. Si no, es un slug. `PE-DBAudit` no se ve afectado.
+es geoquimica legacy. Si no, es un slug. `el repo privado del proyecto geoquimico` no se ve afectado.
 
 Ratificado 2026-08-14 (segunda pasada): los instrumentos quedan como
 estan y el dominio de laboratorio toma la disciplina completa. Terna
@@ -356,9 +356,9 @@ en `AR-S2L1X`, y exige resolver antes:
   El nombre `dbAudit` si se sostiene.
 - Implementar `examples/scripts/geochem` despues de aplicar el contrato
   canonico `/Users/averrik/github/agents/R-PIPELINES.md`.
-- Revisar `PE-DBAudit/project/BV` y `PE-DBAudit/project/QV` como aplicaciones
+- Revisar `el repo privado del proyecto geoquimico/project/BV` y `el repo privado del proyecto geoquimico/project/QV` como aplicaciones
   geoquimicas reales.
-- Ejecutar `runGeochem.PE-DBAudit.json` solo sobre una copia temporal. El
+- Ejecutar `runGeochem.project.json` solo sobre una copia temporal. El
   motivo ya no es el estado del repo sino que la corrida escribe `proc/`
   dentro de el.
 
@@ -387,11 +387,11 @@ en `AR-S2L1X`, y exige resolver antes:
   geoquimico legacy.
 - Congelar nombres publicos inmaduros si se exportan demasiadas funciones.
 - Confundir "auditoria contra referencia" con "control de ingreso a db".
-- Corregido 2026-08-12: `~/github/projects/PE-DBAudit` ya no esta sucio.
+- Corregido 2026-08-12: `~/github/projects/el repo privado del proyecto geoquimico` ya no esta sucio.
   `git status` limpio desde `e07be87` (2026-06-27), 14206 de 14209 archivos en
   LFS. Lo que si queda pendiente ahi: `project/QV/proc` esta trackeado en
   git+LFS (~49 MB) mientras `project/BV/proc` no lo esta, porque el
-  `.gitignore` de `PE-DBAudit` no tiene la regla `project/*/proc/` que si
+  `.gitignore` de `el repo privado del proyecto geoquimico` no tiene la regla `project/*/proc/` que si
   tiene el de `dbAudit`.
 - `DBAudit()` inicializa `proc/log.csv` solo si no existe (`R/dbAudit.R:127`) y
   luego deduplica. Un `proc/` preexistente mezcla corridas en silencio. Si

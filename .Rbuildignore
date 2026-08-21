@@ -4,7 +4,6 @@
 ^docs$
 ^install$
 ^project$
-^PE-DBAudit[.]Rproj$
 ^R/setup[.]R$
 ^R/legacy$
 ^R/legacy/
