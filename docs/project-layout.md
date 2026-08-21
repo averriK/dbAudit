@@ -65,6 +65,22 @@ An empty folder, or several CSVs none of which match, stops the run.
 `--assay-file <PATH>` bypasses detection; it accepts an absolute path or
 a basename resolved under the assay folder.
 
+### Naming the input directory
+
+The monitoring runners default to `source/` for input and `raw/`, `db/`,
+`audit/` for products, but every one of those names is an option, so a
+project that already keeps its files elsewhere is audited where it is:
+
+```bash
+dbaudit piezometer --project <DATA_ROOT> --source-dir data
+dbaudit inclinometer --project <DATA_ROOT> --source-dir data
+```
+
+`--raw-dir`, `--db-dir` and `--audit-dir` rename the product directories
+the same way. What the layout *below* the input directory means is not an
+option: the site and the hole are derived from the path, so the files must
+sit under `<input>/<ID>/<Site>/`, with `<ID>` one of `PCG`, `PCV`, `INC`.
+
 ## Monitoring data root (piezometer + inclinometer)
 
 The user creates and maintains exactly one subtree: `source/`, grouped

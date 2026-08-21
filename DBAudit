@@ -51,9 +51,17 @@ showHelp <- function() {
   cat("PIEZOMETER OPTIONS:\n")
   cat("  --id           <ID[,ID]>            (default: PCG,PCV)\n")
   cat("  --manifest     <PATH>               (default: inst/extdata/piezometer-manifest.json)\n")
+  cat("  --source-dir   <REL_PATH>           (default: source)\n")
+  cat("  --raw-dir      <REL_PATH>           (default: raw)\n")
+  cat("  --db-dir       <REL_PATH>           (default: db)\n")
+  cat("  --audit-dir    <REL_PATH>           (default: audit)\n")
   cat("\n")
   cat("INCLINOMETER OPTIONS:\n")
   cat("  --manifest     <PATH>               (optional override of the parse manifest)\n")
+  cat("  --source-dir   <REL_PATH>           (default: source)\n")
+  cat("  --raw-dir      <REL_PATH>           (default: raw)\n")
+  cat("  --db-dir       <REL_PATH>           (default: db)\n")
+  cat("  --audit-dir    <REL_PATH>           (default: audit)\n")
   cat("\n")
   cat("GENERAL:\n")
   cat("  --check                             (verify installation and dependencies)\n")
@@ -299,6 +307,7 @@ if (identical(slug, "piezometer")) {
   project.path <- ""
   id <- "PCG,PCV"
   manifest <- ""
+  dirs <- list()
 
   k <- 1L
   while (k <= length(args)) {
@@ -322,6 +331,16 @@ if (identical(slug, "piezometer")) {
       k <- k + 2L
       next
     }
+    if (a %in% c("--source-dir", "--raw-dir", "--db-dir", "--audit-dir")) {
+      if (k == length(args)) stop(sprintf("%s requires a value", a))
+      Name <- c(
+        "--source-dir" = "source.dir.name", "--raw-dir" = "raw.dir.name",
+        "--db-dir" = "db.dir.name", "--audit-dir" = "audit.dir.name"
+      )[[a]]
+      dirs[[Name]] <- args[k + 1L]
+      k <- k + 2L
+      next
+    }
     stop(sprintf("Unknown argument: %s", a))
   }
 
@@ -332,11 +351,11 @@ if (identical(slug, "piezometer")) {
   manifest.file <- file.path(root, "inst", "extdata", "piezometer-manifest.json")
   if (nzchar(manifest)) manifest.file <- manifest
 
-  auditPiezometer(
+  do.call(auditPiezometer, c(list(
     project.path = project.path,
     id = strsplit(id, ",", fixed = TRUE)[[1L]],
     manifest = manifest.file
-  )
+  ), dirs))
   quit(save = "no", status = 0)
 }
 
@@ -349,6 +368,7 @@ if (identical(slug, "inclinometer")) {
 
   project.path <- ""
   manifest <- ""
+  dirs <- list()
 
   k <- 1L
   while (k <= length(args)) {
@@ -366,6 +386,16 @@ if (identical(slug, "inclinometer")) {
       k <- k + 2L
       next
     }
+    if (a %in% c("--source-dir", "--raw-dir", "--db-dir", "--audit-dir")) {
+      if (k == length(args)) stop(sprintf("%s requires a value", a))
+      Name <- c(
+        "--source-dir" = "source.dir.name", "--raw-dir" = "raw.dir.name",
+        "--db-dir" = "db.dir.name", "--audit-dir" = "audit.dir.name"
+      )[[a]]
+      dirs[[Name]] <- args[k + 1L]
+      k <- k + 2L
+      next
+    }
     stop(sprintf("Unknown argument: %s", a))
   }
 
@@ -373,10 +403,10 @@ if (identical(slug, "inclinometer")) {
     stop("Missing --project. Try: dbaudit inclinometer --project <DATA_ROOT>")
   }
 
-  auditInclinometer(
+  do.call(auditInclinometer, c(list(
     project.path = project.path,
     manifest = if (nzchar(manifest)) manifest else NULL
-  )
+  ), dirs))
   quit(save = "no", status = 0)
 }
 
