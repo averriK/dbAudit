@@ -36,7 +36,7 @@ showHelp <- function() {
 
   cat("dbaudit\n\n")
   cat("USAGE:\n")
-  cat("  dbaudit [geochemistry|piezometer] --project <DATA_ROOT> [OPTIONS]\n\n")
+  cat("  dbaudit [geochemistry|piezometer|inclinometer] --project <DATA_ROOT> [OPTIONS]\n\n")
   cat("REQUIRED:\n")
   cat("  --project <DATA_ROOT>\n\n")
   cat("GEOCHEMISTRY OPTIONS (default contract):\n")
@@ -51,6 +51,9 @@ showHelp <- function() {
   cat("PIEZOMETER OPTIONS:\n")
   cat("  --id           <ID[,ID]>            (default: PCG,PCV)\n")
   cat("  --manifest     <PATH>               (default: inst/extdata/piezometer-manifest.json)\n")
+  cat("\n")
+  cat("INCLINOMETER OPTIONS:\n")
+  cat("  --manifest     <PATH>               (optional override of the parse manifest)\n")
   cat("\n")
   cat("GENERAL:\n")
   cat("  --check                             (verify installation and dependencies)\n")
@@ -226,8 +229,11 @@ slug <- ""
 if (length(args) > 0L && !startsWith(args[1L], "-")) {
   slug <- args[1L]
   args <- args[-1L]
-  if (!(slug %in% c("geochemistry", "piezometer"))) {
-    stop(sprintf("Unknown command: %s (expected: geochemistry, piezometer)", slug))
+  if (!(slug %in% c("geochemistry", "piezometer", "inclinometer"))) {
+    stop(sprintf(
+      "Unknown command: %s (expected: geochemistry, piezometer, inclinometer)",
+      slug
+    ))
   }
 }
 
@@ -271,6 +277,10 @@ source(file.path(root, "R", "piezometerParse.R"))
 source(file.path(root, "R", "piezometerBuild.R"))
 source(file.path(root, "R", "piezometerAudit.R"))
 source(file.path(root, "R", "auditPiezometer.R"))
+source(file.path(root, "R", "inclinometerParse.R"))
+source(file.path(root, "R", "inclinometerBuild.R"))
+source(file.path(root, "R", "inclinometerAudit.R"))
+source(file.path(root, "R", "auditInclinometer.R"))
 
 # ----------------------------------------------------------------------
 # Piezometer contract: own argument loop, then the full runner.
@@ -322,6 +332,46 @@ if (identical(slug, "piezometer")) {
     project.path = project.path,
     id = strsplit(id, ",", fixed = TRUE)[[1L]],
     manifest = manifest.file
+  )
+  quit(save = "no", status = 0)
+}
+
+if (identical(slug, "inclinometer")) {
+  for (pkg in c("jsonlite")) {
+    if (!requireNamespace(pkg, quietly = TRUE)) {
+      stop(sprintf("The inclinometer contract requires the '%s' package.", pkg))
+    }
+  }
+
+  project.path <- ""
+  manifest <- ""
+
+  k <- 1L
+  while (k <= length(args)) {
+    a <- args[k]
+    if (identical(a, "--project")) {
+      if (k == length(args)) stop("--project requires a value")
+      if (nzchar(project.path)) stop("--project specified more than once")
+      project.path <- args[k + 1L]
+      k <- k + 2L
+      next
+    }
+    if (identical(a, "--manifest")) {
+      if (k == length(args)) stop("--manifest requires a value")
+      manifest <- args[k + 1L]
+      k <- k + 2L
+      next
+    }
+    stop(sprintf("Unknown argument: %s", a))
+  }
+
+  if (!nzchar(project.path)) {
+    stop("Missing --project. Try: dbaudit inclinometer --project <DATA_ROOT>")
+  }
+
+  auditInclinometer(
+    project.path = project.path,
+    manifest = if (nzchar(manifest)) manifest else NULL
   )
   quit(save = "no", status = 0)
 }

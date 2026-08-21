@@ -1,6 +1,11 @@
 # PLAN — Subcomando `inclinometer` en el CLI
 
-Fecha: 2026-08-21. Estado: PROPUESTA para ruling del dueño.
+Fecha: 2026-08-21. Estado: APROBADO por el dueño (2026-08-21,
+"implementa") e IMPLEMENTADO: patch re-aplicado desde ce0342d,
+re-verificado (corrida Vega INC completa contra verdad conocida,
+no-regresion piezometer, suite entera en verde, help con los tres
+dominios). Ruling 2 resuelto como propuesto: sin --id hasta que
+exista mas de un tipo INC. Resta la reinstalacion del dueño.
 Precedente de proceso: el cambio se implementó sin plan de registro,
 fue RECHAZADO por el dueño y revertido (`ce0342d` implementación,
 `a155ad2` revert; origin/dev = revert verificado). Este plan es la vía
