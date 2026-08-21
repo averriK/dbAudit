@@ -77,9 +77,9 @@ dbaudit inclinometer --project <DATA_ROOT> --source-dir data
 ```
 
 `--raw-dir`, `--db-dir` and `--audit-dir` rename the product directories
-the same way. What the layout *below* the input directory means is not an
-option: the site and the hole are derived from the path, so the files must
-sit under `<input>/<ID>/<Site>/`, with `<ID>` one of `PCG`, `PCV`, `INC`.
+the same way. Below the input directory the layout is
+`<input>/<ID>/<Site>/`, with `<ID>` one of `PCG`, `PCV`, `INC`: that is
+where the site and the hole of every reading come from.
 
 ## Monitoring data root (piezometer + inclinometer)
 
