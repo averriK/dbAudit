@@ -660,7 +660,7 @@ dbAudit/
 │   ├── test-A/            # Type-A regression dataset + runner
 │   └── test-B/            # Type-B dataset + runner
 ├── README.md
-└── PE-DBAudit.Rproj
+└── <PROJECT>.Rproj
 
 ```
 
