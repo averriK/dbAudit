@@ -1,7 +1,7 @@
 {
   "runs": [
     {
-      "projectPath": "~/github/projects/PE-DBAudit/project/BV",
+      "projectPath": "~/projects/<PROJECT>/BV",
       "labDir": "raw/lab",
       "assayDir": "raw/assay",
       "procDir": "proc",
@@ -11,7 +11,7 @@
       "tol": 0.05
     },
     {
-      "projectPath": "~/github/projects/PE-DBAudit/project/QV",
+      "projectPath": "~/projects/<PROJECT>/QV",
       "labDir": "raw/lab",
       "assayDir": "raw/assay",
       "procDir": "proc",

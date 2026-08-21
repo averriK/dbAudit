@@ -8,7 +8,7 @@ Run from the `dbAudit` repository root:
 ```sh
 Rscript examples/scripts/geochem/runGeochem.R
 Rscript examples/scripts/geochem/runGeochem.R examples/scripts/geochem/runGeochem.json
-Rscript examples/scripts/geochem/runGeochem.R examples/scripts/geochem/runGeochem.PE-DBAudit.json
+Rscript examples/scripts/geochem/runGeochem.R examples/scripts/geochem/runGeochem.project.json
 ```
 
 The default JSON runs the two bundled package smoke fixtures:
@@ -18,12 +18,12 @@ project/test-A
 project/test-B
 ```
 
-The `runGeochem.PE-DBAudit.json` file points to the geochemical application
+The `runGeochem.project.json` file points to the geochemical application
 repository:
 
 ```text
-~/github/projects/PE-DBAudit/project/BV
-~/github/projects/PE-DBAudit/project/QV
+~/projects/<PROJECT>/BV
+~/projects/<PROJECT>/QV
 ```
 
 Each run writes the same output family as `DBAudit()`:

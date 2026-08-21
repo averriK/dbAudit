@@ -226,7 +226,7 @@ coherentes a los runners y al deck actuales.
 Verificado en fuente por el maestro tras el reclamo del usuario:
 
 1. MISCOMPUTED: el invariante change == head - lag(head) NO es la
-   definicion del cliente. Prueba exacta (IAM-1, planilla fila 47):
+   definicion del cliente. Prueba exacta (un pozo del engagement, fila verificada en planilla):
    lectura previa = POZO SECO (sin nivel); el cliente computa
    Variacion = 0.61 = recuperacion desde el fondo seco ("Ascenso");
    nuestro recompute salta el seco y da 0.00. El "repair" SOBRESCRIBIO
@@ -247,7 +247,7 @@ Conteo de la auditoria del sistema de eventos pedida por el usuario:
 graves NO tienen evento: instrumentos sin lectura en campaña,
 baseline INC cruzando el cambio de sonda (18/24 pozos), recrecimientos
 de boca sin cota por epoca, checksums INC sin umbral. MISLABELED (40)
-es real pero cosmetico (INM-1 vs INM-01) — impacto a ruling.
+es real pero cosmetico (ID-1 vs ID-01) — impacto a ruling.
 
 ## RULINGS de cierre de la alucinacion de logs (usuario, 2026-08-17)
 
@@ -257,7 +257,7 @@ es real pero cosmetico (INM-1 vs INM-01) — impacto a ruling.
 2. MIXED: pasa a INFO en el catalogo (constancia de unidades
    declaradas heterogeneas; no es problema).
 3. MISLABELED: verificado 2026-08-17 — los 45 casos son VARIANTES DE
-   FORMATO del mismo instrumento (INM-01=INM-1, INM-02=INM-2,
+   FORMATO del mismo instrumento (ID-01=ID-1,
    "PZ-IN 1"=PZ-IN-01; carpeta y filename coinciden). Se REPARA con
    evidencia sistematica -> WARNING (normalizacion declarada); ERROR
    queda reservado para contenido que declare OTRO instrumento.
@@ -295,13 +295,13 @@ pendiente del ruling de ingesta del dueño.
 
 Verificado independiente PASS: clave = fecha + hora + stage cuando la
 planilla los declara (SourceRow jamas). Real: 26 -> 5 emisiones.
-Sobreviven: Cancha7 CR7_PZ-1..4 (18/04/2024, re-ingreso identico con
+Sobreviven: cuatro pozos de un mismo sitio (re-ingreso identico con
 misma hora; la Variacion recomputada 0="Constante" es la firma del
-re-ingreso) y ZonaB INC-01-A (17/11/2024: 13 Field Reads del mismo
+re-ingreso) y una serie de comisionado (13 Field Reads del mismo
 dia SIN hora declarada — la planilla no los distingue; candidato a
 convencion del dueño para series de comisionado). Silenciados 21: 14
-por hora (incl. AmandaI 27/09/2021 — el seco de las 09:20 y el nivel
-de las 17:28 son distinguibles y fisicamente compatibles) y 7 por
+por hora (incl. una campana doble real — el seco de la manana y el nivel
+de la tarde son distinguibles y fisicamente compatibles) y 7 por
 stage (Zero Reading vs Field Read). Vega ajustado: la inyeccion
 modela el re-ingreso identico exacto; suite verde; regeneracion
 determinista verificada. Catalogo actualizado a la identidad nueva.

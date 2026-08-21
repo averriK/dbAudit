@@ -57,11 +57,10 @@ fino de proyecto.
    (dev/SoT/PLAN-virtual-site.md). Todo cambio de check = flip
    deliberado en test-vega.
 4. Identidad de duplicados = la de la planilla del cliente
-   (fecha+hora+stage); la serie de comisionado de ZonaB INC-01-A (13
+   (fecha+hora+stage); una serie de comisionado del engagement (13
    lecturas sin hora) espera convención del dueño.
 5. REDATED: acción neutral al mecanismo; el árbitro pendiente es el
-   registro de equipos (`data/source/INC/ESTRUCTURA DE
-   EQUIPOS_CATALINA HUANCA.xlsx`, hoy censado como MISSING) — la
+   registro de equipos del cliente (archivo censado hoy como MISSING) — la
    ingesta es ruling del dueño; si la regla, cruzar sonda/datalogger
    por campaña contra los 98 grupos (mitad concentrada en 2022).
 

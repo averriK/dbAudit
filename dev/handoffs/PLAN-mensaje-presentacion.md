@@ -185,7 +185,7 @@ CUERPO — título + índice + UNA lámina ("Bandas de confianza", tabset):
   declarada; ningún resultado participa de los reportes mensuales.
 - Tabs: Resumen (el mensaje + estado, viñetas declarativas) · Banda
   temporal (plot solo) · Banda espacial (plot solo) · Ejemplo (tabla
-  CR7_PZ-1 sola). Sin prosa flotante bajo artefactos.
+  del pozo del ejemplo sola). Sin prosa flotante bajo artefactos.
 
 APÉNDICE (cap. 8) — título + índice + CUATRO láminas:
 1. "Dos bandas por lectura": la construcción independiente por diseño;
