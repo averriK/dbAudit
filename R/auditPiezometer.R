@@ -35,7 +35,11 @@ auditPiezometer <- function(
     stop(sprintf("unsupported ID: %s", paste(BadID, collapse = ", ")), call. = FALSE)
   }
 
-  source.dir <- file.path(project.path, source.dir.name)
+  source.dir <- .resolveSourceDir(
+    project.path = project.path, source.dir.name = source.dir.name,
+    ids = c("PCG", "PCV", "INC"),
+    explicit = !identical(source.dir.name, .piezometerPathDefaults$source.dir.name)
+  )
   raw.dir <- file.path(project.path, raw.dir.name)
   db.dir <- file.path(project.path, db.dir.name)
   audit.dir <- file.path(project.path, audit.dir.name)
@@ -70,11 +74,10 @@ auditPiezometer <- function(
     X = Parsed,
     FUN = function(tables) tables$inspection$SourcePath
   )))
-  Prefix <- paste0(project.path, "/")
   Parsed <- lapply(X = Parsed, FUN = function(tables) {
     lapply(X = tables, FUN = function(DT) {
       if ("SourcePath" %in% names(DT)) {
-        DT[, SourcePath := sub(pattern = Prefix, replacement = "", x = SourcePath, fixed = TRUE)]
+        DT[, SourcePath := .relativeToRoot(SourcePath, project.path)]
       }
       DT
     })

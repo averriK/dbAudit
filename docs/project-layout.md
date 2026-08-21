@@ -67,13 +67,20 @@ a basename resolved under the assay folder.
 
 ### Naming the input directory
 
-The monitoring runners default to `source/` for input and `raw/`, `db/`,
-`audit/` for products, but every one of those names is an option, so a
-project that already keeps its files elsewhere is audited where it is:
+The input directory is found by convention: the runner accepts either
+`source/` or `data/`, whichever actually holds the domain directories.
+No option is needed for either layout.
 
 ```bash
-dbaudit piezometer --project <DATA_ROOT> --source-dir data
-dbaudit inclinometer --project <DATA_ROOT> --source-dir data
+dbaudit piezometer --project <DATA_ROOT>
+dbaudit inclinometer --project <DATA_ROOT>
+```
+
+For a layout under any other name, `--source-dir` names it explicitly and
+overrides the convention:
+
+```bash
+dbaudit piezometer --project <DATA_ROOT> --source-dir <NAME>
 ```
 
 `--raw-dir`, `--db-dir` and `--audit-dir` rename the product directories

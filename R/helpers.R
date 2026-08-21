@@ -85,6 +85,42 @@
   suppressWarnings(as.numeric(y))
 }
 
+# The input directory is found by convention, not demanded by flag: a
+# project keeps its files under source/ or under data/, and the runner
+# looks for the one that actually holds the domain directories. An
+# explicit --source-dir still wins.
+.resolveSourceDir <- function(project.path, source.dir.name, ids, explicit) {
+  Candidates <- if (isTRUE(explicit)) source.dir.name else c(source.dir.name, "data", "source")
+  for (name in unique(Candidates)) {
+    Dir <- file.path(project.path, name)
+    if (!dir.exists(Dir)) next
+    if (any(dir.exists(file.path(Dir, ids)))) return(Dir)
+  }
+  # Nothing matched: report against the declared name.
+  file.path(project.path, source.dir.name)
+}
+
+# Recording a source path relative to the project root kept the products
+# portable — until Windows, where the root normalizes with backslashes
+# while the walked paths carry forward slashes, so the prefix never
+# matched and every product shipped an absolute machine path. Compare on
+# one separator, strip by length.
+.relativeToRoot <- function(paths, root) {
+  Root <- normalizePath(root, winslash = "/", mustWork = FALSE)
+  Root <- sub("/+$", "", Root)
+  Norm <- gsub("\\\\", "/", paths)
+
+  Head <- substr(Norm, 1L, nchar(Root))
+  Hit <- if (.Platform$OS.type == "windows") {
+    tolower(Head) == tolower(Root)
+  } else {
+    Head == Root
+  }
+  Out <- Norm
+  Out[Hit] <- sub("^/+", "", substring(Norm[Hit], nchar(Root) + 1L))
+  Out
+}
+
 # A missing input directory is the most common way a run stops, and the
 # path alone is a dead end: the user cannot tell whether the root is
 # wrong, the layout differs, or the data belongs to another domain. The

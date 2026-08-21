@@ -26,7 +26,11 @@ auditInclinometer <- function(
   }
   project.path <- normalizePath(project.path, mustWork = TRUE)
 
-  source.dir <- file.path(project.path, source.dir.name)
+  source.dir <- .resolveSourceDir(
+    project.path = project.path, source.dir.name = source.dir.name,
+    ids = c("INC"),
+    explicit = !identical(source.dir.name, .piezometerPathDefaults$source.dir.name)
+  )
   raw.dir <- file.path(project.path, raw.dir.name)
   db.dir <- file.path(project.path, db.dir.name)
   audit.dir <- file.path(project.path, audit.dir.name)
@@ -56,10 +60,9 @@ auditInclinometer <- function(
   ## The parse layer knows exactly which files it walked; the census
   ## needs those paths in their absolute pre-rewrite form.
   Walked <- unique(Parsed$index$SourcePath)
-  Prefix <- paste0(project.path, "/")
   Parsed <- lapply(X = Parsed, FUN = function(DT) {
     if ("SourcePath" %in% names(DT)) {
-      DT[, SourcePath := sub(pattern = Prefix, replacement = "", x = SourcePath, fixed = TRUE)]
+      DT[, SourcePath := .relativeToRoot(SourcePath, project.path)]
     }
     DT
   })
