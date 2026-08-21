@@ -1,5 +1,5 @@
 ## R/inclinometerAudit.R
-## Inclinometer audit checks, migrated verbatim from AR-S2L1X
+## Inclinometer audit checks, migrated verbatim from el proyecto de monitoreo downstream
 ## scripts/runAudit.R (engine consolidation; the application repository
 ## imports these checks from this namespace).
 ##
@@ -7,7 +7,7 @@
 ## raw-to-db survey coverage, duplicated depths, and display-unit stability
 ## per hole. The equipment-family mathematics that turns raw sums into
 ## displacements is deliberately absent until it is reviewed and documented;
-## see AR-S2L1X dev/SoT/PLAN-INC-calculation-research.md.
+## see el proyecto de monitoreo downstream dev/SoT/PLAN-INC-calculation-research.md.
 
 .flagINC <- function(audit, surveyID, label) {
   audit[

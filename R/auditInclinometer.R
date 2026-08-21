@@ -1,10 +1,10 @@
 ## R/auditInclinometer.R
 ## Public inclinometer runner: parse -> build -> audit in one call, the
 ## inclinometer sibling of auditPiezometer() (engine consolidation of the
-## INC chain formerly split into AR-S2L1X runParse/runData/runAudit). The
+## INC chain formerly split into el proyecto de monitoreo downstream runParse/runData/runAudit). The
 ## project root holds source/, raw/, db/ and audit/; the runner owns
 ## raw/db/audit for INC and regenerates them on every run. As in
-## auditPiezometer(), two intentional differences from the AR-S2L1X
+## auditPiezometer(), two intentional differences from the el proyecto de monitoreo downstream
 ## application runners are declared: the START/DONE log rows carry
 ## source = "auditInclinometer", and SourcePath cells are relative to the
 ## project root rather than to the application repository root. The runner

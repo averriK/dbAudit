@@ -78,7 +78,7 @@ se reserva el campo.
 ## Migración
 
 Sin transición: dbAudit emite el esquema nuevo en un release; goldens,
-harness de estrés, runners de AR-S2L1X y loaders del deck se actualizan
+harness de estrés, runners de el proyecto de monitoreo downstream y loaders del deck se actualizan
 en el mismo cambio. La tabla vieja→nueva de arriba queda como registro.
 
 ## Rulings pedidos
@@ -109,7 +109,7 @@ inst/events.csv; nuevo esquema de registro (ts, scope, SiteID, HoleID,
 datetime, source, cause, disposition, flag, detail); renombrar la
 emision al catalogo nuevo; reparar change recalculando en el build;
 WELL_DRY con flag D; actualizar goldens + harness de estres + runners
-de AR-S2L1X + loaders del deck en el mismo cambio. FASE 3 (deck v5 =
+de el proyecto de monitoreo downstream + loaders del deck en el mismo cambio. FASE 3 (deck v5 =
 las seis preguntas del dueno, leyenda generada del catalogo) despues.
 
 ## FASE 2 EJECUTADA (2026-08-16) — pendiente de aceptacion
@@ -120,7 +120,7 @@ Emision v2 implementada y verificada punta a punta:
   eventLog.R, gates y checks reescritos, .repairPCGChange,
   .checkFileIDResidual, WELL_DRY flag D. Tests: fixtures 4 PASS,
   goldens 5 PASS, test-dbaudit 4 PASS; R CMD check exit 0.
-- AR-S2L1X: runners (runAudit.R, runData.R), loaders del deck
+- el proyecto de monitoreo downstream: runners (runAudit.R, runData.R), loaders del deck
   (setup/audit.R, setup/auditDumps.R), harness (stressAudit.R) y
   leyenda GENERADA del catalogo (_slides/aud.dumps.qmd) en el mismo
   cambio. Pipeline completo corrido contra dbAudit v2 en libreria

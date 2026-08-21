@@ -43,7 +43,7 @@ real viaja en el repo público, y los mensajes de commit están limpios.
   sobre datos reales) viven en el `dev/` del PROYECTO privado; el SoT
   público conserva solo la regla y los casos Vega.
 - **Datos reales**: siempre en el repo privado del proyecto
-  (`PE-DBAudit`, `AR-S2L1X`), jamás en el motor ni en ejemplos.
+  (`PE-DBAudit`, `el proyecto de monitoreo downstream`), jamás en el motor ni en ejemplos.
 - **Guardia mecánica** (cierra la causa raíz, como verifyDocs para
   docs): un check versionado con la lista de patrones prohibidos que
   corre en la suite — si un patrón aparece en un archivo a commitear,
@@ -56,7 +56,7 @@ real viaja en el repo público, y los mensajes de commit están limpios.
 1. **HEAD** (una sesión, cambios chicos): neutralizar 1-3 (frases
    neutras: "el registro de equipos del cliente", "el pozo del
    ejemplo"; el detalle real del PLAN-event-taxonomy se MUDA a
-   `AR-S2L1X/dev/` y acá queda el resumen con casos Vega), quitar el
+   `<proyecto>/dev/` y acá queda el resumen con casos Vega), quitar el
    `.Rproj` legado, y generalizar el ejemplo `PE-DBAudit.json` a un
    ejemplo con rutas genéricas.
 2. **Historia**: los tres archivos viven en la historia clonable de un
@@ -75,7 +75,7 @@ real viaja en el repo público, y los mensajes de commit están limpios.
 
 1. ¿Se aprueba la regla de clasificación permanente?
 2. HEAD: ¿ejecuto la neutralización 1-3 + mudanza del detalle a
-   AR-S2L1X?
+   el proyecto de monitoreo downstream?
 3. Historia: ¿filter-repo (Tier 2, con tu go explícito y coordinación
    de clones) o aceptación del residual?
 4. ¿Guardia mecánica en la suite?

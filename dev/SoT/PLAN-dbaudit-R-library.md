@@ -1,6 +1,12 @@
 # PLAN: convertir dbAudit en libreria R
 
-Status: activo.
+Status: COMPLETADO.
+Cierre 2026-08-21: `DESCRIPTION`, `NAMESPACE`, `man/`, `tests/testthat.R` y
+`tests/testthat/` existen en el repositorio, y la decision pendiente de
+exports quedo tomada: se exportan los 4 runners (`DBAudit`,
+`auditGeochemistry`, `auditPiezometer`, `auditInclinometer`) y los helpers
+quedan internos. Las secciones siguientes, incluido el "Estado actual
+observado" de 2026-06-26, se conservan como historia del plan.
 Fecha: 2026-06-26.
 Rama de trabajo: `dev`.
 
@@ -10,7 +16,7 @@ Rama de trabajo: `dev`.
 
 Antes de esta fase se dejo `main` y `dev` en el mismo commit:
 
-- `15ec756 Add AR-S2L1X ingest gate plan`
+- `15ec756` (plan de compuerta de ingesta de la aplicacion downstream)
 
 ## Restricciones
 
@@ -113,11 +119,11 @@ Politica propuesta:
    - `bin/dbaudit --project project/test-A --lab-dir raw --assay-dir assay`.
    - `bin/dbaudit --project project/test-B --lab-dir raw --assay-dir assay`.
 
-## Integracion posterior con AR-S2L1X
+## Integracion posterior con la aplicacion downstream
 
 Despues de tener paquete R estable:
 
-- mover o reimplementar helpers aprobados de AR-S2L1X dentro de `dbAudit`.
+- mover o reimplementar helpers aprobados de la aplicacion downstream dentro de `dbAudit`.
 - construir ejemplos R separados por tipo de problema, no mezclar geoquimica con piezometros.
 - mantener el pipeline geoquimico actual como contrato legacy.
 - agregar el nuevo pipeline de base de datos solo despues de aprobar su contrato publico.

@@ -1,5 +1,5 @@
 ## R/piezometerParse.R
-## Piezometer pipeline, migrated verbatim from AR-S2L1X scripts/parser/{utils,parsePCG,parsePCV}.R and scripts/runParse.R
+## Piezometer pipeline, migrated verbatim from el proyecto de monitoreo downstream scripts/parser/{utils,parsePCG,parsePCV}.R and scripts/runParse.R
 ## (stage-1 migration; the application repository remains the producer of
 ## record until the switch-over). Declared adaptations only: the shared
 ## dbAudit logger replaces the local one, and inclinometer branches are out

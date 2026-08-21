@@ -166,7 +166,7 @@ Puntos de contenido que el capítulo debe conservar:
 
 ## Capítulo 6 — Validación predictiva (plan por lámina, rev. 2026-08-20)
 
-Fuente única de cifras: `AR-S2L1X/dev/handoffs/DOC-forecast-para-slides.md`;
+Fuente única de cifras: `<proyecto>/dev/handoffs/DOC-forecast-para-slides.md`;
 §7 del DOC gobierna lo que no se afirma. Registro declarativo estricto.
 RULING DEFINITIVO (dueño, 2026-08-20, vía ssel): NINGÚN número medido
 sobre el banco temporal anterior es citable — ni coberturas "reales",

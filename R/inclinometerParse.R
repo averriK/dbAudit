@@ -1,5 +1,5 @@
 ## R/inclinometerParse.R
-## Inclinometer CSV parser, migrated verbatim from AR-S2L1X
+## Inclinometer CSV parser, migrated verbatim from el proyecto de monitoreo downstream
 ## scripts/parser/parseINC.R (engine consolidation; the application
 ## repository imports parseINC from this namespace). No declared
 ## adaptations: the parser reads the client CSV export format described by

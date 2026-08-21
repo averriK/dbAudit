@@ -5,7 +5,20 @@ permalink: /docs/audit/
 ---
 
 # Audits
-Auditing is implemented in `R/audit.R` and is designed to be run after parsing.
+
+Auditing spans three modules and four exported entrypoints:
+
+| Module | Entrypoint | Domain |
+|---|---|---|
+| `R/audit.R` | `auditGeochemistry()` (alias `DBAudit()`) | Geochemistry certificates: structure and value audits (`auditStructure`, `auditValues`) |
+| `R/piezometerAudit.R` | `auditPiezometer()` | Piezometers (PCG, PCV) |
+| `R/inclinometerAudit.R` | `auditInclinometer()` | Inclinometers (INC) |
+
+This page is the geochemistry chapter; its audits run after certificate
+parsing. The monitoring chapter (piezometers and inclinometers) is
+[Monitoring audits]({{ "/docs/audit-monitoring/" | relative_url }});
+both chapters log under the model described in
+[Logging]({{ "/docs/logging/" | relative_url }}).
 
 ## Audit domain semantics
 

@@ -1,7 +1,7 @@
 # HANDOFF (Fable) — Consolidación de dbAudit: absorber lo que vive en AR y cerrar pendientes
 
 Fecha: 2026-08-18. Repo de trabajo: `~/github/tools/dbAudit` (branch
-dev). Proyecto consumidor: `~/Cloud/github/projects/AR-S2L1X`. Aplica
+dev). Proyecto consumidor: `~/Cloud/github/projects/el proyecto de monitoreo downstream`. Aplica
 el router `~/github/agents/AGENTS.md`. Dirección, no autoridad.
 
 ## Respuesta directa a las preguntas del dueño
@@ -44,7 +44,7 @@ fino de proyecto.
 ## Pendientes de motor registrados (con su SoT)
 
 1. MISCLOSURE fila-local: rediseño reglado en
-   `AR-S2L1X/dev/SoT/PROPOSAL-gate-checks.md` — el parser debe
+   `<proyecto>/dev/SoT/PROPOSAL-gate-checks.md` — el parser debe
    acarrear la geometría declarada por lectura (columna de boca del
    cliente en PCG; instalación del sensor PCV del encabezado) y el
    cierre se verifica fila a fila; jerarquía de referencias reglada

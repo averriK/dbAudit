@@ -2,7 +2,7 @@
 
 Para: sesión fresca (Claude o Codex). Fecha: 2026-08-16.
 Repositorio: `~/github/tools/dbAudit` (rama dev). Consumidor a
-actualizar en el mismo cambio: `~/Cloud/github/projects/AR-S2L1X`.
+actualizar en el mismo cambio: `~/Cloud/github/projects/el proyecto de monitoreo downstream`.
 
 ## Autoridad y contexto (leer primero, en este orden)
 
@@ -12,7 +12,7 @@ actualizar en el mismo cambio: `~/Cloud/github/projects/AR-S2L1X`.
 2. `dev/SoT/EVIDENCE-qaqc-standards.md` — el fundamento; solo consulta.
 3. `dev/SoT/PLAN-pipeline-contracts.md` — contratos del pipeline,
    naming ratificado, harness golden y de estrés.
-4. En AR-S2L1X: `dev/SoT/PLAN-logging.md` (marco de tres problemas,
+4. En el proyecto de monitoreo downstream: `dev/SoT/PLAN-logging.md` (marco de tres problemas,
    las seis preguntas del dueño, reglas del deck).
 
 ## Alcance exacto
@@ -43,7 +43,7 @@ actualizar en el mismo cambio: `~/Cloud/github/projects/AR-S2L1X`.
 - Verificar por ejecución en cada paso (lección de la sesión: nunca
   afirmar sin correr). Paridad byte donde el contrato no cambia.
 - Git: mensajes imperativos, SIN atribución de IA. dbAudit en rama dev;
-  AR-S2L1X en main; push normal de rama actual.
+  el proyecto de monitoreo downstream en main; push normal de rama actual.
 - Nada de texto inventado: todo mensaje sale de events.csv.
 
 ## Aceptación

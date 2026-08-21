@@ -11,7 +11,7 @@
 #   -SkipPackages  Skip R package installation (packages will be installed on first run)
 #
 # Requirements:
-#   - R (>= 3.5) must be installed and Rscript must be in PATH
+#   - R (>= 4.1.0) must be installed and Rscript must be in PATH
 #   - Internet connectivity (for package installation, unless -SkipPackages is used)
 #
 # Notes:
@@ -195,9 +195,11 @@ Copy-Item -Path (Join-Path $srcInst "*") -Destination (Join-Path $LibexecDir "in
 Copy-Item -LiteralPath $repoBin -Destination (Join-Path $LibexecDir "bin\\dbaudit") -Force
 
 # Validate installed layout
+$installedEntrypoint = Join-Path $LibexecDir "DBAudit"
 $installedSetup = Join-Path $LibexecDir "R\\setup.R"
-if (-not (Test-Path $installedSetup)) {
-    Fail "Invalid installed layout: missing $installedSetup"
+$installedBin = Join-Path $LibexecDir "bin\\dbaudit"
+if (-not (Test-Path $installedEntrypoint) -or -not (Test-Path $installedSetup) -or -not (Test-Path $installedBin)) {
+    Fail "Invalid installed layout: missing expected runtime files under $LibexecDir"
 }
 
 # Generate version file
@@ -250,7 +252,7 @@ if (-not $rscript) {
     Fail @"
 R is not installed or Rscript is not in PATH.
 
-dbaudit requires R (>= 3.5) to run.
+dbaudit requires R (>= 4.1.0) to run.
 
 Install R for Windows from CRAN:
   https://cran.r-project.org/bin/windows/base/
@@ -262,15 +264,15 @@ After installing R:
 "@
 }
 
-# Verify R version >= 3.5
+# Verify R version >= 4.1 (DESCRIPTION: R (>= 4.1.0))
 $versionOutput = & $rscript.Source --version 2>&1 | Out-String
 if ($versionOutput -match 'version (\d+)\.(\d+)') {
     $major = [int]$matches[1]
     $minor = [int]$matches[2]
 
-    if (($major -lt 3) -or ($major -eq 3 -and $minor -lt 5)) {
+    if (($major -lt 4) -or ($major -eq 4 -and $minor -lt 1)) {
         Fail @"
-R version $major.$minor found, but dbaudit requires R >= 3.5.
+R version $major.$minor found, but dbaudit requires R >= 4.1.0.
 
 Please upgrade R from: https://cran.r-project.org/bin/windows/base/
 "@
@@ -284,7 +286,7 @@ Please upgrade R from: https://cran.r-project.org/bin/windows/base/
 # Install R package dependencies
 Write-Host ""
 if (-not $SkipPackages) {
-    Info "Installing R package dependencies (data.table, stringr, lubridate)..."
+    Info "Installing R package dependencies (data.table, stringr, lubridate, readxl, jsonlite)..."
     Info "This may take a few minutes..."
 
     $installScript = @'
@@ -308,7 +310,7 @@ if (length(missing) > 0) {
     cat("  2. Verify CRAN mirror is accessible: https://cloud.r-project.org\n")
     cat("  3. Check if binary packages are available for your R version\n")
     cat("  4. Try manual installation in PowerShell:\n")
-    cat("       Rscript -e 'install.packages(c(\"data.table\", \"stringr\", \"lubridate\"), type=\"binary\")'\n")
+    cat("       Rscript -e 'install.packages(c(\"data.table\", \"stringr\", \"lubridate\", \"readxl\", \"jsonlite\"), type=\"binary\")'\n")
     cat("  5. Check R library permissions: .libPaths()\n")
     cat("\nNOTE: Windows cannot compile R packages from source without Rtools.\n")
     cat("      If binaries are unavailable, upgrade R to a version with binary packages.\n")
@@ -427,3 +429,7 @@ Info "  dbaudit --check"
 Info ""
 Info "Get help:"
 Info "  dbaudit --help"
+
+Write-Host ""
+Info "Documentation:"
+Info "  https://averrik.github.io/dbAudit/docs/"

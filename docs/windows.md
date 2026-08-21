@@ -6,7 +6,7 @@ permalink: /docs/windows/
 
 # Windows
 
-dbaudit installs via **PowerShell** and runs via `Rscript` at runtime.
+dbaudit installs via **PowerShell** and runs via `Rscript` at runtime. It requires **R >= 4.1.0**; the installer verifies the version and aborts below 4.1.
 
 ## Install
 
@@ -14,6 +14,11 @@ dbaudit installs via **PowerShell** and runs via `Rscript` at runtime.
 git clone git@github.com:averriK/dbAudit.git
 powershell -NoProfile -ExecutionPolicy Bypass -File .\dbAudit\install\install.ps1
 ```
+
+Options:
+
+- `-SkipPackages` — skip R package installation (packages are auto-installed on the first run).
+- `-Force` — replace an existing installation without the `[y/N]` prompt.
 
 The installer:
 
@@ -27,15 +32,15 @@ Open a **new terminal** after installing so PATH updates are picked up.
 
 ## Verify
 
-PowerShell:
+PowerShell or Git Bash (in a **new** terminal):
 
 ```powershell
-dbaudit --help
+dbaudit --check
 ```
 
-Git Bash:
+`--check` reports the R version, the `Rscript` location, the installation root, and the five required R packages (`data.table`, `stringr`, `lubridate`, `readxl`, `jsonlite`) with versions — unlike `--help`, it exercises the R runtime, not just the launcher.
 
-```bash
+```powershell
 dbaudit --help
 ```
 

@@ -1,7 +1,8 @@
 # ----------------------------------------------------------------------
 # DBAudit: project runner (lab + assay + audits)
 # Contract:
-# - Working directory must be the repo root.
+# - No working-directory requirement: the CLI resolves the installation
+#   root via DBAUDIT_HOME (set by the bash wrapper) or the script path.
 # - CLI provides only the project path; everything else uses defaults.
 # - Assay file is detected deterministically within the assay folder.
 #

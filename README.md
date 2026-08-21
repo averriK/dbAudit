@@ -4,7 +4,7 @@
 
 R pipeline for parsing laboratory geochemical certificates into normalized long-format tables with automated QA/QC audits. Reconciles laboratory data against client assay compositions, detects systematic ID mismatches, and flags value discrepancies with configurable tolerance.
 
-[![R Version](https://img.shields.io/badge/R-%E2%89%A53.5-blue)](https://www.r-project.org/)
+[![R Version](https://img.shields.io/badge/R-%E2%89%A54.1.0-blue)](https://www.r-project.org/)
 [![License](https://img.shields.io/badge/License-MIT-green.svg)](LICENSE)
 
 ## Contents
@@ -35,7 +35,7 @@ R pipeline for parsing laboratory geochemical certificates into normalized long-
 
 ### Requirements
 
-- **R (≥ 3.5)**: Core language
+- **R (≥ 4.1.0)**: Core language
   - Verify: `Rscript --version`
   - Install: [CRAN Downloads](https://cran.r-project.org/)
   - Ensure `Rscript` is in your PATH
@@ -45,7 +45,7 @@ R pipeline for parsing laboratory geochemical certificates into normalized long-
   - `stringr` - String processing
   - `lubridate` - Date parsing
 
-**Note:** The installer will check for R (≥ 3.5) and install required packages automatically. If you prefer to manage packages manually, use the `--skip-packages` flag (macOS/Linux) or `-SkipPackages` (Windows).
+**Note:** The installer will check for R (≥ 4.1.0, the version declared in `DESCRIPTION`) and install required packages automatically. If you prefer to manage packages manually, use the `--skip-packages` flag (macOS/Linux) or `-SkipPackages` (Windows).
 
 ### Install (repo-based)
 
@@ -120,7 +120,7 @@ Status: ✓ All dependencies satisfied
 
 **R version too old:**
 - Check version: `Rscript --version`
-- Upgrade to R ≥ 3.5 from [CRAN](https://cran.r-project.org/)
+- Upgrade to R ≥ 4.1.0 from [CRAN](https://cran.r-project.org/)
 
 **Package installation fails (Windows):**
 - Check if binary packages are available for your R version
@@ -648,19 +648,16 @@ dbAudit/
 │   ├── parseLab.R         # Lab parsing (type A + type B)
 │   ├── parseAssay.R       # Assay parsing (type A + type B)
 │   ├── audit.R            # Audit (structure + values; includes type-B method inference)
-│   ├── legacy/            # Deprecated wrapper-only layout + runner snapshots (reference only)
-│   └── wip.R              # Work-in-progress (may change)
+│   └── legacy/            # Deprecated wrapper-only layout + runner snapshots (reference only)
 ├── docs/
 │   ├── README.md
-│   ├── plan.md
 │   ├── parsers.md
 │   ├── audit.md
 │   └── tests.md
-├── project/               # Project datasets (can be large; tracked via Git LFS)
+├── project/               # Project datasets (local-only; ignored by git)
 │   ├── test-A/            # Type-A regression dataset + runner
 │   └── test-B/            # Type-B dataset + runner
-├── README.md
-└── <PROJECT>.Rproj
+└── README.md
 
 ```
 
@@ -670,7 +667,7 @@ dbAudit/
 
 ### Core Requirements
 
-- **R (≥ 3.5)**: Base language
+- **R (≥ 4.1.0)**: Base language
 
 ### R Package Dependencies
 

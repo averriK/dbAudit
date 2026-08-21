@@ -18,7 +18,7 @@
 #     powershell -NoProfile -ExecutionPolicy Bypass -File .\dbAudit\install\install.ps1
 #
 # Requirements:
-#   - R (>= 3.5) must be installed and Rscript must be in PATH
+#   - R (>= 4.1.0) must be installed and Rscript must be in PATH
 #   - Internet connectivity (for package installation, unless --skip-packages is used)
 
 set -euo pipefail
@@ -111,7 +111,6 @@ if [[ -e "$LIBEXEC_DIR" || -e "$BIN_DIR/dbaudit" ]]; then
     info "Removing $REMOVE_LIBEXEC"
     if ! rm -rf "$REMOVE_LIBEXEC" 2>/dev/null; then
       error "Could not remove $REMOVE_LIBEXEC (permission denied?). Run this installer with sudo for a system-wide install."
-      error "Could not remove $LIBEXEC_DIR (permission denied?). Run this installer with sudo for a system-wide install."
     fi
   fi
   echo ""
@@ -122,7 +121,7 @@ info "Checking R installation..."
 if ! command -v Rscript >/dev/null 2>&1; then
   error "R is not installed or Rscript is not in PATH.
 
-dbaudit requires R (>= 3.5) to run.
+dbaudit requires R (>= 4.1.0) to run.
 
 Install R from CRAN:
   - macOS:  brew install r  OR  https://cran.r-project.org/bin/macosx/
@@ -131,7 +130,7 @@ Install R from CRAN:
 After installing R, run this installer again."
 fi
 
-# Verify R version >= 3.5
+# Verify R version >= 4.1 (DESCRIPTION: R (>= 4.1.0))
 R_VERSION=$(Rscript --version 2>&1 | grep -oE 'version [0-9]+\.[0-9]+' | head -1 | grep -oE '[0-9]+\.[0-9]+')
 if [[ -z "$R_VERSION" ]]; then
   warn "Could not determine R version - assuming it's compatible"
@@ -139,8 +138,8 @@ else
   R_MAJOR=$(echo "$R_VERSION" | cut -d. -f1)
   R_MINOR=$(echo "$R_VERSION" | cut -d. -f2)
 
-  if [[ "$R_MAJOR" -lt 3 ]] || { [[ "$R_MAJOR" -eq 3 ]] && [[ "$R_MINOR" -lt 5 ]]; }; then
-    error "R version $R_VERSION found, but dbaudit requires R >= 3.5.
+  if [[ "$R_MAJOR" -lt 4 ]] || { [[ "$R_MAJOR" -eq 4 ]] && [[ "$R_MINOR" -lt 1 ]]; }; then
+    error "R version $R_VERSION found, but dbaudit requires R >= 4.1.0.
 
 Please upgrade R from: https://cran.r-project.org/"
   fi

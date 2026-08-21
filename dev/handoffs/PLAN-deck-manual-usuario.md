@@ -2,7 +2,7 @@
 
 Fecha: 2026-08-21. Estado: PARA RULING del dueño (cuatro decisiones al
 final). Este plan define el CONTENIDO y la UBICACIÓN de un deck nuevo.
-NO reemplaza `AR-S2L1X/_master/ppt.qmd` — ese es el deck de
+NO reemplaza `<proyecto>/_master/ppt.qmd` — ese es el deck de
 capacidades para el cliente (por qué el sistema es confiable). Este es
 el manual operativo: cómo se instala, dónde se guardan las cosas, cómo
 se corre y cómo se lee el resultado.
@@ -113,7 +113,7 @@ corregir `docs/`, y construir el deck citando esa fuente ya sana.
 
 1. **¿Dónde vive el deck?** Recomendación: en `dbAudit` — es el manual
    de la herramienta, no de un proyecto de cliente; requiere `qrt init`
-   ahí (hoy el repo no tiene scaffold). Alternativa: en `AR-S2L1X`
+   ahí (hoy el repo no tiene scaffold). Alternativa: en `el proyecto de monitoreo downstream`
    como `_master/ppt.manual.qmd`, reutilizando la infraestructura que
    ya funciona, al costo de acoplar el manual a un proyecto.
 2. **¿Idioma?** El deck de capacidades es español. El repositorio y

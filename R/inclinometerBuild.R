@@ -1,12 +1,12 @@
 ## R/inclinometerBuild.R
-## Inclinometer raw-to-database build, migrated verbatim from AR-S2L1X
+## Inclinometer raw-to-database build, migrated verbatim from el proyecto de monitoreo downstream
 ## scripts/runData.R (engine consolidation; the application repository
 ## imports .incTables from this namespace).
 ##
 ## INC raw is wide (one row per depth reading, columns Depth/A0/A180/B0/B180)
 ## and its survey constants live in index.csv as RawBlock/RawLabel/RawValue
 ## evidence, so it does not pass through the long variable/value/units
-## piezometer machinery. Contract: AR-S2L1X dev/SoT/PLAN-INC-data-contract.md.
+## piezometer machinery. Contract: el proyecto de monitoreo downstream dev/SoT/PLAN-INC-data-contract.md.
 
 .incDatetime <- function(x, field = "Survey DateTime") {
   Value <- trimws(as.character(x))

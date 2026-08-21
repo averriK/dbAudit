@@ -1,5 +1,5 @@
 title: dbAudit
-description: Geochemical certificate parser and audit pipeline (type A / type B)
+description: Parse-and-audit pipelines for geochemistry certificates, piezometers, and inclinometers
 remote_theme: pages-themes/modernist@v0.2.0
 plugins:
   - jekyll-remote-theme
@@ -15,8 +15,3 @@ github:
 # (Settings → Pages → Deploy from a branch → /docs).
 exclude:
   - ".DS_Store"
-  - "README.md"        # repo-internal index (not part of the public docs site)
-  - "conventions.md"   # internal developer conventions
-  - "plan.md"          # internal history/plan log
-  - "tests.md"         # internal self-check notes (not part of the public docs site)
-  - "installers.md"    # internal canonical installer spec (no frontmatter)

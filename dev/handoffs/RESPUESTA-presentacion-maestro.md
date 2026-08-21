@@ -108,7 +108,7 @@ salida juntos.
   system.file("fixtures/Vega") — tu propia nota ya verificó que el
   log INC sale en segundos. La verdad para anotar cada lámina:
   system.file("fixtures/Vega/truth.csv").
-- Los plots de la tríada: los builders de AR-S2L1X sobre data/vega
+- Los plots de la tríada: los builders de el proyecto de monitoreo downstream sobre data/vega
   (el mini-deck _master/vega.qmd ya los renderiza — reusá el patrón,
   no lo reinventes).
 

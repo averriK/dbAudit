@@ -5,73 +5,137 @@ permalink: /docs/conventions/
 ---
 
 # Conventions
-This repo follows a strict set of conventions to keep the codebase predictable and to avoid accidental API/behavior changes.
 
-## 1) Public vs internal functions
-### Public entrypoints (OK to call from outside)
-Public functions have **no leading dot**.
-Examples:
-- `DBAudit()` (runner)
-- `parseLabData()`, `parseLabDataA()`
-- `parseAssayData()`, `parseAssayDataA()`, `parseAssayDataB()`
-- `auditStructure()`, `auditValues()`
+This page records the conventions the codebase actually follows: the
+module map of `R/`, the public API surface, the CLI dispatch contract,
+the event-naming contract, and the code style.
 
-### Internal helpers (not part of the public API)
-Internal helpers start with a **leading dot** (`.`) and are not intended to be used externally.
-Examples:
-- `.logInit()`, `.log()`
-- `.drop()`
-- `.cleanId()`
-- `.reconcileColumns()`
-- `.detectAssayFormat()`
-- `.chooseAssayFile()` (runner-local helper)
+## 1) Module map (`R/`)
 
-Allowed “dot” exceptions that are still internal:
-- `.as.numeric()`
-- `.as.Date()`
+`R/` is both the package source and the file set the CLI `source()`s at
+startup. Domain logic lives in the module that owns it; a helper used
+by only one module stays in that module, dot-prefixed.
 
-Rationale:
-- The dot prefix makes it obvious which functions are implementation details.
-- It reduces the risk of name clashes and accidental reliance on internals.
+**Shared infrastructure**
 
-## 2) Naming rules
-- No `snake_case` for new identifiers.
-- Prefer **camelCase** for function names (`auditStructure`, `inferMethodVotesDlB`).
-- Prefer dot-style variable names for paths and I/O (`log.file`, `data.file`, `index.file`, `input.file`).
-- Avoid “ephemeral” chained temporaries in production code; keep transformations readable.
+- `R/setup.R` — required-package list (`data.table`, `stringr`,
+  `lubridate`, `readxl`, `jsonlite`) and the CLI's dependency
+  check/auto-install path.
+- `R/helpers.R` — cross-cutting utilities (safe conversions, ID
+  cleaning, unit handling) and the geochemistry logger (`.logInit()`,
+  `.log()`; 5 columns: `ts, level, file, event, message`).
+- `R/eventLog.R` — the monitoring event logger, schema v3 (9 columns:
+  `ts, scope, SiteID, HoleID, datetime, source, level, event, detail`),
+  validated against the catalog `inst/events.csv`.
+- `R/dbAudit-package.R` — package documentation skeleton and
+  `globalVariables()` declarations.
 
-## 3) File placement rules (what goes where)
-### `R/helpers.R`
-Put here:
-- Cross-cutting utilities used by multiple modules (logging, safe conversions, small general helpers).
+**Geochemistry (certificate pipeline)**
 
-Do NOT put here:
-- Pipeline-specific heuristics that only one module uses.
+- `R/parseLab.R` — lab certificate parsing (type A and type B).
+- `R/parseAssay.R` — assay table parsing (type A and type B).
+- `R/audit.R` — structure and value audits, including type-B method
+  inference.
+- `R/dbAudit.R` — the runner `auditGeochemistry()` (alias `DBAudit`),
+  path defaults and deterministic assay-file selection.
 
-### Module files in `R/*.R`
-Put domain logic in the module that owns it:
-- `R/parseLab.R`: lab certificate parsing
-- `R/parseAssay.R`: assay parsing
-- `R/audit.R`: audit logic
-- `R/dbAudit.R`: runner orchestration (paths, execution order, deterministic assay selection)
+**Piezometers (PCG, PCV)**
 
-Module-local helpers:
-- If a helper is only used inside one module, keep it in that module and dot-prefix it.
-  Example: `.chooseAssayFile()` lives in `R/dbAudit.R`.
+- `R/piezometerParse.R` — Excel parsers (Casagrande and vibrating-wire
+  workbooks), manifest-driven.
+- `R/piezometerBuild.R` — raw-to-database build.
+- `R/piezometerAudit.R` — gate, census and audit checks, database
+  products.
+- `R/auditPiezometer.R` — the runner `auditPiezometer()`:
+  parse -> gate -> database -> audit in one call.
 
-### CLI scripts (repo root)
-- `DBAudit` is the CLI entrypoint.
-- It should only:
-  1) validate the working directory (repo root),
-  2) parse CLI flags (e.g. `--project`),
-  3) `source()` canonical R modules,
-  4) call exactly one public entrypoint (`DBAudit(project.path=...)`).
+**Inclinometers (INC)**
 
-### `R/legacy/`
-- Reference-only snapshots and deprecated wrappers.
-- Must NOT be sourced by normal runs.
-- Used only for comparison/history.
+- `R/inclinometerParse.R` — CSV survey-export parser.
+- `R/inclinometerBuild.R` — raw-to-database build.
+- `R/inclinometerAudit.R` — structural audit checks.
+- `R/auditInclinometer.R` — the runner `auditInclinometer()`.
 
-### `R/wip.R`
-- Experimental work-in-progress.
-- Must not be required by tests or the CLI.
+**Reference only**
+
+- `R/legacy/` — snapshots of the pre-consolidation layout. Never
+  sourced by normal runs; kept for comparison and history.
+
+## 2) Public API vs. internals
+
+`NAMESPACE` is the authority on the public surface. It exports exactly
+four entrypoints, one per pipeline contract plus the historical alias:
+
+- `auditGeochemistry()` — canonical geochemistry runner.
+- `DBAudit()` — alias of `auditGeochemistry()`, kept for the legacy
+  contract.
+- `auditPiezometer()` — piezometer runner (PCG, PCV).
+- `auditInclinometer()` — inclinometer runner (INC).
+
+Everything else is internal and carries a leading dot
+(`.chooseAssayFile()`, `.logEvent()`, `.checkRawDBKeys()`, ...). The
+dot is the house marker for "implementation detail"; it does not
+enforce privacy — exports do. Two dotted names are conversion helpers,
+not S3 methods: `.as.numeric()` and `.as.Date()`.
+
+## 3) CLI dispatch
+
+`DBAudit` (the Rscript entrypoint, invoked through the `dbaudit`
+wrapper) dispatches on one leading positional token:
+
+```
+dbaudit [geochemistry|piezometer|inclinometer] --project <DATA_ROOT> [OPTIONS]
+```
+
+- A leading non-flag token selects the pipeline contract; an unknown
+  token is a hard error.
+- No token, or a leading flag, keeps the legacy geochemical invocation
+  unchanged: `dbaudit --project <DATA_ROOT>` behaves exactly as it did
+  before subcommands existed.
+- Each branch parses its own option set (see `dbaudit --help` for the
+  per-contract options) and ends in exactly one exported runner call.
+- `--help`, `--version` and `--check` exit early, before any package
+  loading or auto-install.
+
+The wrapper resolves the installation root through `DBAUDIT_HOME` (set
+by `bin/dbaudit`) or, failing that, from the script's own path; there
+is no working-directory requirement.
+
+## 4) Event naming
+
+Two event vocabularies coexist, deliberately:
+
+- **Monitoring domains (PCG, PCV, INC)**: events are a single uppercase
+  word (`COMMA`, `UNREADABLE`, `MISLABELED`, `REDATED`, `DUPLICATED`,
+  `MIXED`, `UNITLESS`, `MISCOUNTED`, `MALFORMED`, `INCOMPLETE`,
+  `MISSING`, `MISCLOSURE`, `DRY`, `START`, `DONE`). The catalog
+  `inst/events.csv` is the contract: every emission is validated
+  against the key `(event, scope)`, and a pair that does not resolve to
+  exactly one catalog row stops the run. The catalog level is a
+  default the emitter may override — the same event can fire as
+  WARNING when the pipeline resolved the fact and as ERROR when it
+  could not (canonical case: `MISLABELED`). Anything free-form goes in
+  the `detail` column, never into the event name.
+- **Geochemistry**: the historical `SCREAMING_SNAKE` event codes
+  (`PARSE_OK`, `WRONG_VALUE`, `METHOD_INFERRED`, ...) with the
+  5-column logger. This vocabulary is part of the legacy contract and
+  is not migrated.
+
+## 5) Code style
+
+- **`data.table` is the table idiom.** The package imports it wholesale
+  (`import(data.table)` in `NAMESPACE`); all file I/O goes through
+  `fread()`/`fwrite()`; aggregation uses `[, .N, by/keyby = ...]`
+  expressions. Reference semantics are handled explicitly: code copies
+  (`data.table::copy()`) when the caller must keep the original, and
+  the tests pin that contract where it matters (e.g. the census leaves
+  the caller's raw table untouched).
+- **Naming.** Functions are `camelCase` verbs (`auditPiezometer`,
+  `parseLabData`); internals add the leading dot. Path- and file-role
+  parameters use dotted lowercase (`project.path`, `log.file`,
+  `lab.dir.name`). Stable locals are `PascalCase` (`Catalog`, `Truth`,
+  `Log`); short-lived vessels use the compact uppercase vocabulary
+  (`DT`, `AUX`, `OUT`, `FILES`); loop indices are single letters. No
+  `snake_case` for project-owned identifiers.
+- **Comments** record contracts, rulings and deliberate deviations
+  (with dates where a ruling applies), not narration of the code.

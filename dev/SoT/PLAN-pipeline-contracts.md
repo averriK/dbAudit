@@ -19,7 +19,7 @@ Definir como conviven en `dbAudit` dos contratos distintos:
   - `examples/scripts/geochem/setup.R`
   - `examples/scripts/geochem/README.md`
 - Preparar un ejemplo completo de piezometros usando la logica aprobada en
-  `AR-S2L1X`, sin mezclarlo con el contrato geoquimico.
+  `el proyecto de monitoreo downstream`, sin mezclarlo con el contrato geoquimico.
 - Definir slugs o nombres de contrato para seleccionar pipeline.
 - Definir estructura minima de ejemplos.
 - Definir que pertenece a la libreria R y que pertenece al CLI.
@@ -35,7 +35,7 @@ Definir como conviven en `dbAudit` dos contratos distintos:
 ## Current Plan
 
 1. Auditar el contrato real del pipeline geoquimico actual.
-2. Auditar el contrato real del pipeline de piezometros en `AR-S2L1X`.
+2. Auditar el contrato real del pipeline de piezometros en `el proyecto de monitoreo downstream`.
 3. Proponer nombres publicos y slugs solo despues de comparar contratos.
 4. Documentar alternativas rechazadas.
 5. Recien despues, implementar ejemplos y tests.
@@ -50,7 +50,7 @@ Activo. Primera etapa de paquete R completada en `dev`:
 
 Correccion de arquitectura:
 
-- `AR-S2L1X` es el repo de aplicacion para piezometros e inclinometros.
+- `el proyecto de monitoreo downstream` es el repo de aplicacion para piezometros e inclinometros.
 - `el repo privado del proyecto geoquimico` es el repo de aplicacion del contrato geoquimico viejo.
 - `dbAudit/project/test-A` y `dbAudit/project/test-B` pueden quedar como
   fixtures internos o smoke tests, pero no deben confundirse con el repo de
@@ -78,7 +78,7 @@ Correccion de arquitectura:
 - Se observo `el repo privado del proyecto geoquimico` de forma acotada:
   - `BV`: `raw/lab` con 11645 CSV, `raw/assay` con 2 CSV, `proc` sin CSV;
   - `QV`: `raw/lab` con 2552 CSV, `raw/assay` con 1 CSV, `proc` con 3 CSV.
-- Contrato piezometrico observado en `AR-S2L1X`:
+- Contrato piezometrico observado en `el proyecto de monitoreo downstream`:
   - entrada source: `data/source`;
   - evidencia parseada: `data/raw`;
   - base aprobada actual/prototipo: `data/db`;
@@ -156,7 +156,7 @@ irrecuperable.
   fuera de ambos intervalos de confianza se marca como probable dato malo.
   Todo lo que se construye ahora es QA/QC de niveles I y II. No disenar el
   nivel III todavia; los requisitos que impone hoy estan registrados en
-  `AR-S2L1X/dev/SoT/PLAN-agent-boundary.md` (coordenadas de instrumento como
+  `<proyecto>/dev/SoT/PLAN-agent-boundary.md` (coordenadas de instrumento como
   producto de db, series por sensor, vocabulario de log extensible con
   veredicto probabilistico). `PLAN-ingest-gate-contract.md` es su esqueleto.
 
@@ -261,9 +261,9 @@ Reglas de arquitectura para los tres runners (extraidas de contratos):
 ## Precondiciones Para La Migracion Piezometrica
 
 La fase `auditPiezometer()` no arranca hasta que Etapa I piezometrica cierre
-en `AR-S2L1X`, y exige resolver antes:
+en `el proyecto de monitoreo downstream`, y exige resolver antes:
 
-- relacion final productor-consumidor declarada: `AR-S2L1X` llama
+- relacion final productor-consumidor declarada: `el proyecto de monitoreo downstream` llama
   `dbAudit::auditPiezometer()` y retira su copia local en el mismo cambio
   (nada de logica duplicada tras dos entradas);
 - alcance acotado: helpers estables + UNA API exportada; `runParse.R`,
@@ -274,7 +274,7 @@ en `AR-S2L1X`, y exige resolver antes:
   independientes `raw=`/`db=`/`audit=`. Elegir uno y migrar el harness si
   corresponde;
 - reconciliacion de loggers explicita: `.logInit` difiere entre repos
-  (dbAudit borra el archivo; AR-S2L1X trunca en el lugar) y la Etapa I
+  (dbAudit borra el archivo; el proyecto de monitoreo downstream trunca en el lugar) y la Etapa I
   piezometrica extendera el esquema con la decision pass/repair/reject. Dos
   loggers con namespace o uno parametrizado probado byte-neutral para los
   goldens geochem;
@@ -287,7 +287,7 @@ en `AR-S2L1X`, y exige resolver antes:
   des-trackeados en `f4de24d` (quedan en disco, los goldens los leen
   localmente y saltan limpio si faltan; `project/` esta ignorado). Los
   fixtures piezometricos futuros se SINTETIZAN — el patron es
-  `AR-S2L1X/dev/SoT/buildCorruptSource.R`. Generador geoquimico sintetico
+  `<proyecto>/dev/SoT/buildCorruptSource.R`. Generador geoquimico sintetico
   HECHO en `8f688f1`: `dev/buildFixtures.R` escribe
   `tests/testthat/fixtures/synthetic-A` y `synthetic-B` (identificadores
   inventados, un desvio de valor plantado por fixture, conversion ppm/pct y
@@ -346,7 +346,7 @@ en `AR-S2L1X`, y exige resolver antes:
 - RESUELTO 2026-08-14 (mismo ruling): `--project` para piezometros es la
   raiz de datos que contiene `source/`, `raw/`, `db/` y `audit/` con
   defaults propios del runner, patron identico a geoquimica. Los runners
-  por etapa de `AR-S2L1X` conservan sus rutas independientes para
+  por etapa de `el proyecto de monitoreo downstream` conservan sus rutas independientes para
   desarrollo y estres; el contrato publico usa raiz unica.
 - Definir defaults de rutas por runner. `.dbauditPathDefaults` es geoquimico
   (`raw/lab`, `raw/assay`, `proc`); el juego piezometrico seria `source`,
@@ -376,7 +376,7 @@ en `AR-S2L1X`, y exige resolver antes:
   primera opcion porque el objetivo aprobado es una base piezometrica comun con
   IDs separados dentro de la tabla.
 - Tocar el CLI antes de tener pipelines R reproducibles: rechazado.
-- Usar `AR-S2L1X` como aplicacion geoquimica: rechazado; su rol es
+- Usar `el proyecto de monitoreo downstream` como aplicacion geoquimica: rechazado; su rol es
   piezometros/inclinometros.
 - Tratar los fixtures internos `project/test-A` y `project/test-B` como la
   aplicacion geoquimica real: rechazado.
@@ -440,13 +440,13 @@ Pendientes exactos de este repo, todos gateados por decisiones del usuario:
    piezometricos (patron ya probado con los geoquimicos de `8f688f1`).
 
 Accion segura siguiente: ninguna mutacion en este repo hasta el proximo
-ruling; el trabajo activo vive en `AR-S2L1X` (ver
+ruling; el trabajo activo vive en `el proyecto de monitoreo downstream` (ver
 `dev/SoT/PLAN-agent-boundary.md` alli, seccion Handoff 2026-08-13).
 
 ## Migracion Piezometrica — Etapa 1 Completa (2026-08-14)
 
 `f69c085`: `auditPiezometer()` existe, exportada y cableada al slug
-`piezometer`. Codigo migrado verbatim desde `AR-S2L1X` (1490 lineas en
+`piezometer`. Codigo migrado verbatim desde `el proyecto de monitoreo downstream` (1490 lineas en
 `R/piezometer{Parse,Build,Audit}.R` + orquestador `R/auditPiezometer.R`);
 manifest en `inst/extdata/`; installer envia `inst/`. Adaptaciones
 declaradas: logger compartido de dbAudit y `SourcePath` relativo a la raiz
@@ -455,7 +455,7 @@ reproducen el pipeline de aplicacion byte a byte (5 productos identicos, 3
 indices modulo prefijo declarado, log modulo ts y nombre de runner).
 Geochem intacto (goldens test-A + sinteticos, check `Status: OK`).
 
-Etapa 2 pendiente (el switch-over): `AR-S2L1X` pasa a llamar
+Etapa 2 pendiente (el switch-over): `el proyecto de monitoreo downstream` pasa a llamar
 `dbAudit::auditPiezometer()` y retira su copia local en el mismo cambio,
 con pin de version en los runners; los runners por etapa y las ramas INC
 siguen locales alla. Pendiente tambien: fixtures piezometricos sinteticos
@@ -465,7 +465,7 @@ generador de xlsx desde cero. Reinstalar el CLI cuando la etapa 2 cierre.
 
 ## Migracion Piezometrica — Etapa 2 Completa (2026-08-14)
 
-Switch-over ejecutado en `AR-S2L1X@5b92208`: los runners de aplicacion
+Switch-over ejecutado en `el proyecto de monitoreo downstream@5b92208`: los runners de aplicacion
 importan la maquinaria piezometrica y compartida desde el namespace del
 paquete instalado (`.importDbAudit()` en `scripts/setup.R`, con pin por
 sentinela de migracion). Copias locales retiradas: 1597 lineas borradas,
@@ -474,7 +474,7 @@ incluidos `scripts/parser/{utils,parsePCG,parsePCV,buildInventory}.R`.
 pipeline completo byte-identico (8 productos + log modulo ts), estres
 15/15, baseline de parsers identico, INC intacto. La relacion final
 productor-consumidor quedo: dbAudit es el dueno del codigo piezometrico;
-AR-S2L1X es la aplicacion que lo invoca. El paquete R quedo instalado en la
+el proyecto de monitoreo downstream es la aplicacion que lo invoca. El paquete R quedo instalado en la
 libreria de usuario; falta solo la reinstalacion del CLI (sudo, usuario).
 
 Ruling 2026-08-14: los fixtures piezometricos sinteticos para goldens
@@ -528,5 +528,5 @@ usuario AL FINAL con el checklist de la seccion Rama Windows.
 
 Acciones siguientes en orden: (1) validacion Windows cuando el usuario
 disponga la VM; (2) `auditInclinometer()` cuando la fase de calculo INC
-cierre en AR-S2L1X; (3) A2 (`.Rbuildignore ^examples$`) sigue abierto y no
+cierre en el proyecto de monitoreo downstream; (3) A2 (`.Rbuildignore ^examples$`) sigue abierto y no
 bloquea nada.

@@ -3,9 +3,9 @@
 ## per the 2026-08-14 full-runner ruling. The project root holds source/,
 ## raw/, db/ and audit/; the runner owns raw/db/audit for its ids and
 ## regenerates them on every run. Two intentional differences from the
-## AR-S2L1X application runners are declared: the AUDIT_START/AUDIT_DONE log
-## rows carry file = "auditPiezometer", and SourcePath cells are relative to
-## the project root rather than to the application repository root.
+## downstream application runners are declared: the START/DONE log rows carry
+## source = "auditPiezometer", and SourcePath cells are relative to the
+## project root rather than to the application repository root.
 
 .piezometerPathDefaults <- list(
   source.dir.name = "source",

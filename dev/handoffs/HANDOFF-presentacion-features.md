@@ -1,7 +1,7 @@
 # HANDOFF (Fable) — Presentación de features de dbAudit para audiencia experta
 
 Fecha: 2026-08-18. Repo de trabajo: `~/github/tools/dbAudit`.
-Recursos en `~/Cloud/github/projects/AR-S2L1X` y
+Recursos en `~/Cloud/github/projects/el proyecto de monitoreo downstream` y
 `~/github/libraries/reports` (NGR). Aplica el router
 `~/github/agents/AGENTS.md` (QRT.md para renderizar — jamás quarto
 crudo; TECHNICAL-WRITING para la prosa). Dirección, no autoridad.
@@ -52,7 +52,7 @@ de un proyecto: es la demo del producto dbAudit.
   'present').
 - Prosa profesional; títulos frase nominal; dominio declarado; sin
   lenguaje wiki; leyenda generada, jamás tipeada (rulings en
-  AR-S2L1X/dev/SoT/PLAN-logging.md — leer sus rulings v4/v5/v7 para
+  <proyecto>/dev/SoT/PLAN-logging.md — leer sus rulings v4/v5/v7 para
   no repetir los rechazos del dueño).
 - Dónde vive: propuesta `dev/deck/` o `docs/` de este repo con render
   qrt — proponer al dueño y esperar su ok antes de fijar ubicación.

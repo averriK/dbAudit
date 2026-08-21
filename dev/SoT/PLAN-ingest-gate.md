@@ -1,14 +1,14 @@
-# PLAN-AR-S2L1X-ingest-gate
+# PLAN-el proyecto de monitoreo downstream-ingest-gate
 
 ## Status
 
-Active SoT for possible AR-S2L1X work inside `dbAudit`.
+Active SoT for possible el proyecto de monitoreo downstream work inside `dbAudit`.
 
 Do not create nested SoT folders for this topic. Keep this as a single flat
 plan under:
 
 ```text
-dev/SoT/PLAN-AR-S2L1X-ingest-gate.md
+dev/SoT/PLAN-el proyecto de monitoreo downstream-ingest-gate.md
 ```
 
 ## Correction
@@ -40,9 +40,9 @@ It is not a generic verb CLI. It does not expose public `parse`, `build`, or
 `audit` verbs. Those are internal stages of the existing assay/certificate
 pipeline.
 
-## AR-S2L1X Difference
+## el proyecto de monitoreo downstream Difference
 
-AR-S2L1X is not only an audit-after-build workflow.
+el proyecto de monitoreo downstream is not only an audit-after-build workflow.
 
 The required production shape is:
 
@@ -63,7 +63,7 @@ into the approved database.
 
 Do not implement a `dbAudit` CLI extension yet.
 
-Before any code move, define the public runner contract for AR-S2L1X:
+Before any code move, define the public runner contract for el proyecto de monitoreo downstream:
 
 ```r
 <RunnerName>(project.path = ...)
@@ -88,7 +88,7 @@ bin/dbaudit
 
 ## Open Questions
 
-1. Is AR-S2L1X one public runner or several public stage functions?
+1. Is el proyecto de monitoreo downstream one public runner or several public stage functions?
 2. Is `project.path` the `data/` root?
 3. What is the authoritative log for the QAQC gate?
 4. Where do rejected observations live?
@@ -98,7 +98,7 @@ bin/dbaudit
 
 ## Source Memory
 
-Detailed design memory remains in AR-S2L1X:
+Detailed design memory remains in el proyecto de monitoreo downstream:
 
 ```text
 dev/SoT/REPORT-dbaudit-contract-correction.md
