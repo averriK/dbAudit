@@ -49,15 +49,33 @@
   if (!dir.exists(dirname(log.file))) {
     dir.create(dirname(log.file), recursive = TRUE, showWarnings = FALSE)
   }
-  if (file.exists(log.file)) invisible(file.remove(log.file))
-  fwrite(
-    data.table(
-      ts = character(), scope = character(), SiteID = character(),
-      HoleID = character(), datetime = character(), source = character(),
-      level = character(), event = character(), detail = character()
-    ),
-    log.file
+  if (file.exists(log.file)) invisible(suppressWarnings(file.remove(log.file)))
+  Header <- data.table(
+    ts = character(), scope = character(), SiteID = character(),
+    HoleID = character(), datetime = character(), source = character(),
+    level = character(), event = character(), detail = character()
   )
+  Wrote <- tryCatch({
+    fwrite(Header, log.file)
+    TRUE
+  }, error = function(e) FALSE)
+
+  if (!isTRUE(Wrote)) {
+    # A log that cannot be opened must not destroy the audit: a file
+    # copied read-only, or held open by a spreadsheet, is the usual
+    # cause. The run continues and says what it could not write.
+    .logResetDropped()
+    message(sprintf(
+      paste(
+        "dbaudit: the log at %s cannot be written; the audit will run",
+        "without it.\n  The file may be read-only, or open in another",
+        "program. Close it, or clear the read-only attribute, and run",
+        "again for a complete log."
+      ),
+      log.file
+    ))
+  }
+  invisible(isTRUE(Wrote))
 }
 
 .logEvent <- function(log.file, scope, event, level = NULL,
