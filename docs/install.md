@@ -12,7 +12,14 @@ The installers deploy the **CLI** (`dbaudit`). They do not install the R package
 
 ## Requirements
 
-- **R >= 4.1.0** (the version declared in `DESCRIPTION`), with `Rscript` discoverable on `PATH`. Both installers verify the version and abort below 4.1. The installers do **not** install R.
+- **R >= 4.1.0** (the version declared in `DESCRIPTION`). The installers do **not** install R.
+  - On **Windows**, R does not have to be on the `PATH`: the installer and the launcher read the
+    registry keys the CRAN installer writes, so an installed R is found either way. A machine with
+    no R still installs dbaudit and reports what is missing; R can be installed afterwards without
+    reinstalling dbaudit.
+  - On **macOS / Linux**, `Rscript` must be discoverable on the `PATH`, and the installer aborts
+    if it is not.
+  - Both installers verify the version and abort below 4.1 when R is present.
 - Internet access to CRAN during installation, unless the required packages are already present or package installation is skipped.
 - Five required R packages: `data.table`, `stringr`, `lubridate`, `readxl`, `jsonlite`. The installer installs any that are missing; with `--skip-packages` / `-SkipPackages` they are auto-installed on the first `dbaudit` run instead.
 

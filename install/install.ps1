@@ -11,7 +11,8 @@
 #   -SkipPackages  Skip R package installation (packages will be installed on first run)
 #
 # Requirements:
-#   - R (>= 4.1.0) must be installed and Rscript must be in PATH
+#   - R (>= 4.1.0); found through the registry or the PATH, and not required
+#     to be present at install time
 #   - Internet connectivity (for package installation, unless -SkipPackages is used)
 #
 # Notes:

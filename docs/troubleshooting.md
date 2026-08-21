@@ -87,9 +87,24 @@ If the `Build:` commit differs from the checkout `HEAD`, re-run the installer. `
 
 `Build: unknown` on **Windows** had a second cause until build `d108c85`: the PowerShell installer wrote the manifest with a byte-order mark, which turned the first line into an invisible key and hid every field from the reader, so *every* Windows install reported an unknown build however fresh it was. The installer now writes plain UTF-8 and the reader skips a leading mark, so existing installations resolve their build without reinstalling.
 
-## `Rscript` not found
+## R not found
 
-`dbaudit` requires `Rscript` at runtime, and **R >= 4.1.0** (the installers verify the version and abort below 4.1).
+`dbaudit` needs R at runtime, **version 4.1.0 or newer** (the installers verify the version and abort below 4.1 when R is present).
+
+### Windows
+
+R absent from the `PATH` is the normal state — the CRAN installer does not add it — and it is not the cause of this message. On every run the launcher looks for `Rscript` on the `PATH`, then at the path the installation resolved, then in the registry, per machine and per user:
+
+```powershell
+reg query "HKLM\SOFTWARE\R-core\R64" /v InstallPath
+reg query "HKCU\SOFTWARE\R-core\R64" /v InstallPath
+```
+
+If a key answers with an `InstallPath`, R is installed and dbaudit will find it; if `dbaudit` still says otherwise, the installation predates that behaviour — reinstall dbaudit from the published branch.
+
+If no key answers, R is not installed. Install it from CRAN (<https://cran.r-project.org/bin/windows/base/>) and run `dbaudit` again: reinstalling dbaudit is not required.
+
+Do **not** install a second copy of R to work around a `PATH` problem. Two installations keep separate package libraries, so the five packages installed by one are invisible to the other, and reinstalling never resolves it.
 
 ### macOS / Linux
 
@@ -98,21 +113,7 @@ command -v Rscript
 Rscript --version
 ```
 
-If `command -v` prints nothing, install R for your OS and ensure `Rscript` is on PATH.
-
-### Windows
-
-In PowerShell:
-
-```powershell
-Get-Command Rscript -ErrorAction SilentlyContinue
-```
-
-In Git Bash:
-
-```bash
-command -v Rscript || command -v Rscript.exe
-```
+Here `Rscript` must be on the `PATH`: the installer aborts without it. If `command -v` prints nothing while R is installed, add the `bin` directory of the installation to the `PATH` — on macOS a CRAN install is under `/Library/Frameworks/R.framework/Resources/bin` — rather than installing R a second time.
 
 ## R packages fail to install
 

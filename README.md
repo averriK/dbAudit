@@ -38,7 +38,9 @@ R pipeline for parsing laboratory geochemical certificates into normalized long-
 - **R (≥ 4.1.0)**: Core language
   - Verify: `Rscript --version`
   - Install: [CRAN Downloads](https://cran.r-project.org/)
-  - Ensure `Rscript` is in your PATH
+  - On Windows, R need not be on the PATH: the installer and the launcher
+    read the registry keys the CRAN installer writes. On macOS and Linux,
+    `Rscript` must be on the PATH.
 
 - **R Packages** (auto-installed by installer):
   - `data.table` - Fast data I/O and manipulation
@@ -115,8 +117,12 @@ Status: ✓ All dependencies satisfied
 
 **R not found:**
 - Install R from [CRAN](https://cran.r-project.org/)
-- Ensure `Rscript` is in your PATH
-- Restart terminal after installing R
+- Windows: no PATH change is needed, and dbaudit does not need reinstalling
+  after R is installed. Confirm the installation with
+  `reg query "HKLM\SOFTWARE\R-core\R64" /v InstallPath`
+- macOS / Linux: ensure `Rscript` is on the PATH
+- Never install a second copy of R to work around a PATH problem: two
+  installations keep separate package libraries
 
 **R version too old:**
 - Check version: `Rscript --version`
