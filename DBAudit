@@ -403,9 +403,16 @@ if (identical(slug, "inclinometer")) {
     stop("Missing --project. Try: dbaudit inclinometer --project <DATA_ROOT>")
   }
 
+  # The runtime is not the installed R package: resolve the manifest from
+  # the installation root, as the piezometer path already does. Asking
+  # the package for it returns "" wherever dbAudit was installed as the
+  # command line only, which is the documented way to install it.
+  manifest.file <- file.path(root, "inst", "extdata", "piezometer-manifest.json")
+  if (nzchar(manifest)) manifest.file <- manifest
+
   do.call(auditInclinometer, c(list(
     project.path = project.path,
-    manifest = if (nzchar(manifest)) manifest else NULL
+    manifest = manifest.file
   ), dirs))
   quit(save = "no", status = 0)
 }

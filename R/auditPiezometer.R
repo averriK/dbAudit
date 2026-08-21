@@ -57,6 +57,15 @@ auditPiezometer <- function(
 
   if (is.null(manifest)) {
     manifest <- system.file("extdata", "piezometer-manifest.json", package = "dbAudit")
+    if (!nzchar(manifest)) {
+      # Installed as the command line alone, the R package is absent and
+      # system.file() answers "": fall back to the runtime that sourced
+      # this file, which the launcher names in DBAUDIT_HOME.
+      Home <- Sys.getenv("DBAUDIT_HOME")
+      if (nzchar(Home)) {
+        manifest <- file.path(Home, "inst", "extdata", "piezometer-manifest.json")
+      }
+    }
   }
   Manifest <- loadParserManifest(path = manifest)
 
