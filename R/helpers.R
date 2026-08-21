@@ -85,6 +85,56 @@
   suppressWarnings(as.numeric(y))
 }
 
+# A missing input directory is the most common way a run stops, and the
+# path alone is a dead end: the user cannot tell whether the root is
+# wrong, the layout differs, or the data belongs to another domain. The
+# message states the expected layout, lists what the root actually
+# holds, and names the domain the contents look like.
+.missingDirMessage <- function(project.path, missing, expected, domain) {
+  Shown <- normalizePath(missing, winslash = "/", mustWork = FALSE)
+  Root <- normalizePath(project.path, winslash = "/", mustWork = FALSE)
+
+  Have <- tryCatch(
+    sort(list.files(project.path, include.dirs = TRUE, no.. = TRUE)),
+    error = function(e) character()
+  )
+  Listed <- if (length(Have) == 0L) {
+    "    (the project directory is empty)"
+  } else {
+    paste0("    ", paste(utils::head(Have, 20L), collapse = "  "))
+  }
+
+  Hint <- if (dir.exists(file.path(project.path, "source"))) {
+    paste(
+      "\n  This root holds source/, the monitoring layout.",
+      "Audit it with 'dbaudit piezometer' or 'dbaudit inclinometer'."
+    )
+  } else if (any(c("raw", "lab", "assay", "proc") %in% Have) ||
+             any(c("PCG", "PCV", "INC") %in% Have)) {
+    paste(
+      "\n  The root holds data directories but not the expected layout.",
+      "Point --project at the data root itself, or pass the directory",
+      "options to match your layout."
+    )
+  } else {
+    "\n  Point --project at the data root, not at the repository or project folder."
+  }
+
+  sprintf(
+    paste0(
+      "%s not found: %s\n\n",
+      "  The %s contract expects, under --project:\n%s\n\n",
+      "  --project resolved to: %s\n",
+      "  which holds:\n%s\n%s"
+    ),
+    sub(paste0("^", .escapeRegex(normalizePath(project.path, winslash = "/", mustWork = FALSE)), "/?"),
+        "", Shown),
+    Shown, domain,
+    paste0("    ", paste(expected, collapse = "\n    ")),
+    Root, Listed, Hint
+  )
+}
+
 # Internal helper: tolerant date parsing to ISO (YYYY-MM-DD).
 # Locale-independent by construction: every month-name token (English,
 # Spanish, Portuguese; abbreviated and full) is normalized to its NUMBER

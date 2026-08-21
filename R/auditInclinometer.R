@@ -31,7 +31,15 @@ auditInclinometer <- function(
   db.dir <- file.path(project.path, db.dir.name)
   audit.dir <- file.path(project.path, audit.dir.name)
   if (!dir.exists(source.dir)) {
-    stop(sprintf("source.dir not found: %s", source.dir), call. = FALSE)
+    stop(.missingDirMessage(
+      project.path = project.path, missing = source.dir,
+      expected = c(
+        paste0(source.dir.name, "/<ID>/<Site>/   client files as received"),
+        paste0(raw.dir.name, "/, ", db.dir.name, "/, ", audit.dir.name,
+               "/   products, created by the run")
+      ),
+      domain = "inclinometer"
+    ), call. = FALSE)
   }
 
   if (is.null(manifest)) {

@@ -19,7 +19,13 @@
 .dbauditDocsUrl <- "https://averrik.github.io/dbAudit/docs/"
 
 .chooseAssayFile <- function(assay.dir) {
-  if (!dir.exists(assay.dir)) stop(sprintf("assay.dir not found: %s", assay.dir))
+  if (!dir.exists(assay.dir)) {
+    stop(.missingDirMessage(
+      project.path = dirname(assay.dir), missing = assay.dir,
+      expected = "raw/assay/   the client assay table",
+      domain = "geochemistry"
+    ), call. = FALSE)
+  }
 
   # Prefer known filenames first.
   preferred.names <- c("_Assay_Comp.csv", "AAQ_Sample_Assay.csv")
@@ -82,7 +88,17 @@ auditGeochemistry <- function(
   assay.dir <- file.path(project.path, assay.dir.name)
   proc.dir <- file.path(project.path, proc.dir.name)
 
-  if (!dir.exists(lab.dir)) stop(sprintf("lab.dir not found: %s", lab.dir))
+  if (!dir.exists(lab.dir)) {
+    stop(.missingDirMessage(
+      project.path = project.path, missing = lab.dir,
+      expected = c(
+        paste0(lab.dir.name, "/     laboratory certificates"),
+        paste0(assay.dir.name, "/   the client assay table"),
+        paste0(proc.dir.name, "/       products, created by the run")
+      ),
+      domain = "geochemistry"
+    ), call. = FALSE)
+  }
   if (!dir.exists(proc.dir)) dir.create(proc.dir, recursive = TRUE, showWarnings = FALSE)
 
   # Assay file selection:
