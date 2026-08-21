@@ -8,3 +8,5 @@ CLAUDE.md
 .vscode
 venv
 .DS_Store
+
+.obsidian/
