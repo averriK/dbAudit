@@ -101,9 +101,13 @@ dbaudit does not install R. Install it from CRAN
 (<https://cran.r-project.org/bin/windows/base/>) before running the
 installer.
 
-The CRAN installer does **not** add R to the PATH by default. dbaudit
-resolves `Rscript` through the PATH at run time, so an R that is installed
-but absent from the PATH looks missing. Check it:
+The CRAN installer does **not** add R to the PATH by default, and dbaudit
+does not require it to: on every run the launcher looks for `Rscript` on
+the PATH, then at the path this installation resolved, then in the
+registry keys the CRAN installer writes (`SOFTWARE\R-core\R64`,
+`\R`, per machine and per user). An R that is installed is found.
+
+If dbaudit still reports that R is missing, check what the machine has:
 
 PowerShell:
 
@@ -117,9 +121,15 @@ Git Bash:
 command -v Rscript || command -v Rscript.exe
 ```
 
-If nothing is returned, add the `bin` directory of your R installation
-(typically `C:\Program Files\R\R-<version>\bin`) to the User PATH, open a
-new terminal, and check again. Do **not** install a second copy of R: two
+```powershell
+reg query "HKLM\SOFTWARE\R-core\R64" /v InstallPath
+```
+
+Nothing on the PATH is normal and harmless. Nothing in the registry either
+means R is not installed — install it from CRAN and run dbaudit again; no
+reinstallation of dbaudit is needed.
+
+Do **not** install a second copy of R to work around a PATH problem: two
 installations keep separate package libraries, so packages installed by one
 are invisible to the other.
 

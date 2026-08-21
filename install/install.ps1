@@ -260,6 +260,7 @@ commit=$commit
 branch=$branch
 tag=$tag
 install_date=$installDate
+rscript_path=$rscriptPath
 bin_path=$cmdPath
 libexec_dir=$LibexecDir
 bin_dir=$UserBinDir
@@ -283,28 +284,134 @@ shim_path=$shimPath
 }
 
 # Strict R availability check
+# On Windows an R installation is a registry fact: the CRAN installer
+# writes SOFTWARE\R-core\{R,R64,R32} with InstallPath and Current
+# Version, per machine or per user, one subkey per installed version. R
+# does not add itself to the PATH, so resolving Rscript through the PATH
+# alone reports a working installation as missing. The registry is read
+# first, the PATH second, unregistered trees last; candidates are
+# collapsed by the R_HOME each binary reports, so several paths and keys
+# describing one installation count once. This detects; it never
+# installs R.
+function Resolve-RInstallation {
+    $eap = $ErrorActionPreference
+    $ErrorActionPreference = "SilentlyContinue"
+    $paths = New-Object System.Collections.ArrayList
+
+    function Add-Bin($installPath) {
+        if (-not $installPath) { return }
+        foreach ($rel in @("bin\x64\Rscript.exe", "bin\i386\Rscript.exe", "bin\Rscript.exe")) {
+            $c = Join-Path $installPath $rel
+            if (Test-Path -LiteralPath $c) { [void]$paths.Add((Resolve-Path -LiteralPath $c).Path) }
+        }
+    }
+
+    foreach ($hive in @("HKLM:", "HKCU:")) {
+        foreach ($branch in @("SOFTWARE\R-core", "SOFTWARE\WOW6432Node\R-core")) {
+            foreach ($flavour in @("R", "R64", "R32")) {
+                $key = "$hive\$branch\$flavour"
+                if (-not (Test-Path $key)) { continue }
+                Add-Bin (Get-ItemProperty -LiteralPath $key).InstallPath
+                foreach ($sub in Get-ChildItem -LiteralPath $key) {
+                    Add-Bin (Get-ItemProperty -LiteralPath $sub.PSPath).InstallPath
+                }
+            }
+        }
+    }
+
+    $onPath = @()
+    foreach ($n in @("Rscript", "Rscript.exe")) {
+        foreach ($c in (Get-Command $n -All)) {
+            if ($c.Source -and (Test-Path -LiteralPath $c.Source)) {
+                $rp = (Resolve-Path -LiteralPath $c.Source).Path
+                $onPath += $rp
+                [void]$paths.Add($rp)
+            }
+        }
+    }
+
+    foreach ($base in @(
+        (Join-Path $env:ProgramFiles "R"),
+        (Join-Path ${env:ProgramFiles(x86)} "R"),
+        (Join-Path ([Environment]::GetFolderPath("LocalApplicationData")) "Programs\R")
+    )) {
+        if (-not $base -or -not (Test-Path -LiteralPath $base)) { continue }
+        foreach ($d in Get-ChildItem -LiteralPath $base -Directory) { Add-Bin $d.FullName }
+    }
+
+    $found = @()
+    foreach ($rp in ($paths | Select-Object -Unique)) {
+        $out = & $rp --version 2>&1 | Out-String
+        $ver = $null
+        if ($out -match "version (\d+)\.(\d+)\.(\d+)") {
+            $ver = [version]("{0}.{1}.{2}" -f $matches[1], $matches[2], $matches[3])
+        } elseif ($out -match "version (\d+)\.(\d+)") {
+            $ver = [version]("{0}.{1}.0" -f $matches[1], $matches[2])
+        }
+        if (-not $ver) { continue }
+        $home = (& $rp -e "cat(R.home())" 2>&1 | Out-String).Trim()
+        $found += [pscustomobject]@{
+            Path = $rp; Version = $ver; RHome = $home; OnPath = ($onPath -contains $rp)
+        }
+    }
+
+    $ErrorActionPreference = $eap
+    if ($found.Count -eq 0) { return $null }
+
+    # One installation, however many paths reached it.
+    $installs = @()
+    foreach ($g in ($found | Group-Object RHome)) {
+        $best = $g.Group | Sort-Object Version -Descending | Select-Object -First 1
+        $installs += [pscustomobject]@{
+            Path = ($g.Group | Where-Object { $_.OnPath } | Select-Object -First 1 -ExpandProperty Path)
+            Version = $best.Version
+            RHome = $g.Name
+            OnPath = [bool]($g.Group | Where-Object { $_.OnPath })
+        }
+        if (-not $installs[-1].Path) { $installs[-1].Path = $best.Path }
+    }
+    return ($installs | Sort-Object Version -Descending)
+}
+
 Write-Host ""
 Info "Checking R installation..."
+$installs = Resolve-RInstallation
 $rscript = $null
-try {
-    $rscript = Get-Command Rscript -ErrorAction SilentlyContinue
-    if (-not $rscript) { $rscript = Get-Command Rscript.exe -ErrorAction SilentlyContinue }
-} catch {}
+$rscriptPath = $null
+if ($installs) {
+    $usable = @($installs | Where-Object { $_.Version -ge [version]"4.1.0" })
+    Info ("R installations found: {0}" -f @($installs).Count)
+    foreach ($i in $installs) {
+        Info ("  {0}  {1}{2}" -f $i.Version, $i.RHome, $(if ($i.OnPath) { "  [on PATH]" } else { "" }))
+    }
+    if ($usable.Count -gt 0) {
+        $pick = @($usable | Where-Object { $_.OnPath } | Select-Object -First 1)
+        if (-not $pick) { $pick = @($usable | Select-Object -First 1) }
+        $rscriptPath = $pick[0].Path
+        $rscript = [pscustomobject]@{ Source = $rscriptPath }
+        if (-not $pick[0].OnPath) {
+            Warn "R $($pick[0].Version) is installed but not on the PATH."
+            Warn "The launcher will use it directly: $rscriptPath"
+            Warn "Adding $(Split-Path $rscriptPath -Parent) to your PATH is still recommended."
+        }
+    }
+}
 
 if (-not $rscript) {
-    Fail @"
-R is not installed or Rscript is not in PATH.
+    # Installing dbaudit does not need R; running it does, and the
+    # launcher resolves R again on every invocation. Aborting here would
+    # strand a user who is about to install R, so the install completes
+    # and says exactly what is missing.
+    Warn @"
+No R installation (>= 4.1.0) was found on this machine.
 
-dbaudit requires R (>= 4.1.0) to run.
-
-Install R for Windows from CRAN:
+dbaudit needs R to run. Install R for Windows from CRAN:
   https://cran.r-project.org/bin/windows/base/
 
-After installing R:
-  1. Restart your terminal (to pick up PATH changes)
-  2. Run this installer again
-
+dbaudit will find it on the next run, whether or not R is on the PATH.
+The R packages were not installed; they install on first run.
 "@
+    $SkipPackages = $true
 }
 
 # Verify R version >= 4.1 (DESCRIPTION: R (>= 4.1.0)).
@@ -312,10 +419,13 @@ After installing R:
 # and PowerShell 5.1 turns redirected native stderr into a terminating
 # error while ErrorActionPreference is Stop: the version gate would kill
 # the install on the very minimum version it exists to admit.
-$eapPrev = $ErrorActionPreference
-$ErrorActionPreference = "SilentlyContinue"
-$versionOutput = & $rscript.Source --version 2>&1 | Out-String
-$ErrorActionPreference = $eapPrev
+$versionOutput = ""
+if ($rscript) {
+    $eapPrev = $ErrorActionPreference
+    $ErrorActionPreference = "SilentlyContinue"
+    $versionOutput = & $rscript.Source --version 2>&1 | Out-String
+    $ErrorActionPreference = $eapPrev
+}
 if ($versionOutput -match 'version (\d+)\.(\d+)') {
     $major = [int]$matches[1]
     $minor = [int]$matches[2]
@@ -403,24 +513,44 @@ if ($lad -and $LibexecDir.StartsWith($lad, [System.StringComparison]::OrdinalIgn
     $cmdHome = $LibexecDir
 }
 
+# The launcher resolves R on every run, not only at install time: the
+# PATH first, then the path this install resolved, then the registry —
+# where the CRAN installer records every installation. R absent from the
+# PATH is the normal state on Windows, not an error.
 $cmdLines = @(
     '@echo off',
     'setlocal',
     ('set "DBAUDIT_HOME={0}"' -f $cmdHome),
+    ('set "RSCRIPT_PINNED={0}"' -f $rscriptPath),
+    'set "RSCRIPT="',
     '',
     'where Rscript >nul 2>nul',
-    'if %errorlevel%==0 (',
-    '  set "RSCRIPT=Rscript"',
-    ') else (',
-    '  where Rscript.exe >nul 2>nul',
-    '  if %errorlevel%==0 (',
-    '    set "RSCRIPT=Rscript.exe"',
-    '  ) else (',
-    '    echo ERROR: Rscript not found in PATH. Install R and try again. 1>&2',
-    '    exit /b 1',
-    '  )',
-    ')',
+    'if %errorlevel%==0 (set "RSCRIPT=Rscript" & goto :run)',
+    'where Rscript.exe >nul 2>nul',
+    'if %errorlevel%==0 (set "RSCRIPT=Rscript.exe" & goto :run)',
+    'if defined RSCRIPT_PINNED if exist "%RSCRIPT_PINNED%" (set "RSCRIPT=%RSCRIPT_PINNED%" & goto :run)',
     '',
+    'call :fromreg "HKLM\SOFTWARE\R-core\R64"',
+    'if defined RSCRIPT goto :run',
+    'call :fromreg "HKLM\SOFTWARE\R-core\R"',
+    'if defined RSCRIPT goto :run',
+    'call :fromreg "HKCU\SOFTWARE\R-core\R64"',
+    'if defined RSCRIPT goto :run',
+    'call :fromreg "HKCU\SOFTWARE\R-core\R"',
+    'if defined RSCRIPT goto :run',
+    '',
+    'echo ERROR: R not found. Install R ^(4.1.0 or newer^) from 1>&2',
+    'echo        https://cran.r-project.org/bin/windows/base/ 1>&2',
+    'exit /b 1',
+    '',
+    ':fromreg',
+    'for /f "tokens=2,*" %%A in (''reg query %~1 /v InstallPath 2^>nul ^| findstr /i "InstallPath"'') do (',
+    '  if exist "%%~B\bin\x64\Rscript.exe" set "RSCRIPT=%%~B\bin\x64\Rscript.exe"',
+    '  if not defined RSCRIPT if exist "%%~B\bin\Rscript.exe" set "RSCRIPT=%%~B\bin\Rscript.exe"',
+    ')',
+    'exit /b 0',
+    '',
+    ':run',
     '"%RSCRIPT%" "%DBAUDIT_HOME%\DBAudit" %*'
 )
 
