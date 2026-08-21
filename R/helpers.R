@@ -1,13 +1,28 @@
 .logInit <- function(log.file) {
   if (!dir.exists(dirname(log.file))) dir.create(dirname(log.file), recursive = TRUE, showWarnings = FALSE)
-  if (file.exists(log.file)) invisible(file.remove(log.file))
-  fwrite(
-    data.table(
-      ts = character(), level = character(), file = character(),
-      event = character(), message = character()
-    ),
-    log.file
+  if (file.exists(log.file)) invisible(suppressWarnings(file.remove(log.file)))
+  Header <- data.table(
+    ts = character(), level = character(), file = character(),
+    event = character(), message = character()
   )
+  # Same contract as the monitoring logger: a log that cannot be opened
+  # — read-only, or held by a spreadsheet — must not destroy the audit.
+  Wrote <- tryCatch({
+    fwrite(Header, log.file)
+    TRUE
+  }, error = function(e) FALSE)
+  if (!isTRUE(Wrote)) {
+    .logResetDropped()
+    message(sprintf(
+      paste(
+        "dbaudit: the log at %s cannot be written; the audit will run",
+        "without it.\n  The file may be read-only, or open in another",
+        "program."
+      ),
+      log.file
+    ))
+  }
+  invisible(isTRUE(Wrote))
 }
 
 # Log writes must never destroy work already done. The loggers open the
@@ -97,8 +112,16 @@
   FILE <- system.file(Rel, package = "dbAudit")
   if (nzchar(FILE) && file.exists(FILE)) return(FILE)
 
-  Home <- Sys.getenv("DBAUDIT_HOME")
-  if (nzchar(Home)) {
+  # The entrypoint already resolved the installation root; consult it
+  # before the environment, which a shell may not have set.
+  Roots <- c(
+    if (exists("root", envir = globalenv(), inherits = FALSE)) {
+      get("root", envir = globalenv())
+    },
+    Sys.getenv("DBAUDIT_HOME")
+  )
+  for (Home in Roots) {
+    if (!is.character(Home) || !nzchar(Home)) next
     FILE <- file.path(Home, "inst", Rel)
     if (file.exists(FILE)) return(FILE)
   }

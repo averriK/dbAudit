@@ -39,3 +39,22 @@ test_that("the site is never a path", {
   site <- siteFromPath(path = f, root = root)
   expect_false(grepl("[/\\\\:]", site))
 })
+
+test_that("a file outside the root is an error, never an absolute site", {
+  root <- file.path(tempfile("root"), "source")
+  dir.create(root, recursive = TRUE)
+  outside <- tempfile("outside", fileext = ".xlsx")
+  file.create(outside)
+  on.exit({ unlink(dirname(root), recursive = TRUE); unlink(outside) }, add = TRUE)
+
+  # The escape branch used to return the whole absolute path, whose first
+  # segment then became a directory name: "D:" on Windows, "Users" here.
+  expect_error(.relativeParts(file = outside, root = root), "not under the source root")
+})
+
+test_that("a hole identifier survives as one path component", {
+  ids <- normalizeHoleID(c("Fecha: 12/03/2026", "PZ\\1", "PZ-1.", "PZ *?1", 'a"b<c>d|e'))
+  expect_false(any(grepl('[/\\\\:*?"<>|]', ids)))
+  expect_false(any(grepl("[. ]$", ids)))
+  expect_identical(ids[[2]], "PZ_1")
+})

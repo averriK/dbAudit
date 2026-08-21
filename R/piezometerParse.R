@@ -28,9 +28,17 @@ normalizeHoleID <- function(x) {
   x <- as.character(x)
   x[is.na(x)] <- ""
   x <- trimws(gsub(pattern = "[[:space:]]+", replacement = " ", x = x))
-  x <- gsub(pattern = "[[:space:]/]+", replacement = "_", x = x)
+  # The HoleID is not only a key: .writeRawTables() turns it into a
+  # directory name, so it must survive as ONE path component on every
+  # platform. POSIX reserves only "/" — already handled — while Windows
+  # also reserves \\ : * ? " < > | and refuses a name ending in a dot or
+  # a space. A hand-typed cell reaches here ("Fecha: 12/03/2026" when a
+  # header is off by one), and an unsanitized value either kills the run
+  # on Windows or silently deepens the tree by one level.
+  x <- gsub(pattern = "[[:space:]/\\\\:*?\"<>|]+", replacement = "_", x = x)
   x <- gsub(pattern = "_+", replacement = "_", x = x)
-  gsub(pattern = "^_|_$", replacement = "", x = x)
+  x <- gsub(pattern = "^[_.]+|[_. ]+$", replacement = "", x = x)
+  x
 }
 
 readExcelCells <- function(path, sheet) {
@@ -257,21 +265,43 @@ listSourceFiles <- function(path, pattern) {
 }
 
 .relativeParts <- function(file, root) {
-  # Same contract as siteFromPath, which this shares: strip the root by
-  # length, never as a pattern, and split on either separator.
-  Root <- normalizePath(path = root, mustWork = TRUE)
-  Path <- normalizePath(path = file, mustWork = TRUE)
-
-  Head <- substr(Path, 1L, nchar(Root))
-  Same <- if (.Platform$OS.type == "windows") {
-    identical(tolower(Head), tolower(Root))
-  } else {
-    identical(Head, Root)
+  # The root is a PATH, never a pattern: strip it by length. And never
+  # fall back to the absolute path — its first segment becomes a
+  # directory name under raw/, so on Windows that yields the drive token
+  # "D:", which no directory may be called, and on POSIX a plausible but
+  # wrong site ("Users"). The subtraction is lexical first, because
+  # `file` comes from list.files(root, full.names = TRUE) and is
+  # textually a descendant of `root`; normalizePath() would resolve a
+  # junction or symlink below the root to another volume and break that
+  # relation. Normalized prefixes are the fallback, and a genuine
+  # mismatch is an error with a name.
+  .strip <- function(path, root) {
+    P <- gsub("\\\\", "/", path)
+    R <- sub("/+$", "", gsub("\\\\", "/", root))
+    Head <- substr(P, 1L, nchar(R))
+    Hit <- if (.Platform$OS.type == "windows") {
+      identical(tolower(Head), tolower(R))
+    } else {
+      identical(Head, R)
+    }
+    if (!Hit) return(NA_character_)
+    sub("^/+", "", substring(P, nchar(R) + 1L))
   }
-  Rel <- if (Same) substring(Path, nchar(Root) + 1L) else Path
-  Rel <- sub(pattern = "^[/\\\\]+", replacement = "", x = Rel)
 
-  strsplit(x = Rel, split = "[/\\\\]")[[1L]]
+  Rel <- .strip(path = file, root = root)
+  if (is.na(Rel)) {
+    Rel <- .strip(
+      path = normalizePath(path = file, winslash = "/", mustWork = TRUE),
+      root = normalizePath(path = root, winslash = "/", mustWork = TRUE)
+    )
+  }
+  if (is.na(Rel) || !nzchar(Rel)) {
+    stop(sprintf(
+      "source file is not under the source root:\n  file: %s\n  root: %s",
+      file, root
+    ), call. = FALSE)
+  }
+  strsplit(x = Rel, split = "/")[[1L]]
 }
 
 parsePCG <- function(path, manifest) {

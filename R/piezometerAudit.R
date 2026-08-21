@@ -151,12 +151,16 @@
   )
   MISS <- setdiff(FILES, Walked)
   if (length(MISS) > 0L) {
-    Prefix <- paste0(normalizePath(path.expand(source), mustWork = TRUE), "/")
     .logEvent(
       log.file = log,
       scope = "file",
       event = "MISSING",
-      source = sub(pattern = Prefix, replacement = "", x = MISS, fixed = TRUE),
+      # The path shown must be relative to the source root. Building a
+      # prefix with normalizePath() and subtracting it verbatim fails on
+      # Windows, where that root carries backslashes while the walked
+      # files carry forward slashes: the census then reported absolute
+      # paths for findings it should describe in one line.
+      source = .relativeToRoot(MISS, source),
       detail = "data file under the source root never parsed"
     )
   }

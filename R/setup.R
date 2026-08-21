@@ -13,11 +13,39 @@
   message("Installing missing R packages: ", paste(pkgs, collapse = ", "))
   message("This may take a few minutes on first run...\n")
 
+  # Without an explicit library, a non-interactive R on Windows has
+  # nowhere writable to install into and cannot ask: it fails and the
+  # user never gets the packages. Ensure the personal library exists and
+  # install there.
+  Lib <- .libPaths()[1L]
+  Writable <- !is.na(Lib) && dir.exists(Lib) && file.access(Lib, mode = 2L) == 0L
+  if (!isTRUE(Writable)) {
+    Personal <- Sys.getenv("R_LIBS_USER")
+    if (nzchar(Personal)) {
+      Personal <- strsplit(Personal, .Platform$path.sep, fixed = TRUE)[[1L]][1L]
+      Personal <- path.expand(Personal)
+      if (!dir.exists(Personal)) {
+        dir.create(Personal, recursive = TRUE, showWarnings = FALSE)
+      }
+      if (dir.exists(Personal)) {
+        .libPaths(c(Personal, .libPaths()))
+        Lib <- Personal
+      }
+    }
+  }
+  if (!dir.exists(Lib) || file.access(Lib, mode = 2L) != 0L) {
+    stop(paste(
+      "No writable R library to install into.\n",
+      "Create one and try again, for example:\n",
+      "  Rscript -e 'dir.create(Sys.getenv(\"R_LIBS_USER\"), recursive = TRUE)'"
+    ), call. = FALSE)
+  }
+
   if (.Platform$OS.type == "windows") {
     message("Note: Installing pre-compiled binaries (Windows does not compile from source)\n")
-    utils::install.packages(pkgs, type = "binary")
+    utils::install.packages(pkgs, lib = Lib, type = "binary")
   } else {
-    utils::install.packages(pkgs)
+    utils::install.packages(pkgs, lib = Lib)
   }
 }
 

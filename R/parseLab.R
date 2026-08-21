@@ -164,7 +164,14 @@ parseLabData <- function(
 
 .parseLabData <- function(FILE, log.file, format) {
   if (identical(format, "auto")) {
-    format <- .detectLabFormat(FILE)
+    # The only read of the certificate outside a handler: an unreadable
+    # file — locked, truncated, or with an encoding readLines rejects —
+    # aborted the whole run instead of excluding one job.
+    format <- tryCatch(.detectLabFormat(FILE), error = function(e) {
+      .log(log.file, "ERROR", FILE, "PARSE_ERROR",
+        sprintf("cannot read file: %s", conditionMessage(e)))
+      NA_character_
+    })
     if (is.na(format)) {
       .log(log.file, "ERROR", FILE, "UNKNOWN_FORMAT", "Unknown certificate layout (expected A or B)")
       return(list(DATA = data.table(), INDEX = data.table()))
