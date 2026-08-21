@@ -135,6 +135,50 @@ If package installation fails, common causes include:
 
 Try running again in a network environment that can reach CRAN, or install the packages using R directly. `dbaudit --check` confirms the result.
 
+## `manifest not found` or `events catalog not found`
+
+The run stops before reading any data, and the path in the message is
+empty or points at `inst/`. The installation is incomplete: reinstall from
+the published branch.
+
+```bash
+git checkout main && git pull
+sudo ./install/install.sh          # macOS / Linux
+```
+
+```powershell
+git checkout main; git pull
+powershell -NoProfile -ExecutionPolicy Bypass -File .\install\install.ps1 -Force
+```
+
+Both resources — the event catalog and the parse manifest — ship inside
+the installation. Until build `82587b3` they were resolved through the
+installed R package instead, which the command-line install does not
+create, so they came back empty on every machine installed the documented
+way.
+
+## The audit stops on the log file
+
+```
+Permission denied: '...\audit\log.csv'. Failed to open existing file for writing.
+```
+
+A log file that is read-only, or open in a spreadsheet, no longer stops
+the audit: from build `82587b3` the run continues, writes its products,
+and reports that the log is missing or incomplete. If you see this on an
+older build, or want the log back:
+
+- close any program holding the file;
+- on Windows, clear the read-only attribute a copy may have carried over:
+
+```powershell
+attrib -r <DATA_ROOT>\audit\log.csv
+```
+
+Keep the data root on a local disk. On a shared or network filesystem the
+log writer can lose records under load; the run survives and declares how
+many it could not write.
+
 ## Certificates fail to parse
 
 A certificate that cannot be parsed is dropped **whole** — no partial ingest — while the rest of the run continues. Each one leaves a single `ERROR` row in the geochemistry log; how to read and filter it is in [Logging]({{ "/docs/logging/" | relative_url }}).
