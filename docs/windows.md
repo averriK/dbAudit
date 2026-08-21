@@ -6,12 +6,15 @@ permalink: /docs/windows/
 
 # Windows
 
-dbaudit installs via **PowerShell** and runs via `Rscript` at runtime. It requires **R >= 4.1.0**; the installer verifies the version and aborts below 4.1.
+dbaudit installs with **PowerShell** and runs through `Rscript`. The install
+is **per-user and needs no administrator rights**: the runtime, the
+launchers, and the PATH entry all live under your own profile.
+
+R itself is a separate prerequisite — see [R and Rscript](#r-and-rscript)
+below. The installer verifies the version and stops below **R 4.1.0**; it
+does not install R.
 
 ## Install
-
-Administrator rights are **not** required: the runtime, the launchers, and
-the PATH entry are all per-user.
 
 With git:
 
@@ -28,47 +31,79 @@ extracted folder:
 powershell -NoProfile -ExecutionPolicy Bypass -File .\dbAudit-main\install\install.ps1
 ```
 
-An extracted ZIP carries no `.git`, so the installed manifest records the
-build as `unknown`; everything else installs identically.
+An extracted ZIP carries no `.git`, so the manifest records the build as
+`unknown`. Everything else installs identically.
 
-To update an existing clone, pull the published branch first:
+`-ExecutionPolicy Bypass` applies to that one invocation only; it does not
+change the machine policy.
+
+### Update an existing clone
+
+Pull the published branch before reinstalling:
 
 ```powershell
 cd dbAudit; git checkout main; git pull
+powershell -NoProfile -ExecutionPolicy Bypass -File .\install\install.ps1 -Force
 ```
 
-Options:
+### Options
 
-- `-SkipPackages` — skip R package installation (packages are auto-installed on the first run).
-- `-Force` — replace an existing installation without the `[y/N]` prompt.
+| Option | Effect |
+|---|---|
+| `-Force` | Replace an existing installation without the `[y/N]` prompt |
+| `-SkipPackages` | Do not install the R packages (they install on first run) |
+| `-LibexecDir <PATH>` | Runtime location (default `%LOCALAPPDATA%\Programs\_runtime\dbAudit`) |
+| `-UserBinDir <PATH>` | Launcher location (default `%LOCALAPPDATA%\Programs`) |
+| `-RepoRoot <PATH>` | Source tree to install from (default: the parent of the installer) |
 
-The installer:
+### What the installer does
 
-- Copies the runtime under a per-user directory (default: `%LOCALAPPDATA%\Programs\_runtime\dbAudit`)
-- Writes launchers under a per-user bin directory (default: `%LOCALAPPDATA%\Programs`)
-  - `dbaudit.cmd` (PowerShell / CMD)
-  - `dbaudit` (Git Bash shim)
-- Adds that bin directory to the **User PATH**
+- Copies the runtime — entrypoint, `R/`, and `inst/` (event catalog, parse
+  manifest, fixtures) — under `-LibexecDir`.
+- Writes two launchers under `-UserBinDir`: `dbaudit.cmd` for PowerShell and
+  CMD, and a `dbaudit` shim for Git Bash.
+- Adds that directory to the **User PATH**.
+- Records the build in a `.version` manifest beside the runtime: commit,
+  branch, install date, and the resolved paths, which the next
+  reinstallation reads to know what to replace.
+- Installs the five R packages unless `-SkipPackages` is given.
 
-Open a **new terminal** after installing so PATH updates are picked up.
+Reinstalling over an existing install prompts before replacing it. Under an
+automated or non-interactive shell, pass `-Force`: the prompt has no one to
+answer it.
+
+**Open a new terminal after installing** so the PATH update is picked up.
 
 ## Verify
 
-PowerShell or Git Bash (in a **new** terminal):
+In a **new** terminal (PowerShell or Git Bash):
+
+```powershell
+dbaudit --version
+```
+
+Prints the installed build and date. `Build: unknown` means the manifest
+could not record the commit — expected for a ZIP install, otherwise a sign
+that git was unavailable to the installer.
 
 ```powershell
 dbaudit --check
 ```
 
-`--check` reports the R version, the `Rscript` location, the installation root, and the five required R packages (`data.table`, `stringr`, `lubridate`, `readxl`, `jsonlite`) with versions — unlike `--help`, it exercises the R runtime, not just the launcher.
+Reports the R version, the `Rscript` location, the installation root, and
+the five required packages (`data.table`, `stringr`, `lubridate`, `readxl`,
+`jsonlite`) with their versions. Unlike `--help`, it exercises the R
+runtime, not just the launcher.
 
-```powershell
-dbaudit --help
-```
+## R and Rscript
 
-## R / Rscript
+dbaudit does not install R. Install it from CRAN
+(<https://cran.r-project.org/bin/windows/base/>) before running the
+installer.
 
-Quick checks:
+The CRAN installer does **not** add R to the PATH by default. dbaudit
+resolves `Rscript` through the PATH at run time, so an R that is installed
+but absent from the PATH looks missing. Check it:
 
 PowerShell:
 
@@ -82,8 +117,32 @@ Git Bash:
 command -v Rscript || command -v Rscript.exe
 ```
 
+If nothing is returned, add the `bin` directory of your R installation
+(typically `C:\Program Files\R\R-<version>\bin`) to the User PATH, open a
+new terminal, and check again. Do **not** install a second copy of R: two
+installations keep separate package libraries, so packages installed by one
+are invisible to the other.
+
+## Data on shared or network drives
+
+Keep the data root on a local disk. On a shared filesystem — a mapped
+network drive, a synchronised folder, or a virtual-machine share — the log
+writer can hit transient sharing violations. The run survives them and
+reports how many records the log is missing, but the log is then
+incomplete.
+
 ## Uninstall
 
 ```powershell
 powershell -NoProfile -ExecutionPolicy Bypass -File .\dbAudit\install\uninstall.ps1
 ```
+
+Removes the runtime and both launchers. The bin directory stays on the User
+PATH unless you pass `-RemoveUserBinFromPath`; other tools may rely on it.
+Use `-LibexecDir` and `-UserBinDir` if the install used non-default paths.
+
+## Troubleshooting
+
+See [Troubleshooting]({{ "/docs/troubleshooting/" | relative_url }}) for
+`command not found`, `Build: unknown`, execution-policy errors, and the
+historical parse failures and their fixes.
