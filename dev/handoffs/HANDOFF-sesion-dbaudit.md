@@ -80,3 +80,55 @@ Traducción operativa:
 - Historia del repo público (filter-repo vs residual) y fork del Dash.
 - Reinstalación del CLI en su máquina.
 - Dónde publica el sitio pkgdown (Pages actual vs otro destino).
+
+## PENDIENTES TRANSFERIDOS POR EL MAESTRO (2026-08-21, orden del dueño)
+
+La sesión maestra transfiere TODO su pendiente al agente de esta
+sesión. Autoridad por ítem: [EJECUTABLE] = con el go general del dueño
+alcanza; [RULING] = no se ejecuta sin decisión explícita del dueño;
+[DUEÑO] = acción del dueño, el agente solo hace seguimiento.
+
+dbAudit:
+1. [EJECUTABLE] Documentar el bugfix e763076 en docs/ (sub-variante
+   tipo A + sección locale en troubleshooting), suite+guard en verde,
+   commit y push. (Encargo ya entregado, desglosado en 4 puntos.)
+2. [EJECUTABLE] Objetivo del taller: sitio pkgdown con artículos de
+   workflow (este handoff, sección EL OBJETIVO — leer R-PACKAGE-SITE.md
+   antes; publicación solo con orden del dueño).
+3. [RULING] Historia del repo público: filter-repo vs residual
+   (dev/SoT/PLAN-datos-confidenciales.md, rulings 3-5).
+4. [DUEÑO] Confirmación Windows del fix de locale (79→0 esperado tras
+   reinstalar) — registrar el resultado en el plan del fix.
+5. [EJECUTABLE] Nota para los usuarios del proyecto del reporte:
+   hallazgo WRONG_JOBID (153 solicitudes sin certificado — pregunta de
+   mapeo), en el repo PRIVADO junto al DIAGNOSTICO; commit de ambos
+   allí con autorización del dueño en la sesión.
+
+AR-S2L1X (coordinar con el dueño antes de tocar el árbol):
+6. [RULING] Commit de los 4 archivos del frente espacial movidos desde
+   ssel (dev/SoT/REPORT-investigacion-espacial.md, PLAN-datasets-
+   espacial.md; dev/handoffs/HANDOFF-espacial-investigacion.md,
+   NOTE-task-espacial.md) — el dueño dijo que autorizaría ("absorbelos"
+   pendiente).
+7. [RULING] Organización Catalina: mover (no copiar) los datos de
+   monitoreo a PE-DBAudit/project/Catalina — plan corto a escribir:
+   re-apuntar runner AR (params.data.dbaudit), snapshot del dash,
+   demos del deck, y destino del LFS de AR. Recomendación del maestro:
+   MOVER, una sola fuente de verdad.
+8. [DUEÑO] params.yml está en borrador Machuccato (alertas aún de
+   Amanda — no compartible); _chapters/pz.intro.es.md lleva una nota
+   personal del dueño. Ninguno se commitea sin su palabra.
+9. [RULING] data/deck (294 MB) y data/ssel (53 MB) sin trackear:
+   decisión LFS del dueño. dev/report/ y las ~15 láminas ppt.*
+   huérfanas: proponer limpieza como commit separado.
+10. [EJECUTABLE cuando se pida] Render DOCX del reporte: falla
+    estructural conocida (widgets HTML → docx necesita figuras
+    condicionales por formato, patrón del proyecto hermano W).
+11. [DUEÑO] Reporte Machuccato: cotas/este-norte/alertas del sitio
+    cuando el dueño provea su registro e ingeniería.
+
+Reglas que viajan con la transferencia: rulings antes de arquitectura;
+cambios de motor nacen en dev/SoT; confidencialidad (motor público =
+cero identidades); todo comando documentado se corre antes; sin
+atribución de IA en commits; el go operativo de cada ítem lo da el
+dueño en la sesión del agente.
