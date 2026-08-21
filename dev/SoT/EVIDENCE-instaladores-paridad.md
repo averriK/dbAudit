@@ -165,3 +165,37 @@ sin BOM (`UTF8Encoding($false)`) y suma `bin_path=` para paridad de
 campos con install.sh; el lector de `DBAudit` descarta un BOM inicial
 (defensa para instalaciones viejas). Verificado con manifiesto BOM
 simulado: el lector resuelve `commit` correcto.
+
+## ADENDA 2026-08-21 (b) — revisión adversarial previa a publicación
+
+Revisión de tres lentes (correctitud PS 5.1, paridad funcional, modos
+de falla del usuario) con refutación cruzada por hallazgo. Confirmados
+y corregidos:
+
+1. BLOQUEA — el gate de versión de R introducido ese mismo día mataba
+   la instalación en R 4.1.x: esa serie imprime su banda por stderr y
+   PS 5.1 convierte stderr nativo redirigido en error terminante bajo
+   `ErrorActionPreference = Stop`. El runtime quedaba copiado sin
+   launchers ni PATH. Corregido bajando EAP alrededor de la llamada
+   (mismo patrón que el bloque git). Sin try/catch: tragaría la salida
+   y desactivaría el gate justo en las versiones que debe medir.
+2. BLOQUEA — el launcher `.cmd` se escribe en ASCII con la ruta de
+   instalación embebida literal: un perfil con acentos (población
+   objetivo declarada) quedaba con `DBAUDIT_HOME` corrupto y toda
+   invocación fallaba, sin recuperación posible porque el propio
+   script invocado es la ruta rota. Corregido emitiendo
+   `%LOCALAPPDATA%` para que cmd.exe expanda en tiempo de ejecución, y
+   con codificación OEM más aviso explícito para rutas custom no-ASCII.
+3. CORREGIR — con git ausente (ZIP extraído, flujo declarado
+   soportado) la excepción saltaba la escritura completa del
+   manifiesto: sin `.version`, `--version` decía "file not found" y la
+   reinstalación no podía descubrir qué remover. Corregido resolviendo
+   el comando antes de invocarlo; el fallback `.git/HEAD` y la
+   escritura corren siempre, igualando la poscondición de install.sh.
+4. CORREGIR — la salida de la instalación de paquetes se capturaba en
+   una variable no usada: el bloque de troubleshooting que el error
+   promete ("see steps above") nunca llegaba a pantalla.
+
+Verificación: balance sintáctico de llaves/paréntesis/corchetes y
+anclas; no hay pwsh en el host de desarrollo, de modo que la ejecución
+end-to-end la aporta la instalación del dueño en Windows.

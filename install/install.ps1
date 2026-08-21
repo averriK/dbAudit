@@ -213,9 +213,16 @@ try {
     # git first with the repo whitelisted; on any failure fall back to
     # reading .git/HEAD and the ref files directly, so the manifest
     # never silently records "unknown" while a real checkout is there.
-    $commit = & git -C $RepoRoot -c "safe.directory=$RepoRoot" rev-parse --short HEAD 2>$null
-    $branch = & git -C $RepoRoot -c "safe.directory=$RepoRoot" rev-parse --abbrev-ref HEAD 2>$null
-    $tag = & git -C $RepoRoot -c "safe.directory=$RepoRoot" describe --tags --exact-match 2>$null
+    # git absent throws CommandNotFoundException, which would skip the
+    # manifest write entirely (an extracted ZIP has no git): resolve the
+    # command first, so the .git fallback and the write always run.
+    $gitCmd = Get-Command git -ErrorAction SilentlyContinue
+    $commit = $null; $branch = $null; $tag = $null
+    if ($gitCmd) {
+        $commit = & git -C $RepoRoot -c "safe.directory=$RepoRoot" rev-parse --short HEAD 2>$null
+        $branch = & git -C $RepoRoot -c "safe.directory=$RepoRoot" rev-parse --abbrev-ref HEAD 2>$null
+        $tag = & git -C $RepoRoot -c "safe.directory=$RepoRoot" describe --tags --exact-match 2>$null
+    }
 
     if (-not $commit -or -not $branch) {
         $headFile = Join-Path $RepoRoot ".git\HEAD"
@@ -300,8 +307,15 @@ After installing R:
 "@
 }
 
-# Verify R version >= 4.1 (DESCRIPTION: R (>= 4.1.0))
+# Verify R version >= 4.1 (DESCRIPTION: R (>= 4.1.0)).
+# R <= 4.1.x prints its banner on stderr (it moved to stdout in 4.2.0),
+# and PowerShell 5.1 turns redirected native stderr into a terminating
+# error while ErrorActionPreference is Stop: the version gate would kill
+# the install on the very minimum version it exists to admit.
+$eapPrev = $ErrorActionPreference
+$ErrorActionPreference = "SilentlyContinue"
 $versionOutput = & $rscript.Source --version 2>&1 | Out-String
+$ErrorActionPreference = $eapPrev
 if ($versionOutput -match 'version (\d+)\.(\d+)') {
     $major = [int]$matches[1]
     $minor = [int]$matches[2]
@@ -360,7 +374,7 @@ if (length(missing) > 0) {
 '@
 
     try {
-        $result = $installScript | & $rscript.Source -
+        $installScript | & $rscript.Source -
         if ($LASTEXITCODE -ne 0) {
             Fail "Failed to install R packages. See troubleshooting steps above."
         }
@@ -378,10 +392,21 @@ Write-Host ""
 # Create launchers in UserBinDir
 
 # NOTE: avoid PowerShell here-strings for .cmd content; they are easy to break when a file is copied/rewritten.
+
+# The .cmd is written as ASCII, so an accented profile path baked in
+# literally would be mangled into a path that does not exist. Emit the
+# %LOCALAPPDATA% variable instead and let cmd.exe expand it at runtime.
+$lad = [Environment]::GetFolderPath("LocalApplicationData")
+if ($lad -and $LibexecDir.StartsWith($lad, [System.StringComparison]::OrdinalIgnoreCase)) {
+    $cmdHome = "%LOCALAPPDATA%" + $LibexecDir.Substring($lad.Length)
+} else {
+    $cmdHome = $LibexecDir
+}
+
 $cmdLines = @(
     '@echo off',
     'setlocal',
-    ('set "DBAUDIT_HOME={0}"' -f $LibexecDir),
+    ('set "DBAUDIT_HOME={0}"' -f $cmdHome),
     '',
     'where Rscript >nul 2>nul',
     'if %errorlevel%==0 (',
@@ -401,7 +426,25 @@ $cmdLines = @(
 
 # Ensure CRLF for .cmd
 $cmd = ($cmdLines -join "`r`n") + "`r`n"
-[System.IO.File]::WriteAllText($cmdPath, $cmd, [System.Text.Encoding]::ASCII)
+if ($cmd -match "[^\x00-\x7F]") {
+    # A custom install path outside %LOCALAPPDATA% can still carry
+    # non-ASCII: write the codepage cmd.exe parses with, and say so
+    # rather than corrupt the launcher silently.
+    try {
+        $oem = [System.Text.Encoding]::GetEncoding([System.Globalization.CultureInfo]::CurrentCulture.TextInfo.OEMCodePage)
+        if ($oem.GetString($oem.GetBytes($cmd)) -ceq $cmd) {
+            [System.IO.File]::WriteAllText($cmdPath, $cmd, $oem)
+        } else {
+            [System.IO.File]::WriteAllText($cmdPath, $cmd, $oem)
+            Warn "Install path has characters the console codepage cannot represent; if dbaudit fails to start, reinstall under a plain-ASCII path."
+        }
+    } catch {
+        [System.IO.File]::WriteAllText($cmdPath, $cmd, [System.Text.Encoding]::ASCII)
+        Warn "Could not resolve the console codepage; launcher written as ASCII."
+    }
+} else {
+    [System.IO.File]::WriteAllText($cmdPath, $cmd, [System.Text.Encoding]::ASCII)
+}
 
 $shimLines = @(
     '#!/usr/bin/env bash',
