@@ -222,13 +222,18 @@ commit=$commit
 branch=$branch
 tag=$tag
 install_date=$installDate
+bin_path=$cmdPath
 libexec_dir=$LibexecDir
 bin_dir=$UserBinDir
 cmd_path=$cmdPath
 shim_path=$shimPath
 "@
 
-    [System.IO.File]::WriteAllText($versionPath, $versionContent, [System.Text.Encoding]::UTF8)
+    # UTF-8 WITHOUT BOM: .NET Encoding.UTF8 prepends a BOM, which turns
+    # the first line into "\ufeffcommit=..." and blinds every key=value
+    # reader (dbaudit --version showed "Build: unknown" on Windows).
+    $utf8NoBom = New-Object System.Text.UTF8Encoding($false)
+    [System.IO.File]::WriteAllText($versionPath, $versionContent, $utf8NoBom)
     Pop-Location
     $ErrorActionPreference = "Stop"
 } catch {

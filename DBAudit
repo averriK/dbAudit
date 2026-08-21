@@ -87,6 +87,10 @@ showVersion <- function() {
     return(invisible(NULL))
   }
 
+  # Tolerate a BOM from older Windows installers: it prefixes the first
+  # key and hides every field from the key=value parser.
+  lines[1] <- sub("^\ufeff", "", lines[1])
+
   info <- list()
   for (line in lines) {
     parts <- strsplit(line, "=", fixed = TRUE)[[1]]

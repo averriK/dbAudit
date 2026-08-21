@@ -153,3 +153,15 @@ valores de datos reales, ni repositorios privados: los únicos ejemplos son
 rutas de instalación, salidas del CLI sobre esta máquina y el fixture
 sintético implícito en `inst/` (Vega, solo nombrado como contenido del
 runtime).
+
+## ADENDA 2026-08-21 — BOM en el manifiesto de Windows
+
+Hallazgo posterior a la auditoría: `install.ps1` escribía `.version`
+con `[System.Text.Encoding]::UTF8` de .NET, que ANTEPONE BOM; la
+primera línea quedaba `﻿commit=...` y el parser key=value de
+`dbaudit --version` no encontraba `commit` → "Build: unknown" en toda
+instalación Windows. Corregido en ambos lados: el ps1 escribe UTF-8
+sin BOM (`UTF8Encoding($false)`) y suma `bin_path=` para paridad de
+campos con install.sh; el lector de `DBAudit` descarta un BOM inicial
+(defensa para instalaciones viejas). Verificado con manifiesto BOM
+simulado: el lector resuelve `commit` correcto.
