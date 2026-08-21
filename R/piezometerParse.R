@@ -205,12 +205,13 @@ extractRightValue <- function(cells, row, col, maxOffset = 4L) {
 }
 
 siteFromPath <- function(path, root) {
-  Rel <- sub(
-    pattern = paste0("^", normalizePath(path = root, mustWork = TRUE), "/?"),
-    replacement = "",
-    x = normalizePath(path = path, mustWork = TRUE)
-  )
-  strsplit(x = Rel, split = "/", fixed = TRUE)[[1L]][1L]
+  # The root is a PATH, never a pattern: on Windows it carries
+  # backslashes and a drive colon, all regex metacharacters, so using it
+  # as a pattern silently matched nothing and the whole absolute path
+  # became the SiteID — which then became a directory name under raw/,
+  # invalid on Windows and a nested tree on POSIX. Strip by length, and
+  # split on either separator.
+  .relativeParts(file = path, root = root)[1L]
 }
 
 listSourceFiles <- function(path, pattern) {
@@ -256,12 +257,21 @@ listSourceFiles <- function(path, pattern) {
 }
 
 .relativeParts <- function(file, root) {
-  Rel <- sub(
-    pattern = paste0("^", normalizePath(path = root, mustWork = TRUE), "/?"),
-    replacement = "",
-    x = normalizePath(path = file, mustWork = TRUE)
-  )
-  strsplit(x = Rel, split = "/", fixed = TRUE)[[1L]]
+  # Same contract as siteFromPath, which this shares: strip the root by
+  # length, never as a pattern, and split on either separator.
+  Root <- normalizePath(path = root, mustWork = TRUE)
+  Path <- normalizePath(path = file, mustWork = TRUE)
+
+  Head <- substr(Path, 1L, nchar(Root))
+  Same <- if (.Platform$OS.type == "windows") {
+    identical(tolower(Head), tolower(Root))
+  } else {
+    identical(Head, Root)
+  }
+  Rel <- if (Same) substring(Path, nchar(Root) + 1L) else Path
+  Rel <- sub(pattern = "^[/\\\\]+", replacement = "", x = Rel)
+
+  strsplit(x = Rel, split = "[/\\\\]")[[1L]]
 }
 
 parsePCG <- function(path, manifest) {
