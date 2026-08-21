@@ -23,7 +23,7 @@ Rscript -e 'testthat::test_local()'
 Verified 2026-08-21 on a hydrated checkout:
 
 ```
-[ FAIL 0 | WARN 0 | SKIP 0 | PASS 124 ]
+[ FAIL 0 | WARN 0 | SKIP 0 | PASS 156 ]
 ```
 
 On a fresh clone the two golden tests that target the local-only
@@ -38,7 +38,7 @@ Rscript -e 'testthat::test_local(filter = "vega")'
 
 Verified output: `[ FAIL 0 | WARN 0 | SKIP 0 | PASS 103 ]`.
 
-## The six test files
+## The eight test files
 
 ### `test-vega.R` — acceptance suite of the monitoring engine
 
@@ -91,6 +91,32 @@ the contract) and against the expected `(level, event)` counts of
 package, so these goldens run everywhere, including `R CMD check`. The
 generator is `dev/buildFixtures.R`; regenerating the fixtures is an
 intentional contract change that re-records the golden values.
+
+### `test-parse-dates.R` — locale-independent certificate dates
+
+Unit contract of the date reader shared by both certificate models.
+Pins that month names in English, Spanish and Portuguese — abbreviated
+and full — resolve to the same ISO date, that numeric formats parse,
+and that an unresolvable value returns `NA` rather than raising. One
+test forces `LC_TIME` to a Spanish locale and re-asserts the English
+month names, skipping with a note when the host offers no Spanish
+locale: that is the guard against reintroducing `%b`, whose result
+depends on the host language. A third pins the degradation contract —
+a month in an uncovered language (`05-Avr-2025`, `05-Okt-2025`) or a
+free-text date must return `NA` and must not throw.
+
+### `test-parse-labA-variant.R` — type-A header sub-variant
+
+Two synthetic type-A certificates with known truth. The first carries
+the accepted sub-variant — a space before the key colons, extra
+`CLIENT`, `PROJECT` and `CERTIFICATE COMMENTS` rows, a comment quoted
+across two raw lines, a labelled `METHOD` row and numeric dates — and
+asserts the recovered metadata, the detection-limit tags and a clean
+`PARSE_OK`. The second gives the certificate an unresolvable date and
+asserts that the values still ingest, the index dates land as `NA`,
+and no `PARSE_ERROR` is logged. Together they pin that the block
+anchoring reads header shapes by position relative to the `SAMPLE`
+row rather than by raw-line arithmetic.
 
 ### `test-golden-outputs.R` — local-only extended goldens
 

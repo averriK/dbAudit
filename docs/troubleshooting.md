@@ -85,6 +85,8 @@ Installed: 2026-08-19 16:48:12 UTC
 
 If the `Build:` commit differs from the checkout `HEAD`, re-run the installer. `Build: unknown (version file not found)` means the runtime has no `.version` manifest (e.g. an installation predating the manifest): reinstall to regenerate it.
 
+`Build: unknown` on **Windows** had a second cause until build `d108c85`: the PowerShell installer wrote the manifest with a byte-order mark, which turned the first line into an invisible key and hid every field from the reader, so *every* Windows install reported an unknown build however fresh it was. The installer now writes plain UTF-8 and the reader skips a leading mark, so existing installations resolve their build without reinstalling.
+
 ## `Rscript` not found
 
 `dbaudit` requires `Rscript` at runtime, and **R >= 4.1.0** (the installers verify the version and abort below 4.1).
@@ -131,6 +133,38 @@ If package installation fails, common causes include:
 - On Windows, packages install as pre-compiled binaries only (no Rtools compilation); if no binary exists for your R version, upgrade R.
 
 Try running again in a network environment that can reach CRAN, or install the packages using R directly. `dbaudit --check` confirms the result.
+
+## Certificates fail to parse
+
+A certificate that cannot be parsed is dropped **whole** — no partial ingest — while the rest of the run continues. Each one leaves a single `ERROR` row in the geochemistry log; how to read and filter it is in [Logging]({{ "/docs/logging/" | relative_url }}).
+
+Before reading further, confirm which build you are running: all three failure modes below are fixed, and the first question is whether your installation predates the fix. See [Installed binary is outdated](#installed-binary-is-outdated).
+
+### The same file parses on one machine and fails on another
+
+**Symptom** — `PARSE_ERROR` whose message is `character string is not in a standard unambiguous format`, on certificates a colleague can parse without trouble. R prints that message in your system language when your R installation carries translations for it.
+
+**Cause** — until build `e763076` the date reader translated Spanish and Portuguese month abbreviations into English and then parsed them with `%b`, which resolves against the host's `LC_TIME`. On a Windows host set to Spanish, an English `10-Apr-2025` was unreadable, and every certificate carrying one died. The identical files parsed on an English or C locale, which is what made this look like bad data rather than a bug.
+
+**Resolved** — from `e763076`. Month names in English, Spanish and Portuguese normalize to their numbers before parsing, and no remaining format consults the locale. Two machines with different system languages now agree on every certificate. Details in [Certificate dates]({{ "/docs/parsers/" | relative_url }}#certificate-dates).
+
+### A single unreadable date kills the whole certificate
+
+**Symptom** — the same `character string is not in a standard unambiguous format`, but on a host whose locale is irrelevant: the certificate carries a month name in a language the reader does not cover (French `Avr`, German `Okt`), or a genuinely malformed date.
+
+**Cause** — until build `77f2a68` the reader's last-resort attempt raised an error rather than returning empty, and that error propagated out and aborted the file.
+
+**Resolved** — from `77f2a68`. A date that cannot be resolved lands as `NA` in `index.csv` and every assay value on the certificate ingests normally. An empty `dateReceived`/`dateFinalized` in the index is now the expected trace of an unusual date format, not a sign of a lost certificate.
+
+### `Unexpected INDEX header` or `INDEX block not found`
+
+**Symptom** — `PARSE_ERROR` with `Unexpected INDEX header: ...`, or `INDEX block not found: no SAMPLE row in the first column`, on type-A certificates.
+
+**Cause** — until build `e763076` the type-A parser located its blocks by counting raw lines from the top of the file, assuming a fixed six-row header. A sub-variant from the same laboratory inserts `CLIENT`, `PROJECT` and `CERTIFICATE COMMENTS` rows, may span a quoted comment across several raw lines, and labels the method row `METHOD` — each of which shifted the count and made the analyte block land on the wrong rows.
+
+**Resolved** — from `e763076`. The blocks are anchored on the `SAMPLE` row instead of on line numbers, so extra header rows and multi-line comments are harmless. The accepted variations are tabulated in [Accepted header sub-variant]({{ "/docs/parsers/" | relative_url }}#accepted-header-sub-variant).
+
+If a certificate still fails on a current build, the two messages mean what they say: the parser could not find a `SAMPLE` row in the first column, or the five rows around it were not the expected `SAMPLE` / `DESCRIPTION` / `MIN DETECTION` / `MAX DETECTION` set. Open the file and compare it against that page before reporting it.
 
 ## Still stuck?
 
