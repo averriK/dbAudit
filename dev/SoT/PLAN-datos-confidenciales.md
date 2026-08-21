@@ -7,10 +7,10 @@ documento no repite ninguna identidad sensible: señala archivo y línea.
 
 | Repositorio | Visibilidad | Contenido de datos |
 |---|---|---|
-| `averriK/dbAudit` | **PÚBLICO** (con Pages) | motor + fixtures SINTÉTICOS (Vega 81 archivos + truth; synthetic-A/B, los dos modelos de certificado) + `dev/` completo (18 archivos publicados) |
-| `SRKConsulting/PE-DBAudit` | PRIVADO | datos geoquímicos reales (14.206 archivos bajo `project/`) |
-| `kanameishi/AR-S2L1X` | PRIVADO | datos de monitoreo reales (LFS) |
-| `yefriander/Dash-Incli-Piezom` | PRIVADO (de un tercero) | snapshot de datos reales en la rama `dev` |
+| este repositorio | **PÚBLICO** (con Pages) | motor + fixtures SINTÉTICOS (Vega 81 archivos + truth; synthetic-A/B, los dos modelos de certificado) + `dev/` completo (18 archivos publicados) |
+| repo privado del proyecto geoquimico (org corporativa) | PRIVADO | datos geoquímicos reales (14.206 archivos bajo `project/`) |
+| repo privado del proyecto de monitoreo | PRIVADO | datos de monitoreo reales (LFS) |
+| repo privado del dashboard (cuenta de un tercero) | PRIVADO (de un tercero) | snapshot de datos reales en la rama `dev` |
 
 Lo sano: `project/` del repo público está gitignoreado (0 versionados),
 los fixtures son sintéticos por diseño, ningún certificado ni planilla
