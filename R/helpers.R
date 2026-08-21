@@ -10,8 +10,51 @@
   )
 }
 
+# Log writes must never destroy work already done. The loggers open the
+# file once per event — a geochemistry run does roughly seven hundred
+# opens — and a shared or network filesystem answers that burst with
+# intermittent sharing violations. Observed on a shared checkout: the
+# failure surfaced inside the per-certificate handler and was recorded
+# as PARSE_ERROR, attributing a defect to a sound certificate, until one
+# escaped and killed the run. Retry briefly; on exhaustion drop the line
+# and count it, and let the run declare the gap at the end.
+.dbauditLogState <- new.env(parent = emptyenv())
+.dbauditLogState$dropped <- 0L
+
+.logRetryWrite <- function(DT, log.file) {
+  for (k in seq_len(5L)) {
+    ok <- tryCatch({
+      fwrite(DT, log.file, append = TRUE, col.names = FALSE)
+      TRUE
+    }, error = function(e) FALSE)
+    if (isTRUE(ok)) return(invisible(TRUE))
+    Sys.sleep(0.05 * k)
+  }
+  .dbauditLogState$dropped <- .dbauditLogState$dropped + nrow(DT)
+  invisible(FALSE)
+}
+
+.logResetDropped <- function() {
+  .dbauditLogState$dropped <- 0L
+  invisible(NULL)
+}
+
+# Declares an incomplete log rather than presenting it as whole.
+.logDeclareDropped <- function(log.file) {
+  n <- .dbauditLogState$dropped
+  if (n > 0L) {
+    message(sprintf(
+      paste("dbaudit: %d log record(s) could not be written to %s.",
+            "The audit completed; the log is incomplete.",
+            "A data root on a shared or network filesystem is the known cause."),
+      n, log.file
+    ))
+  }
+  invisible(n)
+}
+
 .log <- function(log.file, level, file, event, message = "") {
-  fwrite(
+  .logRetryWrite(
     data.table(
       ts = format(Sys.time(), "%Y-%m-%d %H:%M:%S"),
       level = level,
@@ -19,8 +62,7 @@
       event = event,
       message = message
     ),
-    log.file,
-    append = TRUE, col.names = FALSE
+    log.file
   )
 }
 

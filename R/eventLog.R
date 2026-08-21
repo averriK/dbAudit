@@ -92,7 +92,7 @@
   }
   # Vector arguments of equal length emit one record per element;
   # length-1 arguments recycle (data.table enforces the rest).
-  fwrite(
+  .logRetryWrite(
     data.table(
       ts = format(Sys.time(), "%Y-%m-%d %H:%M:%S"),
       scope = scope,
@@ -104,7 +104,6 @@
       event = event,
       detail = .asChar(detail)
     ),
-    log.file,
-    append = TRUE, col.names = FALSE
+    log.file
   )
 }

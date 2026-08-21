@@ -65,6 +65,7 @@ auditInclinometer <- function(
   dir.create(path = audit.dir, recursive = TRUE, showWarnings = FALSE)
   Log <- file.path(audit.dir, "log.csv")
   .logEventInit(log.file = Log)
+  .logResetDropped()
   .logEvent(log.file = Log, scope = "run", event = "START", source = "auditInclinometer")
 
   .checkSourceCensus(
@@ -76,6 +77,7 @@ auditInclinometer <- function(
     log.file = Log, scope = "run", event = "DONE", source = "auditInclinometer",
     detail = sprintf("INC.audit=%d", nrow(AuditINC))
   )
+  .logDeclareDropped(Log)
 
   invisible(list(
     project.path = project.path,

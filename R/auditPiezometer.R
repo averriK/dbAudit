@@ -94,6 +94,7 @@ auditPiezometer <- function(
   dir.create(path = audit.dir, recursive = TRUE, showWarnings = FALSE)
   Log <- file.path(audit.dir, "log.csv")
   .logEventInit(log.file = Log)
+  .logResetDropped()
   .logEvent(log.file = Log, scope = "run", event = "START", source = "auditPiezometer")
 
   RawData <- .readAllRaw(raw = raw.dir, id = id, name = "data")
@@ -128,6 +129,7 @@ auditPiezometer <- function(
     log.file = Log, scope = "run", event = "DONE", source = "auditPiezometer",
     detail = sprintf("PZ.data=%d; PZ.index=%d", nrow(PZ$data), nrow(PZ$index))
   )
+  .logDeclareDropped(Log)
 
   invisible(list(
     project.path = project.path,

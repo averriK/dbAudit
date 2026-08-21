@@ -130,6 +130,7 @@ auditGeochemistry <- function(
   # runners already reinitialize; the geochemistry runner now matches.
   unlink(log.file)
   .logInit(log.file)
+  .logResetDropped()
 
   # ----------------------------------------------------------------------
   # Parse Stage
@@ -217,6 +218,7 @@ auditGeochemistry <- function(
   LOG <- unique(LOG, by = setdiff(names(LOG), "ts"))
   fwrite(LOG, log.file)
 
+  .logDeclareDropped(log.file)
   invisible(list(
     project.path = project.path,
     input.file = input.file,

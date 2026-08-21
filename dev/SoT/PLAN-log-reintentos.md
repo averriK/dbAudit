@@ -1,6 +1,12 @@
 # PLAN — Escritura de log resistente en sistemas de archivos compartidos
 
-Fecha: 2026-08-21. Estado: PROPUESTA para ruling del dueño.
+Fecha: 2026-08-21. Estado: APROBADO ("1 implementa") e IMPLEMENTADO.
+Ruling 1 resuelto: reintento con degradación declarada, en ambos
+loggers. Validación ejecutada: suite completa en verde con goldens
+byte-idénticos; tests nuevos en tests/testthat/test-log-resilience.R
+(el escritor cuenta y sigue; un certificado ingresa aunque su línea de
+log no pueda escribirse; el logger de monitoreo sobrevive igual).
+Ruling 2 (documentar la recomendación de disco local): abierto.
 
 ## Hecho observado (dos corridas, evidencia en disco)
 
