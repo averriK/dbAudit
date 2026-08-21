@@ -94,7 +94,7 @@ auditGeochemistry <- function(
       expected = c(
         paste0(lab.dir.name, "/     laboratory certificates"),
         paste0(assay.dir.name, "/   the client assay table"),
-        paste0(proc.dir.name, "/       products, created by the run")
+        paste0(proc.dir.name, "/        products, created by the run")
       ),
       domain = "geochemistry"
     ), call. = FALSE)

@@ -104,7 +104,30 @@
     paste0("    ", paste(utils::head(Have, 20L), collapse = "  "))
   }
 
-  Hint <- if (dir.exists(file.path(project.path, "source"))) {
+  # The commonest mistake is pointing at the folder that CONTAINS the
+  # projects rather than at a data root. Name the roots found inside.
+  Inside <- character()
+  for (d in Have) {
+    Child <- file.path(project.path, d)
+    if (!dir.exists(Child)) next
+    for (probe in c(".", "data")) {
+      Base <- if (identical(probe, ".")) Child else file.path(Child, probe)
+      if (dir.exists(file.path(Base, "raw", "lab")) ||
+          dir.exists(file.path(Base, "source"))) {
+        Inside <- c(Inside, if (identical(probe, ".")) d else file.path(d, probe))
+        break
+      }
+    }
+  }
+
+  Hint <- if (length(Inside) > 0L) {
+    paste0(
+      "\n  This looks like a folder holding projects, not a data root.",
+      "\n  Data roots found inside it:\n",
+      paste0("    ", file.path(basename(project.path), Inside), collapse = "\n"),
+      "\n  Point --project at one of those."
+    )
+  } else if (dir.exists(file.path(project.path, "source"))) {
     paste(
       "\n  This root holds source/, the monitoring layout.",
       "Audit it with 'dbaudit piezometer' or 'dbaudit inclinometer'."
