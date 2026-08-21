@@ -65,28 +65,46 @@ An empty folder, or several CSVs none of which match, stops the run.
 `--assay-file <PATH>` bypasses detection; it accepts an absolute path or
 a basename resolved under the assay folder.
 
-### Naming the input directory
+## Where each subcommand looks
 
-The input directory is found by convention: the runner accepts either
-`source/` or `data/`, whichever actually holds the domain directories.
-No option is needed for either layout.
+Every subcommand looks for its own child of the input directory. One rule
+covers the three domains:
+
+```
+<DATA_ROOT>/data/GEO/lab/       laboratory certificates      geochemistry
+<DATA_ROOT>/data/GEO/assay/     the client assay table       geochemistry
+<DATA_ROOT>/data/PCG/<Site>/    Casagrande spreadsheets      piezometer
+<DATA_ROOT>/data/PCV/<Site>/    vibrating-wire spreadsheets  piezometer
+<DATA_ROOT>/data/INC/<Site>/    inclinometer surveys         inclinometer
+```
+
+so the commands carry no path options at all:
 
 ```bash
-dbaudit piezometer --project <DATA_ROOT>
+dbaudit geochemistry --project <DATA_ROOT>
+dbaudit piezometer   --project <DATA_ROOT>
 dbaudit inclinometer --project <DATA_ROOT>
 ```
 
-For a layout under any other name, `--source-dir` names it explicitly and
-overrides the convention:
+The three domains share one root: each writes its own products and reads
+only its own child.
 
-```bash
-dbaudit piezometer --project <DATA_ROOT> --source-dir <NAME>
-```
+For monitoring, `<Site>` is not decoration — the site and the hole of every
+reading are read from that path.
 
-`--raw-dir`, `--db-dir` and `--audit-dir` rename the product directories
-the same way. Below the input directory the layout is
-`<input>/<ID>/<Site>/`, with `<ID>` one of `PCG`, `PCV`, `INC`: that is
-where the site and the hole of every reading come from.
+### Layouts already in use
+
+Adding the rule did not retire the layouts that came before it, and no
+project has to move anything:
+
+| Layout | Still resolves |
+|---|---|
+| `raw/lab/`, `raw/assay/` | yes — the historical geochemistry contract |
+| `source/<ID>/<Site>/` | yes — the historical monitoring contract |
+| `data/<ID>/<Site>/` | yes |
+
+A directory named explicitly with `--lab-dir`, `--assay-dir` or
+`--source-dir` always wins over the convention.
 
 ## Monitoring data root (piezometer + inclinometer)
 

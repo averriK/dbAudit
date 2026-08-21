@@ -85,6 +85,18 @@
   suppressWarnings(as.numeric(y))
 }
 
+# A subcommand finds its input by convention: the declared name when the
+# user gave one, otherwise the first candidate layout that exists. Adding
+# a layout never invalidates the ones already in use.
+.resolveInputDir <- function(project.path, declared, candidates, explicit) {
+  if (isTRUE(explicit)) return(file.path(project.path, declared))
+  for (rel in candidates) {
+    Dir <- file.path(project.path, rel)
+    if (dir.exists(Dir)) return(Dir)
+  }
+  file.path(project.path, declared)
+}
+
 # The input directory is found by convention, not demanded by flag: a
 # project keeps its files under source/ or under data/, and the runner
 # looks for the one that actually holds the domain directories. An

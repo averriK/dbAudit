@@ -84,8 +84,20 @@ auditGeochemistry <- function(
   if (!dir.exists(project.path)) stop(sprintf("project.path not found: %s", project.path))
   project.path <- normalizePath(project.path, mustWork = TRUE)
 
-  lab.dir <- file.path(project.path, lab.dir.name)
-  assay.dir <- file.path(project.path, assay.dir.name)
+  # Each subcommand looks for its own child of the input directory:
+  # geochemistry under data/GEO, monitoring under data/<ID>. The
+  # historical geochemistry layout (raw/lab, raw/assay) still resolves,
+  # so projects already running are not asked to move anything.
+  lab.dir <- .resolveInputDir(
+    project.path, lab.dir.name,
+    candidates = c("data/GEO/lab", "data/GEO/raw", "raw/lab"),
+    explicit = !identical(lab.dir.name, .dbauditPathDefaults$lab.dir.name)
+  )
+  assay.dir <- .resolveInputDir(
+    project.path, assay.dir.name,
+    candidates = c("data/GEO/assay", "raw/assay"),
+    explicit = !identical(assay.dir.name, .dbauditPathDefaults$assay.dir.name)
+  )
   proc.dir <- file.path(project.path, proc.dir.name)
 
   if (!dir.exists(lab.dir)) {
