@@ -22,10 +22,12 @@
 
 .eventsCatalog <- function() {
   if (!is.null(.eventsCatalogCache$catalog)) return(.eventsCatalogCache$catalog)
-  FILE <- system.file("events.csv", package = "dbAudit")
-  if (!nzchar(FILE)) FILE <- file.path("inst", "events.csv")
-  if (!file.exists(FILE)) {
-    stop("events catalog not found (inst/events.csv)", call. = FALSE)
+  FILE <- .dbauditResource("events.csv")
+  if (!nzchar(FILE)) {
+    stop(paste(
+      "events catalog not found (inst/events.csv).",
+      "The installation is incomplete: reinstall dbaudit."
+    ), call. = FALSE)
   }
   Catalog <- fread(FILE)
   Required <- c(

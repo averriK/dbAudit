@@ -85,6 +85,31 @@
   suppressWarnings(as.numeric(y))
 }
 
+# Runtime resources — the event catalog, the parse manifest — live under
+# inst/. Asking the installed R package for them answers "" wherever
+# dbAudit was installed as the command line alone, which is the
+# documented way to install it: the launcher copies inst/ next to the
+# entrypoint and names that root in DBAUDIT_HOME. Every resource is
+# resolved through here so no caller has to remember the difference.
+.dbauditResource <- function(...) {
+  Rel <- file.path(...)
+
+  FILE <- system.file(Rel, package = "dbAudit")
+  if (nzchar(FILE) && file.exists(FILE)) return(FILE)
+
+  Home <- Sys.getenv("DBAUDIT_HOME")
+  if (nzchar(Home)) {
+    FILE <- file.path(Home, "inst", Rel)
+    if (file.exists(FILE)) return(FILE)
+  }
+
+  # Running from a checkout: the working directory is the package root.
+  FILE <- file.path("inst", Rel)
+  if (file.exists(FILE)) return(FILE)
+
+  ""
+}
+
 # A subcommand finds its input by convention: the declared name when the
 # user gave one, otherwise the first candidate layout that exists. Adding
 # a layout never invalidates the ones already in use.
