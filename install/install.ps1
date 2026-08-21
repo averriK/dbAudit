@@ -208,12 +208,43 @@ try {
     Push-Location $RepoRoot
     $ErrorActionPreference = "SilentlyContinue"
 
-    $commit = & git rev-parse --short HEAD 2>$null
-    $branch = & git rev-parse --abbrev-ref HEAD 2>$null
-    $tag = & git describe --tags --exact-match 2>$null
+    # git may be absent from this PowerShell PATH, or refuse a shared
+    # checkout as dubious ownership (a Parallels-mounted Mac tree). Try
+    # git first with the repo whitelisted; on any failure fall back to
+    # reading .git/HEAD and the ref files directly, so the manifest
+    # never silently records "unknown" while a real checkout is there.
+    $commit = & git -C $RepoRoot -c "safe.directory=$RepoRoot" rev-parse --short HEAD 2>$null
+    $branch = & git -C $RepoRoot -c "safe.directory=$RepoRoot" rev-parse --abbrev-ref HEAD 2>$null
+    $tag = & git -C $RepoRoot -c "safe.directory=$RepoRoot" describe --tags --exact-match 2>$null
+
+    if (-not $commit -or -not $branch) {
+        $headFile = Join-Path $RepoRoot ".git\HEAD"
+        if (Test-Path $headFile) {
+            $head = (Get-Content -LiteralPath $headFile -TotalCount 1).Trim()
+            if ($head -match '^ref:\s*refs/heads/(.+)$') {
+                if (-not $branch) { $branch = $matches[1] }
+                $refFile = Join-Path $RepoRoot (".git\refs\heads\" + $matches[1].Replace("/", "\"))
+                $sha = $null
+                if (Test-Path $refFile) {
+                    $sha = (Get-Content -LiteralPath $refFile -TotalCount 1).Trim()
+                } else {
+                    $packed = Join-Path $RepoRoot ".git\packed-refs"
+                    if (Test-Path $packed) {
+                        $hit = Get-Content -LiteralPath $packed | Where-Object { $_ -match ("\srefs/heads/" + [regex]::Escape($matches[1]) + "$") } | Select-Object -First 1
+                        if ($hit) { $sha = ($hit -split "\s+")[0] }
+                    }
+                }
+                if ($sha -and -not $commit) { $commit = $sha.Substring(0, [Math]::Min(7, $sha.Length)) }
+            } elseif ($head -match '^[0-9a-f]{7,40}$') {
+                if (-not $commit) { $commit = $head.Substring(0, 7) }
+                if (-not $branch) { $branch = "detached" }
+            }
+        }
+    }
+
     $installDate = (Get-Date).ToUniversalTime().ToString("yyyy-MM-dd HH:mm:ss UTC")
 
-    if (-not $commit) { $commit = "unknown" }
+    if (-not $commit) { $commit = "unknown"; Warn "Build identity not captured: git unavailable and .git unreadable." }
     if (-not $branch) { $branch = "unknown" }
     if (-not $tag) { $tag = "" }
 
