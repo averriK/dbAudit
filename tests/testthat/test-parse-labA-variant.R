@@ -44,3 +44,31 @@ test_that("the type-A sub-variant parses with correct metadata and values", {
   expect_true(any(grepl("PARSE_OK", log.lines)))
   expect_false(any(grepl("PARSE_ERROR", log.lines)))
 })
+
+test_that("an unresolvable date degrades to NA without killing the certificate", {
+  f <- tempfile(fileext = ".csv")
+  on.exit(unlink(f), add = TRUE)
+  writeLines(c(
+    'LabjobNo:,SYN0002.R25,"",""',
+    'DespatchNo:,SYND202500002,"",""',
+    '# of SAMPLES:,1,"",""',
+    'DATE RECEIVED:,05-Avr-2025,"",""',
+    'DATE FINALIZED:,quince de marzo,"",""',
+    'ESTADO:,Terminado,"",""',
+    '"","",G0100,G0200',
+    'SAMPLE,Analysis Order,Au,Cu',
+    'DESCRIPTION,"",PPM,PCT',
+    'MIN DETECTION,"",0.005,0.01',
+    'MAX DETECTION,"",10,50',
+    'SYN00000003,1,0.021,0.87'
+  ), f)
+  lg <- tempfile(fileext = ".csv")
+  out <- .parseLabDataA(f, log.file = lg)
+
+  expect_identical(nrow(out$DATA), 2L)
+  expect_identical(out$INDEX$dateReceived[1], NA_character_)
+  expect_identical(out$INDEX$dateFinalized[1], NA_character_)
+  log.lines <- readLines(lg)
+  expect_true(any(grepl("PARSE_OK", log.lines)))
+  expect_false(any(grepl("PARSE_ERROR", log.lines)))
+})

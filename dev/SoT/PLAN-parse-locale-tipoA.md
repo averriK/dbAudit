@@ -67,3 +67,24 @@ descartan en silencio).
 1. ¿Se aprueban ambos fixes con esa validación?
 2. Tras verificar: ¿reinstalación inmediata o se acumula con el
    próximo cierre?
+
+## ADENDA 2026-08-21 — degradación a NA (residual, orden del dueño)
+
+Hallazgo del agente de documentación, verificado end-to-end: una fecha
+irresoluble (mes en idioma no soportado — "05-Avr-2025", "05-Okt-2025")
+seguía ABORTANDO el certificado completo: el último recurso
+`as.Date(v.norm)` lanza `charToDate` (error, no warning) y
+`suppressWarnings` no lo atrapa. El fix del locale cerró el modo de
+falla ES/EN/PT; no la fragilidad de fondo.
+
+Corrección (dueño: "corregir el código es tu función"): el último
+recurso degrada a NA — un certificado jamás se pierde por una fecha;
+las fechas quedan NA en el índice y los valores ingresan. Tests: NA
+sin lanzamiento en francés/alemán/basura; certificado sintético con
+fechas irresolubles parsea PARSE_OK con fechas NA. Suite completa en
+verde, goldens byte-idénticos.
+
+Nota canónica del mensaje (corrección del mismo agente): el error
+histórico es "character string is not in a standard unambiguous
+format" — la forma española del reporte original era la traducción
+del R del usuario.

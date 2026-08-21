@@ -27,3 +27,10 @@ test_that(".as.Date is immune to a Spanish LC_TIME", {
   expect_identical(.as.Date("31-Mar-2025"), "2025-03-31")
   expect_identical(.as.Date("10-Abr-2025"), "2025-04-10")
 })
+
+test_that(".as.Date degrades to NA on unsupported languages, never throws", {
+  expect_no_error(v <- .as.Date("05-Avr-2025"))
+  expect_identical(v, NA_character_)
+  expect_identical(.as.Date("05-Okt-2025"), NA_character_)
+  expect_identical(.as.Date("not a date"), NA_character_)
+})

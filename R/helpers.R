@@ -102,7 +102,10 @@
     dt <- suppressWarnings(as.Date(v.norm, format = f))
     if (!is.na(dt)) return(format(dt, "%Y-%m-%d"))
   }
-  dt <- suppressWarnings(as.Date(v.norm))
+  # Last resort throws charToDate on unresolvable input (an error, not a
+  # warning): an unparseable date must degrade to NA, never abort the
+  # certificate that carries it.
+  dt <- suppressWarnings(tryCatch(as.Date(v.norm), error = function(e) NA))
   if (!is.na(dt)) return(format(dt, "%Y-%m-%d"))
   NA_character_
 }
